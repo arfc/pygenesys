@@ -16,3 +16,14 @@ cd temoa
 conda env create
 conda activate temoa-py3
 ```
+
+
+## Install PyGenesys
+
+The installation is quite simple:
+
+```bash
+python setup.py install
+```
+
+and you're done!
