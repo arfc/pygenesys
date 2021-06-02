@@ -61,7 +61,10 @@ def main():
 
     infile = load_infile(args.infile)
     out_db = infile.database_filename
-    out_path = infile.curr_dir + "/" + out_db
+    try:
+        out_path = infile.curr_dir + "/" + out_db
+    except:
+        out_path = "./" + out_db
 
     # create the model object
     model = model_info.ModelInfo(output_db = out_path,

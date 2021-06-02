@@ -46,6 +46,47 @@ $ pip install -e .
 
 and you're done!
 
+## Running PyGenesys
+
+``PyGenesys`` is simple and intuitive.
+
+#### Step 1: Create your input file.
+A ``PyGenesys`` input file is written in Python with simple variable names. The
+beginning should look something like this:
+
+```py
+import os
+curr_dir = os.path.dirname(__file__)
+
+database_filename = 'my_temoadb.sqlite'  # where the database will be written
+scenario_name = 'test'
+start_year = 2025
+end_year = 2050
+year_step = 5
+N_seasons = 4 # the number of seasons in the model
+N_hours = 24 # the number of hours in a day
+```
+
+The first two lines
+
+```py
+import os
+curr_dir = os.path.dirname(__file__)
+```
+are recommended, but not required. This simply tells ``PyGenesys`` to save the
+database in the same directory as your input file. Otherwise, the database will
+be saved in the ``pygenesys/pygenesys`` folder.
+
+**TODO: Add Detail**
+
+#### Step 2: Build the database
+Now that you have an input file, you can build the SQLite database required
+by Temoa via:
+
+```bash
+$ genesys --infile path/to/my/input/file.py
+```
+**Note: This command can be run from any directory.**
 
 ## Run Tests
 
