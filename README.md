@@ -22,8 +22,35 @@ conda activate temoa-py3
 
 The installation is quite simple:
 
+### Clone the Repository
+
 ```bash
-python setup.py install
+$ git clone git@github.com:arfc/pygenesys.git
+$ cd pygenesys
+```
+
+#### Option 1: Basic Installation
+
+```bash
+$ pip install .
+```
+
+#### Option 2: Editable Installation
+This option is for people that want to develop PyGenesys. By doing
+this method, any changes you make to the PyGenesys source code will
+take immediate effect on your local machine.
+
+```bash
+$ pip install -e .
 ```
 
 and you're done!
+
+
+## Run Tests
+
+The tests can be run by simply executing
+
+```bash
+$ pytest
+```
