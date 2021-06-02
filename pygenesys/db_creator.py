@@ -1,15 +1,45 @@
 
-def create_time_season():
+import itertools
+import sqlite3
+
+def establish_connection(output_db):
+    """
+    Establishes connection with sqlite3 database.
+    """
+    conn = None
+    try:
+        conn = sqlite3.connect(output_db)
+        print(conn)
+    except:
+        print("Database connection failed. Writing to sql file instead.")
+        print("Warning: SQL writing has not been implemented.")
+
+    return conn
+
+
+def create_time_season(connector, N_seasons):
+
+
+    cursor = connector.cursor()
 
     table_command = """CREATE TABLE "time_season" (
                     	"t_season"	text,
                     	PRIMARY KEY("t_season")
                     );"""
+    insert_command = """
+                     INSERT INTO "time_season" VALUES (?)
+                     """
 
-    return table_command
+    seasons = [[f'S{i+1}'] for i in range(N_seasons)]
+
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, seasons)
+    connector.commit()
+
+    return seasons
 
 
-def create_time_periods():
+def create_time_periods(connector, time_horizon):
 
 
     table_command = """CREATE TABLE "time_periods" (
@@ -18,29 +48,107 @@ def create_time_periods():
                     	PRIMARY KEY("t_periods"),
                     	FOREIGN KEY("flag") REFERENCES "time_period_labels"("t_period_labels")
                     );"""
+    insert_command = """
+                     INSERT INTO "time_periods" VALUES(?,?)
+                     """
 
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, time_horizon)
+    connector.commit()
     return table_command
 
 
-def create_time_period_labels():
+def create_time_period_labels(connector):
+
+
 
     table_command = """CREATE TABLE "time_period_labels" (
                 	"t_period_labels"	text,
                 	"t_period_labels_desc"	text,
                 	PRIMARY KEY("t_period_labels")
                     );"""
-                    
+    labels = [('e','existing vintages'), ('f','future vintages')]
+
+    insert_command = """
+                     INSERT INTO "time_period_labels" VALUES(?,?)
+                     """
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, labels)
+    connector.commit()
+
     return table_command
 
 
-def create_time_of_day():
+def create_time_of_day(connector, N_hours):
+
+
 
     table_command = """CREATE TABLE "time_of_day" (
                     	"t_day"	text,
                     	PRIMARY KEY("t_day")
                     );"""
 
+    insert_command = """
+                     INSERT INTO "time_of_day" VALUES (?)
+                     """
+
+    times_of_day = [[f'H{i+1}'] for i in range(N_hours)]
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, times_of_day)
+    connector.commit()
+
+    return times_of_day
+
+def create_segfrac(connector, segfrac, seasons, hours):
+    """
+    Generates the SegFrac table for the Temoa database.
+    This table defines what fraction of a year is represented
+    by each time slice.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        Used to connect to and write to an sqlite database.
+    segfrac : float
+        The fraction-of-a-year represented by each time slice.
+    seasons : list
+        The list of seasons in the simulation.
+    hours : list
+        The list of hours in the simulation.
+
+    Returns
+    -------
+
+    """
+
+
+    table_command = """CREATE TABLE "SegFrac" (
+                    	"season_name"	text,
+                    	"time_of_day_name"	text,
+                    	"segfrac"	real CHECK("segfrac" >= 0 AND "segfrac" <= 1),
+                    	"segfrac_notes"	text,
+                    	PRIMARY KEY("season_name","time_of_day_name"),
+                    	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
+                    	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day")
+                    );"""
+    insert_command = """
+                     INSERT INTO "SegFrac" VALUES (?,?,?,?)
+                     """
+    time_slices = itertools.product(seasons, hours)
+    entries = [(ts[0][0], ts[1][0], segfrac, 'fraction of year') for ts in time_slices]
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
     return table_command
+
 
 """
 def create_():
@@ -195,17 +303,7 @@ CREATE TABLE "StorageDuration" (
 );
 return
 
-def create_():
-CREATE TABLE "SegFrac" (
-	"season_name"	text,
-	"time_of_day_name"	text,
-	"segfrac"	real CHECK("segfrac" >= 0 AND "segfrac" <= 1),
-	"segfrac_notes"	text,
-	PRIMARY KEY("season_name","time_of_day_name"),
-	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
-	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day")
-);
-return
+
 
 def create_():
 CREATE TABLE "PlanningReserveMargin" (

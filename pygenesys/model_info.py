@@ -35,6 +35,18 @@ class ModelInfo(object):
             The time between simulated years. E.g. if the
             year_step is 5 and the first year is 2020, then
             the next year in the simulation will be 2025.
+        N_seasons : int
+            The number of seasons in the simulation. Several values
+            are acceptable. E.g.
+                * 1; there are no seasonal differences
+                * 4; spring,summer,fall,winter
+                * 365; full year, daily resolution
+        N_hours : int
+            The number of hours in the simulation. Several values
+            are acceptable. E.g.
+                * 1; there is no daily variation
+                * 2; diurnal variation, step function
+                * 24; full day, hourly resolution
         """
 
 
@@ -61,10 +73,9 @@ class ModelInfo(object):
         database.
         """
 
-        time_horizon = np.arange(self.start_year,
-                                 (self.end_year+1),
-                                 self.year_step)
-
+        time_horizon = [(year, 'f') for year in range(self.start_year,
+                                                      self.end_year+1,
+                                                      self.year_step)]
         return time_horizon
 
 
@@ -81,28 +92,20 @@ class ModelInfo(object):
         return seg_frac
 
 
-    def _establish_connection(self):
-        conn = None
-        try:
-            conn = sqlite3.connect(self.output_db)
-        except:
-            print("Database connection failed. Writing to sql file instead.")
-
-        return conn
-
-
     def _write_sqlite_database(self):
         """
         Writes model info directly to a sqlite database.
         """
 
-        conn = self._establish_connection()
-        cursor = conn.cursor()
+        conn = _establish_connection(self.output_db)
 
         # create fundamental tables
-        cursor.execute(create_time_periods())
-        cursor.execute(create_time_period_labels())
-        cursor.execute(create_time_period())
+        seasons = create_time_season(conn, self.N_seasons)
+        create_time_period_labels(conn)
+        create_time_periods(conn, self.time_horizon)
+        time_slices = create_time_of_day(conn, self.N_hours)
+        create_segfrac(conn, self.seg_frac, seasons, time_slices)
 
 
+        conn.close()
         return

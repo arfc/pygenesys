@@ -78,6 +78,8 @@ def main():
 
     print(f"The year fraction is \n {model.seg_frac} \n")
 
+
+    # Should check if the model is to be written to a sql or sqlite database
     model._write_sqlite_database()
 
     print("The main function")
