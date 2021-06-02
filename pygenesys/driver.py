@@ -6,6 +6,9 @@ import argparse
 import os, sys
 import sqlite3
 
+# custom imports
+from pygenesys import model_info
+
 def name_from_path(infile_path):
     """
     Returns just the base of the filename from the path.
@@ -60,7 +63,22 @@ def main():
     out_db = infile.database_filename
     out_path = infile.curr_dir + "/" + out_db
 
-    print(f"Database will be exported to {out_path} \n")
+    # create the model object
+    model = model_info.ModelInfo(output_db = out_path,
+                                 scenario_name = infile.scenario_name,
+                                 start_year = infile.start_year,
+                                 end_year = infile.end_year,
+                                 year_step = infile.year_step,
+                                 N_seasons = infile.N_seasons,
+                                 N_hours = infile.N_hours,
+                                 )
+    print(f"Database will be exported to {model.output_db} \n")
+
+    print(f"The years simulated by the model are \n {model.time_horizon} \n")
+
+    print(f"The year fraction is \n {model.seg_frac} \n")
+
+    model._write_sqlite_database()
 
     print("The main function")
 
