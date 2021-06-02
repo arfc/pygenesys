@@ -95,3 +95,9 @@ The tests can be run by simply executing
 ```bash
 $ pytest
 ```
+
+
+### Credits and Acknowledgments
+
+Some of the code in ``driver.py`` was borrowed and modified from another open
+source project [``PyRK``](https://github.com/pyrk/pyrk).
