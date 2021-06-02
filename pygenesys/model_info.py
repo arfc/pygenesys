@@ -49,7 +49,6 @@ class ModelInfo(object):
                 * 24; full day, hourly resolution
         """
 
-
         self.output_db = output_db
         self.scenario_name = scenario_name
         self.start_year = start_year
@@ -62,9 +61,7 @@ class ModelInfo(object):
         self.time_horizon = self._calculate_time_horizon()
         self.seg_frac = self._calculate_seg_frac()
 
-
         return
-
 
     def _calculate_time_horizon(self):
         """
@@ -74,10 +71,9 @@ class ModelInfo(object):
         """
 
         time_horizon = [(year, 'f') for year in range(self.start_year,
-                                                      self.end_year+1,
+                                                      self.end_year + 1,
                                                       self.year_step)]
         return time_horizon
-
 
     def _calculate_seg_frac(self):
         """
@@ -87,10 +83,9 @@ class ModelInfo(object):
         in the Temoa database.
         """
 
-        seg_frac = 1/(self.N_seasons*self.N_hours)
+        seg_frac = 1 / (self.N_seasons * self.N_hours)
 
         return seg_frac
-
 
     def _write_sqlite_database(self):
         """
@@ -105,7 +100,6 @@ class ModelInfo(object):
         create_time_periods(conn, self.time_horizon)
         time_slices = create_time_of_day(conn, self.N_hours)
         create_segfrac(conn, self.seg_frac, seasons, time_slices)
-
 
         conn.close()
         return

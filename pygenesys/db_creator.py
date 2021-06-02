@@ -2,6 +2,7 @@
 import itertools
 import sqlite3
 
+
 def establish_connection(output_db):
     """
     Establishes connection with sqlite3 database.
@@ -10,7 +11,7 @@ def establish_connection(output_db):
     try:
         conn = sqlite3.connect(output_db)
         print(conn)
-    except:
+    except BaseException:
         print("Database connection failed. Writing to sql file instead.")
         print("Warning: SQL writing has not been implemented.")
 
@@ -18,7 +19,6 @@ def establish_connection(output_db):
 
 
 def create_time_season(connector, N_seasons):
-
 
     cursor = connector.cursor()
 
@@ -41,7 +41,6 @@ def create_time_season(connector, N_seasons):
 
 def create_time_periods(connector, time_horizon):
 
-
     table_command = """CREATE TABLE "time_periods" (
                     	"t_periods"	integer,
                     	"flag"	text,
@@ -61,14 +60,12 @@ def create_time_periods(connector, time_horizon):
 
 def create_time_period_labels(connector):
 
-
-
     table_command = """CREATE TABLE "time_period_labels" (
                 	"t_period_labels"	text,
                 	"t_period_labels_desc"	text,
                 	PRIMARY KEY("t_period_labels")
                     );"""
-    labels = [('e','existing vintages'), ('f','future vintages')]
+    labels = [('e', 'existing vintages'), ('f', 'future vintages')]
 
     insert_command = """
                      INSERT INTO "time_period_labels" VALUES(?,?)
@@ -83,8 +80,6 @@ def create_time_period_labels(connector):
 
 
 def create_time_of_day(connector, N_hours):
-
-
 
     table_command = """CREATE TABLE "time_of_day" (
                     	"t_day"	text,
@@ -103,6 +98,7 @@ def create_time_of_day(connector, N_hours):
     connector.commit()
 
     return times_of_day
+
 
 def create_segfrac(connector, segfrac, seasons, hours):
     """
@@ -126,7 +122,6 @@ def create_segfrac(connector, segfrac, seasons, hours):
 
     """
 
-
     table_command = """CREATE TABLE "SegFrac" (
                     	"season_name"	text,
                     	"time_of_day_name"	text,
@@ -140,7 +135,8 @@ def create_segfrac(connector, segfrac, seasons, hours):
                      INSERT INTO "SegFrac" VALUES (?,?,?,?)
                      """
     time_slices = itertools.product(seasons, hours)
-    entries = [(ts[0][0], ts[1][0], segfrac, 'fraction of year') for ts in time_slices]
+    entries = [(ts[0][0], ts[1][0], segfrac, 'fraction of year')
+               for ts in time_slices]
 
     cursor = connector.cursor()
     cursor.execute(table_command)

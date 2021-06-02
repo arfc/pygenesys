@@ -9,6 +9,7 @@ def test_technology_placeholder_is_none():
 
     return
 
+
 def test_name_from_path():
     assert(driver.name_from_path("/Users/test/test.py") == "test")
     assert(driver.name_from_path("/Users/test/test") == "test")
