@@ -11,9 +11,9 @@ genesys --infile my/pygenesys/input/file.py
 import os
 curr_dir = os.path.dirname(__file__)
 
-database_filename = 'my_temoadb.sqlite'
+database_filename = 'my_temoadb.sqlite'  # where the database will be written
 scenario_name = 'test'
-start_year = 2020
+start_year = 2025
 end_year = 2050
 year_step = 5
 N_seasons = 4 # the number of seasons in the model

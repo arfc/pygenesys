@@ -9,9 +9,9 @@ start_year = 2020
 end_year = 2050
 year_step = 5
 seasons = [[f'S{i+1}'] for i in range(N_seasons)]
-periods = [(year, 'f') for year in range(self.start_year,
-                                         self.end_year+1,
-                                         self.year_step)]
+periods = [(year, 'f') for year in range(start_year,
+                                         end_year+1,
+                                         year_step)]
 
 def test_establish_connection():
     conn = establish_connection(test_db)
@@ -66,7 +66,7 @@ def test_create_time_periods():
     conn.close()
 
     # tests
-    assert(len(table_data) == N_labels)
+    assert(len(table_data) == len(periods))
 
     os.remove(test_db)
     return
