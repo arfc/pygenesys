@@ -10,7 +10,6 @@ def establish_connection(output_db):
     conn = None
     try:
         conn = sqlite3.connect(output_db)
-        print(conn)
     except BaseException:
         print("Database connection failed. Writing to sql file instead.")
         print("Warning: SQL writing has not been implemented.")
