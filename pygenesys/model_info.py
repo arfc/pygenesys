@@ -71,7 +71,8 @@ class ModelInfo(object):
         """
 
         time_horizon = [(year, 'f') for year in range(self.start_year,
-                                                      self.end_year + 1,
+                                                      (self.end_year +
+                                                       self.year_step + 1),
                                                       self.year_step)]
         return time_horizon
 
@@ -92,7 +93,7 @@ class ModelInfo(object):
         Writes model info directly to a sqlite database.
         """
 
-        conn = _establish_connection(self.output_db)
+        conn = establish_connection(self.output_db)
 
         # create fundamental tables
         seasons = create_time_season(conn, self.N_seasons)
