@@ -16,7 +16,8 @@ class ModelInfo(object):
                  end_year,
                  year_step,
                  N_seasons,
-                 N_hours):
+                 N_hours,
+                 system,):
         """
         This class holds information about the PyGenesys and
         Temoa model.
@@ -47,6 +48,10 @@ class ModelInfo(object):
                 * 1; there is no daily variation
                 * 2; diurnal variation, step function
                 * 24; full day, hourly resolution
+        system : nested dictionary
+            This dictionary holds the architecture of the model.
+            It describes which commodities and technologies are present
+            in a given region.
         """
 
         self.output_db = output_db
@@ -56,12 +61,14 @@ class ModelInfo(object):
         self.year_step = year_step
         self.N_seasons = N_seasons
         self.N_hours = N_hours
+        self.system = system
 
         # derived quantities
         self.time_horizon = self._calculate_time_horizon()
         self.seg_frac = self._calculate_seg_frac()
 
         return
+
 
     def _calculate_time_horizon(self):
         """
@@ -76,6 +83,7 @@ class ModelInfo(object):
                                                       self.year_step)]
         return time_horizon
 
+
     def _calculate_seg_frac(self):
         """
         Calculates the fraction of a year represented
@@ -87,6 +95,7 @@ class ModelInfo(object):
         seg_frac = 1 / (self.N_seasons * self.N_hours)
 
         return seg_frac
+
 
     def _write_sqlite_database(self):
         """
@@ -101,6 +110,7 @@ class ModelInfo(object):
         create_time_periods(conn, self.time_horizon)
         time_slices = create_time_of_day(conn, self.N_hours)
         create_segfrac(conn, self.seg_frac, seasons, time_slices)
-
+        create_commodity_labels(conn)
+        create_commodities(conn)
         conn.close()
         return

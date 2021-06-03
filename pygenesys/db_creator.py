@@ -145,6 +145,46 @@ def create_segfrac(connector, segfrac, seasons, hours):
     return table_command
 
 
+def create_commodity_labels(connector):
+
+    table_command = """CREATE TABLE "commodity_labels" (
+                       "comm_labels"	text,
+                       "comm_labels_desc"	text,
+                       PRIMARY KEY("comm_labels")
+                    );
+                    """
+
+    insert_command = """
+                     INSERT INTO "commodity_labels" VALUES (?,?)
+                     """
+    commodity_labels = [('p', 'physical commodity'),
+                       ('d', 'demand commodity'),
+                       ('e', 'emissions commodity')]
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.execute(insert_command, commodity_labels)
+
+    return
+
+
+def create_commodities(connector, comm_data):
+    table_command = """CREATE TABLE "commodities" (
+                    	"comm_name"	text,
+                    	"flag"	text,
+                    	"comm_desc"	text,
+                    	PRIMARY KEY("comm_name"),
+                    	FOREIGN KEY("flag") REFERENCES "commodity_labels"("comm_labels")
+                    );"""
+    insert_command = """
+                     INSERT INTO "commodities" VALUES(?,?,?)
+                     """
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.execute(insert_command, comm_data)
+    return
+
+
 """
 def create_():
 CREATE TABLE "technology_labels" (
@@ -241,22 +281,6 @@ CREATE TABLE "groups" (
 return
 
 def create_():
-CREATE TABLE "commodity_labels" (
-	"comm_labels"	text,
-	"comm_labels_desc"	text,
-	PRIMARY KEY("comm_labels")
-);
-return
-
-def create_():
-CREATE TABLE "commodities" (
-	"comm_name"	text,
-	"flag"	text,
-	"comm_desc"	text,
-	PRIMARY KEY("comm_name"),
-	FOREIGN KEY("flag") REFERENCES "commodity_labels"("comm_labels")
-);
-return
 
 def create_():
 CREATE TABLE "TechOutputSplit" (

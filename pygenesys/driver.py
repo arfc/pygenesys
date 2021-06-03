@@ -76,7 +76,7 @@ def main():
                                  year_step=infile.year_step,
                                  N_seasons=infile.N_seasons,
                                  N_hours=infile.N_hours,
-                                 )
+                                 system=infile.system,)
     print(f"Database will be exported to {model.output_db} \n")
 
     print(f"The years simulated by the model are \n {model.time_horizon} \n")

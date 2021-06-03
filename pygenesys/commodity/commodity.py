@@ -1,7 +1,3 @@
-"""
-A ''commodity'' is a "raw material" or an "energy carrier."
-"""
-
 class Commodity(object):
     """
     A ''commodity'' is a "raw material" or an "energy carrier.
@@ -11,8 +7,8 @@ class Commodity(object):
 
     def __init__(self,
                  comm_name,
-                 comm_label,
                  units,
+                 comm_label='p',
                  description='',
                  ):
         """
@@ -52,7 +48,7 @@ class Commodity(object):
     def _db_entry(self):
         return (self.comm_name,
                 self.comm_label,
-                self.description + self.units)
+                self.description + ", " + self.units)
 
 class DemandCommodity(Commodity):
     """
@@ -62,11 +58,11 @@ class DemandCommodity(Commodity):
     def __init__(self,
                  comm_name,
                  units,
-                 demand,
+                 comm_label='d',
+                 demand = {},
                  growth_rate = 0.0,
                  growth_method = 'linear',
                  demand_distribution=None,
-                 comm_label='d',
                  description='',
                  ):
         """
@@ -88,19 +84,39 @@ class DemandCommodity(Commodity):
             checking.
         description : string
             A brief (1-4 words) description of the commodity.
-        demand : float, list
-            The quantity of the commodity that is demanded for a given year
-            in the simulation.
+        demand : dictionary
+            The dictionary containing the commodity demand for a given
+            region.
         """
         super().__init__(comm_name,
-                         comm_label,
                          units,
+                         comm_label,
                          description,)
         self.demand = demand
         self.demand_distribution = demand_distribution
 
+
         return
 
+
+    def add_demand(self,
+                   region,
+                   init_demand,
+                   ):
+        """
+        Updates the ``demand`` dictionary with a new region and demand.
+
+        Parameters
+        ----------
+        region : string
+            The label for a region.
+        init_demand : float
+            The demand for a commodity in the first year of the simulation.
+        """
+
+        self.demand.update({region:init_demand})
+
+        return
 
 class EmissionsCommodity(Commodity):
     """
@@ -136,8 +152,8 @@ class EmissionsCommodity(Commodity):
             A brief (1-4 words) description of the commodity.
         """
         super().__init__(comm_name,
-                         comm_label,
                          units,
+                         comm_label,
                          description,)
         self.demand = demand
         self.demand_distribution = demand_distribution
@@ -162,3 +178,12 @@ if __name__ == "__main__":
                                demand = 125)
     print(repr(pancakes))
     print(pancakes._db_entry())
+
+
+    ELC_DEMAND = DemandCommodity(comm_name='ELC_DEMAND',
+                                 units='GWh',
+                                 description='End-use electricity demand')
+
+    print(repr(ELC_DEMAND))
+    print(ELC_DEMAND._db_entry())
+    print(ELC_DEMAND.units)
