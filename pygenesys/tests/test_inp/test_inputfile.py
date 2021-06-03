@@ -22,3 +22,7 @@ N_hours = 24  # the number of hours in a day
 Note: If the (end_year - start_year) % year_step != 0, then
 the final year of the simulation will be truncated.
 """
+# Commodities Section
+demand = None
+physical = None
+byproducts = None
