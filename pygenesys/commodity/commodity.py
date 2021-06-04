@@ -59,7 +59,6 @@ class DemandCommodity(Commodity):
                  comm_name,
                  units,
                  comm_label='d',
-                 demand = {},
                  growth_rate = 0.0,
                  growth_method = 'linear',
                  demand_distribution=None,
@@ -92,7 +91,7 @@ class DemandCommodity(Commodity):
                          units,
                          comm_label,
                          description,)
-        self.demand = demand
+        self.demand = {}
         self.demand_distribution = demand_distribution
 
 
@@ -114,7 +113,11 @@ class DemandCommodity(Commodity):
             The demand for a commodity in the first year of the simulation.
         """
 
-        self.demand.update({region:init_demand})
+        if region in self.demand:
+            print(f'Region {region} already in database. Overwriting.')
+            self.demand[region] = init_demand
+        else:
+            self.demand.update({region:init_demand})
 
         return
 
@@ -175,7 +178,7 @@ if __name__ == "__main__":
 
     pancakes = DemandCommodity(comm_name = 'pancakes',
                                units = 'number',
-                               demand = 125)
+                               )
     print(repr(pancakes))
     print(pancakes._db_entry())
 

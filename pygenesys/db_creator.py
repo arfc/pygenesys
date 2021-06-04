@@ -38,7 +38,7 @@ def create_time_season(connector, N_seasons):
     return seasons
 
 
-def create_time_periods(connector, time_horizon):
+def create_time_periods(connector, future_years):
 
     table_command = """CREATE TABLE "time_periods" (
                     	"t_periods"	integer,
@@ -50,6 +50,10 @@ def create_time_periods(connector, time_horizon):
                      INSERT INTO "time_periods" VALUES(?,?)
                      """
 
+    time_horizon = [(int(year), 'f') for year in future_years]
+    # set boundary year
+    time_horizon.append((int(future_years[-1]+1), 'f'))
+    print(time_horizon)
     cursor = connector.cursor()
     cursor.execute(table_command)
     cursor.executemany(insert_command, time_horizon)
@@ -157,13 +161,13 @@ def create_commodity_labels(connector):
     insert_command = """
                      INSERT INTO "commodity_labels" VALUES (?,?)
                      """
-    commodity_labels = [('p', 'physical commodity'),
-                       ('d', 'demand commodity'),
-                       ('e', 'emissions commodity')]
+    labels = [("p", "physical commodity"), ("d", "demand commodity"), ("e", "emissions commodity")]
+
 
     cursor = connector.cursor()
     cursor.execute(table_command)
-    cursor.execute(insert_command, commodity_labels)
+    cursor.executemany(insert_command, labels)
+    connector.commit()
 
     return
 
@@ -179,11 +183,39 @@ def create_commodities(connector, comm_data):
     insert_command = """
                      INSERT INTO "commodities" VALUES(?,?,?)
                      """
+    demand_entries = [comm._db_entry() for comm in comm_data['demand']]
+    resource_entries = [comm._db_entry() for comm in comm_data['resources']]
+    emission_entries = [comm._db_entry() for comm in comm_data['emissions']]
+
+    labels = demand_entries + resource_entries + emission_entries
+
+
     cursor = connector.cursor()
     cursor.execute(table_command)
-    cursor.execute(insert_command, comm_data)
+    cursor.executemany(insert_command, labels)
+    connector.commit()
+
     return
 
+
+def create_regions(connector, regions):
+    table_command = """CREATE TABLE "regions" (
+                    	"regions"	TEXT,
+                    	"region_note"	TEXT,
+                    	PRIMARY KEY("regions")
+                    );"""
+    insert_command = """
+                     INSERT INTO "regions" VALUES (?,?)
+                     """
+    labels = [(r, '') for r in regions]
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, labels)
+    connector.commit()
+
+
+    return
 
 """
 def create_():
@@ -264,13 +296,6 @@ CREATE TABLE "sector_labels" (
 );
 return
 
-def create_():
-CREATE TABLE "regions" (
-	"regions"	TEXT,
-	"region_note"	TEXT,
-	PRIMARY KEY("regions")
-);
-return
 
 def create_():
 CREATE TABLE "groups" (
