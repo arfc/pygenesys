@@ -48,10 +48,10 @@ and you're done!
 
 ## Running PyGenesys
 
-``PyGenesys`` is simple and intuitive.
+``PyGenesys`` is a package that is intended to be a simple and intuitive interface to run Temoa.
 
 #### Step 1: Create your input file.
-A ``PyGenesys`` input file is written in Python with simple variable names. The
+A ``PyGenesys`` input file is written in Python with clear and verbose variable names. The
 beginning should look something like this:
 
 ```py
@@ -73,7 +73,7 @@ The first two lines
 import os
 curr_dir = os.path.dirname(__file__)
 ```
-are recommended, but not required. This simply tells ``PyGenesys`` to save the
+are recommended, but not required. These lines tell ``PyGenesys`` to save the
 database in the same directory as your input file. Otherwise, the database will
 be saved in the ``pygenesys/pygenesys`` folder.
 
@@ -90,7 +90,7 @@ $ genesys --infile path/to/my/input/file.py
 
 ## Run Tests
 
-The tests can be run by simply executing
+The tests can be run by executing
 
 ```bash
 $ pytest
