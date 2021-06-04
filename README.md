@@ -22,14 +22,18 @@ conda activate temoa-py3
 
 The installation is quite simple:
 
-### Clone the Repository
+### Step 1: Clone the Repository
 
 ```bash
 $ git clone git@github.com:arfc/pygenesys.git
 $ cd pygenesys
 ```
+### Step 2:
 
-#### Option 1: Basic Installation
+There are two options for installation after cloning the repository. If you
+don't plan on editing the source code, use the first option.
+
+#### Option 1: Basic Installation (default)
 
 ```bash
 $ pip install .
@@ -48,10 +52,10 @@ and you're done!
 
 ## Running PyGenesys
 
-``PyGenesys`` is simple and intuitive.
+``PyGenesys`` is a package that is intended to be a simple and intuitive interface to run Temoa.
 
 #### Step 1: Create your input file.
-A ``PyGenesys`` input file is written in Python with simple variable names. The
+A ``PyGenesys`` input file is written in Python with clear and verbose variable names. The
 beginning should look something like this:
 
 ```py
@@ -73,7 +77,7 @@ The first two lines
 import os
 curr_dir = os.path.dirname(__file__)
 ```
-are recommended, but not required. This simply tells ``PyGenesys`` to save the
+are recommended, but not required. These lines tell ``PyGenesys`` to save the
 database in the same directory as your input file. Otherwise, the database will
 be saved in the ``pygenesys/pygenesys`` folder.
 
@@ -90,7 +94,8 @@ $ genesys --infile path/to/my/input/file.py
 
 ## Run Tests
 
-The tests can be run by simply executing
+The tests can be run by executing the following command from the top level
+directory of ``pygenesys``.
 
 ```bash
 $ pytest

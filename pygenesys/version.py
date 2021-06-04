@@ -65,4 +65,4 @@ MICRO = _version_micro
 VERSION = __version__
 PACKAGE_DATA = {'pygenesys': [pjoin('data', '*')]}
 REQUIRES = ['numpy', 'pandas', 'matplotlib', 'pytest']
-PYTHON_REQUIRES = ">= 3.5"
+PYTHON_REQUIRES = ">= 3.6"

@@ -6,6 +6,18 @@ import sqlite3
 def establish_connection(output_db):
     """
     Establishes connection with sqlite3 database.
+    If the file does not exist, it will be created.
+
+    Parameters
+    ----------
+    output_db : string
+        The full path to the SQLite database.
+
+    Returns
+    -------
+    conn : sqlite3 connection
+        An object used to interact with a specific SQLite
+        database.
     """
     conn = None
     try:
@@ -18,6 +30,24 @@ def establish_connection(output_db):
 
 
 def create_time_season(connector, N_seasons):
+    """
+    This function writes the "time_season" table to an sqlite
+    database.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        An object for connecting to a specific SQLite
+        database.
+
+    N_seasons : integer
+        The seasonal resolution of the energy system model.
+
+    Returns
+    -------
+    table_command : string
+        The command for generating the "time_season" table.
+    """
 
     cursor = connector.cursor()
 
@@ -39,6 +69,24 @@ def create_time_season(connector, N_seasons):
 
 
 def create_time_periods(connector, future_years):
+    """
+    This function writes the time_periods table to an sqlite
+    database. Only "future" time periods will be written.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        An object for connecting to a specific SQLite
+        database.
+
+    future_years : list or array
+        The yearly resolution of the energy system model.
+
+    Returns
+    -------
+    table_command : string
+        The command for generating the "time_periods" table.
+    """
 
     table_command = """CREATE TABLE "time_periods" (
                     	"t_periods"	integer,
@@ -62,6 +110,21 @@ def create_time_periods(connector, future_years):
 
 
 def create_time_period_labels(connector):
+    """
+    This function writes the "time_period_labels" table to an sqlite
+    database.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        An object for connecting to a specific SQLite
+        database.
+
+    Returns
+    -------
+    table_command : string
+        The command for generating the "time_period_labels" table.
+    """
 
     table_command = """CREATE TABLE "time_period_labels" (
                 	"t_period_labels"	text,
@@ -83,6 +146,24 @@ def create_time_period_labels(connector):
 
 
 def create_time_of_day(connector, N_hours):
+    """
+    This function writes the "time_of_day" table to an sqlite
+    database.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        An object for connecting to a specific SQLite
+        database.
+
+    N_hours : integer
+        The hourly resolution of the energy system model.
+
+    Returns
+    -------
+    table_command : string
+        The command for generating the "time_of_day" table.
+    """
 
     table_command = """CREATE TABLE "time_of_day" (
                     	"t_day"	text,
@@ -105,7 +186,7 @@ def create_time_of_day(connector, N_hours):
 
 def create_segfrac(connector, segfrac, seasons, hours):
     """
-    Generates the SegFrac table for the Temoa database.
+    Generates the "SegFrac" table for the Temoa database.
     This table defines what fraction of a year is represented
     by each time slice.
 
@@ -122,7 +203,8 @@ def create_segfrac(connector, segfrac, seasons, hours):
 
     Returns
     -------
-
+    table_command : string
+        The command for generating the "SegFrac" table.
     """
 
     table_command = """CREATE TABLE "SegFrac" (
