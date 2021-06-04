@@ -22,14 +22,18 @@ conda activate temoa-py3
 
 The installation is quite simple:
 
-### Clone the Repository
+### Step 1: Clone the Repository
 
 ```bash
 $ git clone git@github.com:arfc/pygenesys.git
 $ cd pygenesys
 ```
+### Step 2:
 
-#### Option 1: Basic Installation
+There are two options for installation after cloning the repository. If you
+don't plan on editing the source code, use the first option.
+
+#### Option 1: Basic Installation (default)
 
 ```bash
 $ pip install .
@@ -90,7 +94,8 @@ $ genesys --infile path/to/my/input/file.py
 
 ## Run Tests
 
-The tests can be run by executing
+The tests can be run by executing the following command from the top level
+directory of ``pygenesys``.
 
 ```bash
 $ pytest
