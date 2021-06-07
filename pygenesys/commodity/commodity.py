@@ -1,3 +1,10 @@
+from pygenesys.utils.growth_model import choose_method
+
+#==============================================================================
+#==============================================================================
+# Defines Commodity
+#==============================================================================
+#==============================================================================
 class Commodity(object):
     """
     A ''commodity'' is a "raw material" or an "energy carrier.
@@ -50,6 +57,11 @@ class Commodity(object):
                 self.comm_label,
                 self.description + ", " + self.units)
 
+#==============================================================================
+#==============================================================================
+# Defines DemandCommodity
+#==============================================================================
+#==============================================================================
 class DemandCommodity(Commodity):
     """
     This class holds data for a demand commodity in Temoa
@@ -59,8 +71,6 @@ class DemandCommodity(Commodity):
                  comm_name,
                  units,
                  comm_label='d',
-                 growth_rate = 0.0,
-                 growth_method = 'linear',
                  demand_distribution=None,
                  description='',
                  ):
@@ -101,6 +111,11 @@ class DemandCommodity(Commodity):
     def add_demand(self,
                    region,
                    init_demand,
+                   start_year,
+                   end_year,
+                   N_years,
+                   growth_rate = 0.0,
+                   growth_method = 'linear',
                    ):
         """
         Updates the ``demand`` dictionary with a new region and demand.
@@ -111,16 +126,39 @@ class DemandCommodity(Commodity):
             The label for a region.
         init_demand : float
             The demand for a commodity in the first year of the simulation.
+        start_year : integer
+            The first year of the simulation
+        end_year : integer
+            The last year of the simulation
+        N_years : integer
+            The number of years simulated between ``start_year`` and
+            ``end_year``.
+        growth_rate : float
+            The rate of growth for the given quantity. Default is zero growth.
+        growth_method : string
+            Specifies how the future demand will grow. Default is linear.
         """
+
+        growth_calculator = choose_method(growth_method)
+        demand_forecast = growth_calculator(init_demand,
+                                            start_year,
+                                            end_year,
+                                            N_years,
+                                            growth_rate)
 
         if region in self.demand:
             print(f'Region {region} already in database. Overwriting.')
-            self.demand[region] = init_demand
+            self.demand[region] = demand_forecast
         else:
-            self.demand.update({region:init_demand})
+            self.demand.update({region:demand_forecast})
 
         return
 
+#==============================================================================
+#==============================================================================
+# Defines EmissionsCommodity
+#==============================================================================
+#==============================================================================
 class EmissionsCommodity(Commodity):
     """
     This class holds data for a demand commodity in Temoa
