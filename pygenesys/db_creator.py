@@ -299,6 +299,44 @@ def create_regions(connector, regions):
 
     return
 
+
+def create_demand_table(connector, demand_list, years):
+    table_command = """CREATE TABLE "Demand" (
+                    	"regions"	text,
+                    	"periods"	integer,
+                    	"demand_comm"	text,
+                    	"demand"	real,
+                    	"demand_units"	text,
+                    	"demand_notes"	text,
+                    	PRIMARY KEY("regions","periods","demand_comm"),
+                    	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("demand_comm") REFERENCES "commodities"("comm_name")
+                    );"""
+
+    insert_command = """
+                    INSERT INTO "Demand" VALUES (?,?,?,?,?,?)
+    """
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    # loops over each commodity (electricity, steam, h2, etc.)
+    for demand_comm in demand_list:
+        demand_dict = demand_comm.demand
+        # loops over each region where the commodity is defined
+        for region in demand_dict:
+            data = demand_dict[region]
+            db_entry = [(region,
+                         int(y),
+                         demand_comm.comm_name,
+                         d,
+                         demand_comm.units,
+                         '') for d,y in zip(data, years)]
+            cursor.executemany(insert_command, db_entry)
+
+    connector.commit()
+    return table_command
+
+
 """
 def create_():
 CREATE TABLE "technology_labels" (
@@ -838,19 +876,6 @@ CREATE TABLE "DemandSpecificDistribution" (
 );
 return
 
-def create_():
-CREATE TABLE "Demand" (
-	"regions"	text,
-	"periods"	integer,
-	"demand_comm"	text,
-	"demand"	real,
-	"demand_units"	text,
-	"demand_notes"	text,
-	PRIMARY KEY("regions","periods","demand_comm"),
-	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("demand_comm") REFERENCES "commodities"("comm_name")
-);
-return
 
 def create_():
 CREATE TABLE "CostVariable" (

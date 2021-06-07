@@ -22,19 +22,27 @@ N_hours = 24  # the number of hours in a day
 
 # Import commodities here
 from pygenesys.commodity.demand import ELC_DEMAND, STM_DEMAND
-ELC_DEMAND.add_demand(region='IL', init_demand=183)
-ELC_DEMAND.add_demand(region='UIUC', init_demand=4.44)
-ELC_DEMAND.add_demand(region='UIUC', init_demand=33)
-print(ELC_DEMAND.demand)
+ELC_DEMAND.add_demand(region='IL',
+                      init_demand=183,
+                      start_year=start_year,
+                      end_year = end_year,
+                      N_years = N_years,
+                      growth_rate=0.01)
+ELC_DEMAND.add_demand(region='UIUC',
+                      init_demand=4.44,
+                      start_year=start_year,
+                      end_year = end_year,
+                      N_years = N_years,
+                      growth_rate=0.01)
+STM_DEMAND.add_demand(region='UIUC',
+                      init_demand=6,
+                      start_year = start_year,
+                      end_year = end_year,
+                      N_years = N_years,
+                      growth_rate=0.01,
+                      growth_method='exponential')
 
-print('steam')
 print(STM_DEMAND.demand)
-STM_DEMAND.add_demand(region='UIUC', init_demand=6)
-
-print(STM_DEMAND.demand)
-print(ELC_DEMAND._db_entry())
-print(STM_DEMAND._db_entry())
-
 
 from pygenesys.commodity.resource import electricity, steam
 

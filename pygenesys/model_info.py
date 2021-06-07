@@ -131,5 +131,6 @@ class ModelInfo(object):
         create_regions(conn, self.regions)
         create_commodity_labels(conn)
         create_commodities(conn, self.commodities)
+        create_demand_table(conn, self.commodities['demand'], self.time_horizon)
         conn.close()
         return
