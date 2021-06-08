@@ -337,6 +337,68 @@ def create_demand_table(connector, demand_list, years):
     return table_command
 
 
+def create_demand_specific_distribution(connector,
+                                        demand_list,
+                                        seasons,
+                                        hours):
+    """
+    This function writes the ``DemandSpecificDistribution`` table
+    in Temoa.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        Used to connect to and write to an sqlite database.
+    demand_list : list of DemandCommodity objects
+        The list of objects that store information about
+        the demand commodities for the Temoa simulation.
+    seasons : list
+        The list of seasons in the simulation.
+    hours : list
+        The list of hours in the simulation.
+
+    Returns
+    -------
+    table_command : string
+        The command for creating the SQLite table.
+    """
+    table_command = """CREATE TABLE "DemandSpecificDistribution" (
+                    	"regions"	text,
+                    	"season_name"	text,
+                    	"time_of_day_name"	text,
+                    	"demand_name"	text,
+                    	"dds"	real CHECK("dds" >= 0 AND "dds" <= 1),
+                    	"dds_notes"	text,
+                    	PRIMARY KEY("regions","season_name","time_of_day_name","demand_name"),
+                    	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
+                    	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day"),
+                    	FOREIGN KEY("demand_name") REFERENCES "commodities"("comm_name")
+                    );"""
+    insert_command = """
+                     INSERT INTO "DemandSpecificDistribution" VALUES (?,?,?,?,?,?)
+                     """
+
+    time_slices = itertools.product(seasons, hours)
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    for demand_comm in demand_list:
+        demand_dict = demand_comm.distribution
+        # loops over each region where the commodity is defined
+        for region in demand_dict:
+            data = demand_dict[region]
+            db_entry = [(region,
+                         ts[0],
+                         ts[1],
+                         demand_comm.comm_name,
+                         d,
+                         demand_comm.units,
+                         '') for d,ts in zip(data, time_slices)]
+            cursor.executemany(insert_command, db_entry)
+
+    return table_command
+
 """
 def create_():
 CREATE TABLE "technology_labels" (
@@ -861,20 +923,7 @@ CREATE TABLE "DiscountRate" (
 );
 return
 
-def create_():
-CREATE TABLE "DemandSpecificDistribution" (
-	"regions"	text,
-	"season_name"	text,
-	"time_of_day_name"	text,
-	"demand_name"	text,
-	"dds"	real CHECK("dds" >= 0 AND "dds" <= 1),
-	"dds_notes"	text,
-	PRIMARY KEY("regions","season_name","time_of_day_name","demand_name"),
-	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
-	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day"),
-	FOREIGN KEY("demand_name") REFERENCES "commodities"("comm_name")
-);
-return
+
 
 
 def create_():

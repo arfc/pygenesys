@@ -1,6 +1,6 @@
 import numpy as np
 import sqlite3
-from pygenesys.db_creator import *
+from pygenesys.utils.db_creator import *
 
 
 class ModelInfo(object):
@@ -41,14 +41,14 @@ class ModelInfo(object):
         N_seasons : int
             The number of seasons in the simulation. Several values
             are acceptable. E.g.
-                * 1; there are no seasonal differences
+                * 1; there are no seasonal differences (not implemented)
                 * 4; spring,summer,fall,winter
                 * 365; full year, daily resolution
         N_hours : int
             The number of hours in the simulation. Several values
             are acceptable. E.g.
-                * 1; there is no daily variation
-                * 2; diurnal variation, step function
+                * 1; there is no daily variation  (not implemented)
+                * 2; diurnal variation, step function (not implemented)
                 * 24; full day, hourly resolution
         commodities : dictionary
         """
@@ -117,7 +117,7 @@ class ModelInfo(object):
 
     def _write_sqlite_database(self):
         """
-        Writes model info directly to a sqlite database.
+        Writes model info directly to an sqlite database.
         """
 
         conn = establish_connection(self.output_db)
@@ -131,6 +131,12 @@ class ModelInfo(object):
         create_regions(conn, self.regions)
         create_commodity_labels(conn)
         create_commodities(conn, self.commodities)
-        create_demand_table(conn, self.commodities['demand'], self.time_horizon)
+        create_demand_table(conn,
+                            self.commodities['demand'],
+                            self.time_horizon)
+        create_demand_specific_distribution(conn,
+                                            self.commodities['demand'],
+                                            time_slices,
+                                            seasons)
         conn.close()
         return

@@ -43,6 +43,7 @@ STM_DEMAND.add_demand(region='UIUC',
                       growth_method='exponential')
 
 print(STM_DEMAND.demand)
+print(ELC_DEMAND.demand)
 
 from pygenesys.commodity.resource import electricity, steam
 

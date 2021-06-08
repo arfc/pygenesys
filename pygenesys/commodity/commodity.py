@@ -1,4 +1,5 @@
-from pygenesys.utils.growth_model import choose_method
+from pygenesys.utils.growth_model import choose_growth_method
+from pygenesys.utils.tsprocess import choose_distribution_method
 
 #==============================================================================
 #==============================================================================
@@ -71,7 +72,6 @@ class DemandCommodity(Commodity):
                  comm_name,
                  units,
                  comm_label='d',
-                 demand_distribution=None,
                  description='',
                  ):
         """
@@ -102,7 +102,7 @@ class DemandCommodity(Commodity):
                          comm_label,
                          description,)
         self.demand = {}
-        self.demand_distribution = demand_distribution
+        self.distribution = {}
 
 
         return
@@ -139,7 +139,7 @@ class DemandCommodity(Commodity):
             Specifies how the future demand will grow. Default is linear.
         """
 
-        growth_calculator = choose_method(growth_method)
+        growth_calculator = choose_growth_method(growth_method)
         demand_forecast = growth_calculator(init_demand,
                                             start_year,
                                             end_year,
@@ -154,6 +154,46 @@ class DemandCommodity(Commodity):
 
         return
 
+
+    def set_distribution(self,
+                         region,
+                         data_path,
+                         n_seasons=4,
+                         n_hours=24,
+                         normalize=True):
+        """
+        This function generates a distribution time series. The sum
+        of this distribution must be equal to unity. If users
+        do not specify a distribution, the demand will be uniform in
+        each time slice. If data is supplied, it should have at least
+        the same temporal resolution as the number of hours and number
+        of seasons.
+        E.g.
+        Suppose:
+            N_seasons = 4
+            N_hours = 24
+
+        Then:
+
+
+        Parameters
+        ----------
+        region : string
+            The region identifier
+        data_path : string
+            The path to the data.
+        """
+
+        if normalize:
+            distribution = seasonal_distribution(data_path,
+                                                 n_seasons,
+                                                 n_hours)
+        else:
+            pass
+
+        self.distribution[region] = distribution
+
+        return
 #==============================================================================
 #==============================================================================
 # Defines EmissionsCommodity

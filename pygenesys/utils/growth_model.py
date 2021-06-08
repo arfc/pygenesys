@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def choose_method(method_name='linear'):
+def choose_growth_method(method_name='linear'):
     """
     This function returns a function that calculates the growth of
     some quantity.
