@@ -101,7 +101,6 @@ def create_time_periods(connector, future_years):
     time_horizon = [(int(year), 'f') for year in future_years]
     # set boundary year
     time_horizon.append((int(future_years[-1]+1), 'f'))
-    print(time_horizon)
     cursor = connector.cursor()
     cursor.execute(table_command)
     cursor.executemany(insert_command, time_horizon)
@@ -378,12 +377,12 @@ def create_demand_specific_distribution(connector,
                      INSERT INTO "DemandSpecificDistribution" VALUES (?,?,?,?,?,?)
                      """
 
-    time_slices = itertools.product(seasons, hours)
 
     cursor = connector.cursor()
     cursor.execute(table_command)
 
     for demand_comm in demand_list:
+        time_slices = itertools.product(hours, seasons)
         demand_dict = demand_comm.distribution
         # loops over each region where the commodity is defined
         for region in demand_dict:
@@ -393,8 +392,7 @@ def create_demand_specific_distribution(connector,
                          ts[1][0],
                          demand_comm.comm_name,
                          d,
-                         demand_comm.units
-                         ) for d,ts in zip(data, time_slices)]
+                         demand_comm.units) for d,ts in zip(data, time_slices)]
             cursor.executemany(insert_command, db_entry)
     connector.commit()
     return table_command

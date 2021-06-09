@@ -24,9 +24,10 @@ def choose_distribution_method(N_seasons, N_hours):
     """
     distribution_func = None
 
-    if (N_seasons is 4) and (N_hours is 24):
+    if (N_seasons == 4) and (N_hours == 24):
         distribution_func = four_seasons_hourly
-
+    elif (N_seasons == 365) and (N_hours == 24):
+        distribution_func = daily_hourly
     return distribution_func
 
 
@@ -100,15 +101,72 @@ def four_seasons_hourly(data_path, N_seasons=4, N_hours=24):
     return seasonal_hourly_profile
 
 
+def daily_hourly(data_path, N_seasons=365, N_hours=24):
+    """
+    This function calculates a seasonal trend based on the
+    input data. Answers the question: what fraction of the annual
+    demand is consumed at this time of the year?
+
+    Parameters
+    ----------
+    data_path : string
+        The path to the time series data
+            * must be a ``.csv`` file.
+            * nust have a column ``time`` that is a pandas datetime column.
+        Tips:
+            * Sometimes a dataset will have an index column that can
+              be read as an ``Unnamed Column: 0``. If a user supplies
+              their own data, this should be removed where applicable.
+
+    N_seasons : integer
+        The number of seasons in the energy system model.
+    N_hours : integer
+        The hourly resolution of the energy system model.
+
+    Returns
+    -------
+    distribution : numpy array
+        The time series data distributed over the specified time
+        slices.
+    """
+    try:
+        time_series = pd.read_csv(data_path,
+                                  usecols = [0,1],
+                                  index_col=['time'],
+                                  parse_dates=True,
+                                 )
+    except BaseException:
+        except_string = """
+                        Could not import time series data. Check the following:
+
+                        1. That the path to the file is correct.
+                        2. The dataset has two columns: "time" and a column
+                           with your data.
+                        3. The "time" column has a pandas datetime index.
+                        """
+        print(except_string)
+
+    time_series = time_series.resample('H').mean()
+    time_series.interpolate('linear',inplace=True)
+    years_grouped=time_series.groupby(time_series.index.year)
+    data_list = []
+    for year in years_grouped.groups:
+        data = years_grouped.get_group(year)
+        if len(data) >= 8760:
+            data_list.append(np.array(data.iloc[:,0])[:8760])
+        else:
+            pass
+    data_list = np.array(data_list)
+    average_profile = data_list.mean(axis=0)
+    daily_hourly_profile=average_profile/average_profile.sum()
+    return daily_hourly_profile
+
+
 if __name__ == '__main__':
 
-    from pygenesys.data.library import campus_elc_demand
+    from pygenesys.data.library import campus_stm_demand, campus_elc_demand
     import matplotlib.pyplot as plt
     plt.style.use('ggplot')
-
-    # df = pd.read_csv(campus_elc_demand, index_col='time', parse_dates=True, usecols=['time', 'kw'])
-    # df.plot()
-    # plt.show()
 
     seasons={0:'spring',
              1:'summer',
@@ -125,5 +183,6 @@ if __name__ == '__main__':
                  profile[i],
                  label=f'{seasons[i].capitalize()}',
                  marker='.')
+    # plt.plot(profile)
     plt.legend()
     plt.show()

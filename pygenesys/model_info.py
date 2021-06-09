@@ -108,7 +108,6 @@ class ModelInfo(object):
         regions = []
         for demand_comm in self.commodities['demand']:
             comm_regions = list(demand_comm.demand.keys())
-            print(comm_regions)
             for r in comm_regions:
                 regions.append(r)
 
