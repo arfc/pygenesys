@@ -8,6 +8,11 @@ ver_file = os.path.join('pygenesys', 'version.py')
 with open(ver_file) as f:
     exec(f.read())
 
+
+ENTRY_POINTS = {
+    'console_scripts': ['genesys = pygenesys.driver:main']
+}
+
 # Give setuptools a hint to complain if it's too old a version
 # 24.2.0 added the python_requires option
 # Should match pyproject.toml
@@ -33,7 +38,8 @@ opts = dict(name=NAME,
             install_requires=REQUIRES,
             python_requires=PYTHON_REQUIRES,
             setup_requires=SETUP_REQUIRES,
-            requires=REQUIRES)
+            requires=REQUIRES,
+            entry_points=ENTRY_POINTS)
 
 
 if __name__ == '__main__':
