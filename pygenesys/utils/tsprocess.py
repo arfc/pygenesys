@@ -65,25 +65,23 @@ def four_seasons_hourly(data_path, N_seasons=4, N_hours=24):
                               parse_dates=True,
                              )
 
-    if N_seasons is 4:
-        spring_mask = ((time_series.index.month >= 3) &
-                       (time_series.index.month <= 5))
-        summer_mask = ((time_series.index.month >= 6) &
-                       (time_series.index.month <= 8))
-        fall_mask = ((time_series.index.month >= 9) &
-                     (time_series.index.month <= 11))
-        winter_mask = ((time_series.index.month == 12) |
-                       (time_series.index.month == 1) |
-                       (time_series.index.month == 2))
+    spring_mask = ((time_series.index.month >= 3) &
+                   (time_series.index.month <= 5))
+    summer_mask = ((time_series.index.month >= 6) &
+                   (time_series.index.month <= 8))
+    fall_mask = ((time_series.index.month >= 9) &
+                 (time_series.index.month <= 11))
+    winter_mask = ((time_series.index.month == 12) |
+                   (time_series.index.month == 1) |
+                   (time_series.index.month == 2))
 
-        seasons = {'spring':spring_mask,
-                   'summer':summer_mask,
-                   'fall':fall_mask,
-                   'winter':winter_mask}
+    seasons = {'spring':spring_mask,
+               'summer':summer_mask,
+               'fall':fall_mask,
+               'winter':winter_mask}
 
     # initialize dictionary
-    seasonal_hourly_profile = np.zeros(N_seasons*N_hours)
-    print(seasonal_hourly_profile)
+    seasonal_hourly_profile = np.zeros((N_seasons,N_hours))
     for i, season in enumerate(seasons):
         mask = seasons[season]
         season_df = time_series[mask]
@@ -93,18 +91,11 @@ def four_seasons_hourly(data_path, N_seasons=4, N_hours=24):
         std_hourly = np.zeros(len(hours_grouped))
         for j, hour in enumerate(hours_grouped.groups):
             hour_data = hours_grouped.get_group(hour)
-            avg_hourly[j] = hour_data.iloc[1].mean()
-            std_hourly[j] = hour_data.iloc[1].std()
-            # print(hour_data.head(24))
-            print(hour_data.iloc[1,:])
-
+            avg_hourly[j] = hour_data.iloc[:,0].mean()
+            std_hourly[j] = hour_data.iloc[:,0].std()
 
         data = (avg_hourly/(N_seasons*avg_hourly.sum()))
-        seasonal_hourly_profile[i*N_hours:(i+1)*N_hours] = data
-
-
-
-    print(time_series.head())
+        seasonal_hourly_profile[i] = data
 
     return seasonal_hourly_profile
 
@@ -131,7 +122,7 @@ if __name__ == '__main__':
     print(profile.sum())
     for i in range(N_seasons):
         plt.plot(range(N_hours),
-                 profile[i*N_hours:(i+1)*N_hours],
+                 profile[i],
                  label=f'{seasons[i].capitalize()}',
                  marker='.')
     plt.legend()

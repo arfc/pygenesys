@@ -389,14 +389,14 @@ def create_demand_specific_distribution(connector,
         for region in demand_dict:
             data = demand_dict[region]
             db_entry = [(region,
-                         ts[0],
-                         ts[1],
+                         ts[0][0],
+                         ts[1][0],
                          demand_comm.comm_name,
                          d,
-                         demand_comm.units,
-                         '') for d,ts in zip(data, time_slices)]
+                         demand_comm.units
+                         ) for d,ts in zip(data, time_slices)]
             cursor.executemany(insert_command, db_entry)
-
+    connector.commit()
     return table_command
 
 """

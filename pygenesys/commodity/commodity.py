@@ -185,13 +185,15 @@ class DemandCommodity(Commodity):
         """
 
         if normalize:
-            distribution = seasonal_distribution(data_path,
-                                                 n_seasons,
-                                                 n_hours)
+            distribution_calculator = choose_distribution_method(n_seasons,
+                                                                 n_hours)
+            distribution = distribution_calculator(data_path,
+                                                   n_seasons,
+                                                   n_hours)
         else:
             pass
 
-        self.distribution[region] = distribution
+        self.distribution[region] = distribution.flatten()
 
         return
 #==============================================================================
