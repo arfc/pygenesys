@@ -231,7 +231,19 @@ def create_segfrac(connector, segfrac, seasons, hours):
 
 
 def create_commodity_labels(connector):
+    """
+    Writes a ``commodity_labels`` table to an SQLite database.
 
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        Used to connect to and write to an sqlite database.
+
+    Returns
+    -------
+    table_command : string
+        The command for generating the "commodity_labels" table.
+    """
     table_command = """CREATE TABLE "commodity_labels" (
                        "comm_labels"	text,
                        "comm_labels_desc"	text,
@@ -254,6 +266,25 @@ def create_commodity_labels(connector):
 
 
 def create_commodities(connector, comm_data):
+    """
+    Writes a ``commodities`` table to an SQLite database.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        Used to connect to and write to an sqlite database.
+
+    comm_data : dictionary
+        A dictionary of Commodity objects with keys
+        * demand
+        * resources
+        * emissions
+
+    Returns
+    -------
+    table_command : string
+        The command for generating the "commodities" table.
+    """
     table_command = """CREATE TABLE "commodities" (
                     	"comm_name"	text,
                     	"flag"	text,
@@ -276,10 +307,27 @@ def create_commodities(connector, comm_data):
     cursor.executemany(insert_command, labels)
     connector.commit()
 
-    return
+    return table_command
 
 
 def create_regions(connector, regions):
+    """
+    Writes a ``regions`` table to an SQLite database.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        Used to connect to and write to an sqlite database.
+
+    regions : list
+        A list of strings containing the unique regions in the
+        model.
+
+    Returns
+    -------
+    table_command : string
+        The command for generating the "regions" table.
+    """
     table_command = """CREATE TABLE "regions" (
                     	"regions"	TEXT,
                     	"region_note"	TEXT,
@@ -300,6 +348,25 @@ def create_regions(connector, regions):
 
 
 def create_demand_table(connector, demand_list, years):
+    """
+    Writes a ``demand`` table to an SQLite database.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        Used to connect to and write to an sqlite database.
+
+    demand_list : list
+        A list of DemandCommodity objects
+
+    years : list or array
+        A list of the years in the model simulation.
+        
+    Returns
+    -------
+    table_command : string
+        The command for generating the "demand" table.
+    """
     table_command = """CREATE TABLE "Demand" (
                     	"regions"	text,
                     	"periods"	integer,

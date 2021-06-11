@@ -157,7 +157,7 @@ class DemandCommodity(Commodity):
 
     def set_distribution(self,
                          region,
-                         data_path,
+                         data,
                          n_seasons=4,
                          n_hours=24,
                          normalize=True):
@@ -174,7 +174,7 @@ class DemandCommodity(Commodity):
             N_hours = 24
 
         Then:
-
+            The data should have at least a year's worth of hourly data.
 
         Parameters
         ----------
@@ -187,7 +187,7 @@ class DemandCommodity(Commodity):
         if normalize:
             distribution_calculator = choose_distribution_method(n_seasons,
                                                                  n_hours)
-            distribution = distribution_calculator(data_path,
+            distribution = distribution_calculator(data,
                                                    n_seasons,
                                                    n_hours)
         else:

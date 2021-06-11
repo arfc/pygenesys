@@ -44,12 +44,12 @@ STM_DEMAND.add_demand(region='UIUC',
 # Import distribution data
 from pygenesys.data.library import campus_elc_demand, campus_stm_demand
 ELC_DEMAND.set_distribution(region='UIUC',
-                            data_path=campus_elc_demand,
+                            data=campus_elc_demand,
                             n_seasons=N_seasons,
                             n_hours=N_hours
                             )
 STM_DEMAND.set_distribution(region='UIUC',
-                            data_path=campus_stm_demand,
+                            data=campus_stm_demand,
                             n_seasons=N_seasons,
                             n_hours=N_hours)
 
