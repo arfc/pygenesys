@@ -8,7 +8,7 @@ from pygenesys.utils.tsprocess import choose_distribution_method
 #==============================================================================
 class Commodity(object):
     """
-    A ''commodity'' is a "raw material" or an "energy carrier.
+    A ''commodity'' is a "raw material" or an "energy carrier."
     This class contains information about a commodity used in a
     Temoa model.
     """

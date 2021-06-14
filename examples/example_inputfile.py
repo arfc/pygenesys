@@ -16,7 +16,7 @@ scenario_name = 'test'
 start_year = 2025
 end_year = 2050
 N_years = 6
-N_seasons = 365  # the number of seasons in the model
+N_seasons = 4  # the number of seasons in the model
 N_hours = 24  # the number of hours in a day
 
 # Import commodities here
@@ -38,7 +38,7 @@ STM_DEMAND.add_demand(region='UIUC',
                       start_year = start_year,
                       end_year = end_year,
                       N_years = N_years,
-                      growth_rate=0.01,
+                      growth_rate=-0.01,
                       growth_method='exponential')
 
 # Import distribution data
@@ -53,9 +53,15 @@ STM_DEMAND.set_distribution(region='UIUC',
                             n_seasons=N_seasons,
                             n_hours=N_hours)
 
-from pygenesys.commodity.resource import electricity, steam
+from pygenesys.commodity.resource import electricity, steam, ethos
 
 # Collect the commodities here
 demands_list = [ELC_DEMAND, STM_DEMAND]
-resources_list = [electricity, steam]
+resources_list = [electricity, steam, ethos]
 emissions_list = []
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
+    plt.plot(STM_DEMAND.demand['UIUC'])
+    plt.show()

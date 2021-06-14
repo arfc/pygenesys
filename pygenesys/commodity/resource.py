@@ -7,3 +7,7 @@ electricity = Commodity(comm_name='ELC',
 steam = Commodity(comm_name='STM',
                   units = 'GWh(th)',
                   description = 'Steam')
+
+ethos = Commodity(comm_name='ethos',
+                  units='NULL',
+                  description='placeholder commodity -- infinite reservoir')                
