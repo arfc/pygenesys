@@ -31,7 +31,6 @@ def choose_distribution_method(N_seasons, N_hours):
     return distribution_func
 
 
-
 def four_seasons_hourly(data_path, N_seasons=4, N_hours=24):
     """
     This function calculates a seasonal trend based on the
@@ -61,10 +60,10 @@ def four_seasons_hourly(data_path, N_seasons=4, N_hours=24):
         slices.
     """
     time_series = pd.read_csv(data_path,
-                              usecols = [0,1],
+                              usecols=[0, 1],
                               index_col=['time'],
                               parse_dates=True,
-                             )
+                              )
 
     spring_mask = ((time_series.index.month >= 3) &
                    (time_series.index.month <= 5))
@@ -76,13 +75,13 @@ def four_seasons_hourly(data_path, N_seasons=4, N_hours=24):
                    (time_series.index.month == 1) |
                    (time_series.index.month == 2))
 
-    seasons = {'spring':spring_mask,
-               'summer':summer_mask,
-               'fall':fall_mask,
-               'winter':winter_mask}
+    seasons = {'spring': spring_mask,
+               'summer': summer_mask,
+               'fall': fall_mask,
+               'winter': winter_mask}
 
     # initialize dictionary
-    seasonal_hourly_profile = np.zeros((N_seasons,N_hours))
+    seasonal_hourly_profile = np.zeros((N_seasons, N_hours))
     for i, season in enumerate(seasons):
         mask = seasons[season]
         season_df = time_series[mask]
@@ -92,10 +91,10 @@ def four_seasons_hourly(data_path, N_seasons=4, N_hours=24):
         std_hourly = np.zeros(len(hours_grouped))
         for j, hour in enumerate(hours_grouped.groups):
             hour_data = hours_grouped.get_group(hour)
-            avg_hourly[j] = hour_data.iloc[:,0].mean()
-            std_hourly[j] = hour_data.iloc[:,0].std()
+            avg_hourly[j] = hour_data.iloc[:, 0].mean()
+            std_hourly[j] = hour_data.iloc[:, 0].std()
 
-        data = (avg_hourly/(N_seasons*avg_hourly.sum()))
+        data = (avg_hourly / (N_seasons * avg_hourly.sum()))
         seasonal_hourly_profile[i] = data
 
     return seasonal_hourly_profile
@@ -131,10 +130,10 @@ def daily_hourly(data_path, N_seasons=365, N_hours=24):
     """
     try:
         time_series = pd.read_csv(data_path,
-                                  usecols = [0,1],
+                                  usecols=[0, 1],
                                   index_col=['time'],
                                   parse_dates=True,
-                                 )
+                                  )
     except BaseException:
         except_string = """
                         Could not import time series data. Check the following:
@@ -147,18 +146,18 @@ def daily_hourly(data_path, N_seasons=365, N_hours=24):
         print(except_string)
 
     time_series = time_series.resample('H').mean()
-    time_series.interpolate('linear',inplace=True)
-    years_grouped=time_series.groupby(time_series.index.year)
+    time_series.interpolate('linear', inplace=True)
+    years_grouped = time_series.groupby(time_series.index.year)
     data_list = []
     for year in years_grouped.groups:
         data = years_grouped.get_group(year)
         if len(data) >= 8760:
-            data_list.append(np.array(data.iloc[:,0])[:8760])
+            data_list.append(np.array(data.iloc[:, 0])[:8760])
         else:
             pass
     data_list = np.array(data_list)
     average_profile = data_list.mean(axis=0)
-    daily_hourly_profile=average_profile/average_profile.sum()
+    daily_hourly_profile = average_profile / average_profile.sum()
     return daily_hourly_profile
 
 
@@ -168,10 +167,10 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     plt.style.use('ggplot')
 
-    seasons={0:'spring',
-             1:'summer',
-             2:'fall',
-             3:'winter'}
+    seasons = {0: 'spring',
+               1: 'summer',
+               2: 'fall',
+               3: 'winter'}
 
     N_seasons = 4
     N_hours = 24
