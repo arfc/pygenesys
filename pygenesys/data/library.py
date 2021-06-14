@@ -17,7 +17,6 @@ import os
 curr_dir = os.path.dirname(__file__)
 
 
-
 """
 ``campus_elc_demand`` : dataset
 columns : [time, kw]
@@ -27,7 +26,7 @@ This dataset represents the hourly demand of electricity usage
 at the UIUC campus. However, the _distribution_ of data may be
 representative of other campuses or office buildings.
 """
-campus_elc_demand = curr_dir+"/uiuc_demand_data.csv"
+campus_elc_demand = curr_dir + "/uiuc_demand_data.csv"
 
 """
 ``campus_stm_demand`` : dataset
@@ -38,4 +37,4 @@ This dataset represents the hourly demand of steam usage
 at the UIUC campus. However, the _distribution_ of data may be
 representative of other campuses or office buildings.
 """
-campus_stm_demand = curr_dir+"/uiuc_steam_data.csv"
+campus_stm_demand = curr_dir + "/uiuc_steam_data.csv"

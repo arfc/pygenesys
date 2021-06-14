@@ -61,11 +61,10 @@ class ModelInfo(object):
         self.N_seasons = N_seasons
         self.N_hours = N_hours
         self.commodities = {
-                            'demand':demands,
-                            'resources':resources,
-                            'emissions':emissions
-                            }
-
+            'demand': demands,
+            'resources': resources,
+            'emissions': emissions
+        }
 
         # derived quantities
         self.time_horizon = self._calculate_time_horizon()
@@ -74,7 +73,6 @@ class ModelInfo(object):
         print(self.regions)
 
         return
-
 
     def _calculate_time_horizon(self):
         """
@@ -89,7 +87,6 @@ class ModelInfo(object):
 
         return years
 
-
     def _calculate_seg_frac(self):
         """
         Calculates the fraction of a year represented
@@ -102,7 +99,6 @@ class ModelInfo(object):
 
         return seg_frac
 
-
     def _collect_regions(self):
 
         regions = []
@@ -112,7 +108,6 @@ class ModelInfo(object):
                 regions.append(r)
 
         return np.unique(regions)
-
 
     def _write_sqlite_database(self):
         """

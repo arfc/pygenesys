@@ -76,9 +76,9 @@ def main():
                                  N_years=infile.N_years,
                                  N_seasons=infile.N_seasons,
                                  N_hours=infile.N_hours,
-                                 demands = infile.demands_list,
-                                 resources = infile.resources_list,
-                                 emissions = infile.emissions_list,
+                                 demands=infile.demands_list,
+                                 resources=infile.resources_list,
+                                 emissions=infile.emissions_list,
                                  )
     print(f"Database will be exported to {model.output_db} \n")
 
