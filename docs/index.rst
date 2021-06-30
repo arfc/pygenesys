@@ -5,20 +5,6 @@
 
 Welcome to PyGenesys's documentation!
 =====================================
-This package can be used to generate input files for the 
-`Temoa`_ modelling tool. 
-Transparency and repeatability are integral to the design 
-motivations for Temoa. PyGenesys takes this concept
-even further by reducing the lead time and programming 
-background required to run Temoa.
-
-PyGenesys offers technology models with cost and production 
-time series data. The basic model is based on the state of 
-Illinois and its flagship university, the University of 
-Illinois at Urbana-Champaign.
-
-.. _Temoa: https://github.com/temoaproject/temoa
-
 
 Contents
 --------
