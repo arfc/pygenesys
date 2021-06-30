@@ -1,0 +1,5 @@
+=====
+Setup
+=====
+
+.. mdinclude:: ../README.md

@@ -2,3 +2,6 @@ numpy
 pytest
 matplotlib
 pandas
+sphinx
+sphinxcontrib-napoleon
+m2r
