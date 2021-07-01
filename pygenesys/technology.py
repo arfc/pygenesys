@@ -51,7 +51,8 @@ class Technology():
             technology starts running 
             and when it is retired.
         lifetime_loan : float
-            t
+            The length of time it will take to
+            repay the loan.
         existing_capacity : float
             All installed, in-service, generating 
             capacity.
