@@ -22,7 +22,7 @@ class Technology():
         Parameters
         ----------
         region_name : string
-            The name of the region where the 
+            The name of the region where the
             technology is located.
         technology_name : string
             The name of the technology.
@@ -30,7 +30,7 @@ class Technology():
             The label attached to the type of
             technology.
         capacity_units : string
-            The units for the capacity of the 
+            The units for the capacity of the
             technology.
         input_commodity : string
             The type of commodity that goes
@@ -41,20 +41,20 @@ class Technology():
             The type of commodity that goes
             out of a technology.
         capacity_to_activity : float
-            The factor relating capacity and 
+            The factor relating capacity and
             activity.
         capacity_factor : float
             The measure of how often the
             technology runs over time.
         lifetime : float
-            The time between when the 
-            technology starts running 
+            The time between when the
+            technology starts running
             and when it is retired.
         lifetime_loan : float
             The length of time it will take to
             repay the loan.
         existing_capacity : float
-            All installed, in-service, generating 
+            All installed, in-service, generating
             capacity.
         """
 
