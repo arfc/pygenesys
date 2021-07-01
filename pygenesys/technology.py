@@ -1,4 +1,4 @@
-class Technology(object):
+class Technology():
     """
     This class contains attributes to
     characterize a specific technology
