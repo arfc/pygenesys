@@ -10,7 +10,7 @@ from pygenesys.utils.tsprocess import choose_distribution_method
 
 class Commodity(object):
     """
-    A ''commodity'' is a "raw material" or an "energy carrier.
+    A ''commodity'' is a "raw material" or an "energy carrier."
     This class contains information about a commodity used in a
     Temoa model.
     """
@@ -67,7 +67,7 @@ class Commodity(object):
 
 class DemandCommodity(Commodity):
     """
-    This class holds data for a demand commodity in Temoa
+    This class holds data for a demand commodity in Temoa.
     """
 
     def __init__(self,
@@ -127,9 +127,9 @@ class DemandCommodity(Commodity):
         init_demand : float
             The demand for a commodity in the first year of the simulation.
         start_year : integer
-            The first year of the simulation
+            The first year of the simulation.
         end_year : integer
-            The last year of the simulation
+            The last year of the simulation.
         N_years : integer
             The number of years simulated between ``start_year`` and
             ``end_year``.
@@ -178,7 +178,7 @@ class DemandCommodity(Commodity):
         Parameters
         ----------
         region : string
-            The region identifier
+            The region identifier.
         data_path : string
             The path to the data.
         """
@@ -204,7 +204,7 @@ class DemandCommodity(Commodity):
 
 class EmissionsCommodity(Commodity):
     """
-    This class holds data for a demand commodity in Temoa
+    This class holds data for a demand commodity in Temoa.
     """
 
     def __init__(self,

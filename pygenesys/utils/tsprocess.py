@@ -11,7 +11,7 @@ def choose_distribution_method(N_seasons, N_hours):
     Parameters
     ----------
     data_path : string
-        The path to the data. Should be a .csv file
+        The path to the data. It should be a .csv file.
     N_seasons : integer
         The number of seasons in the energy system model.
     N_hours : integer
@@ -41,8 +41,8 @@ def four_seasons_hourly(data_path, N_seasons=4, N_hours=24):
     ----------
     data_path : string
         The path to the time series data
-            * must be a ``.csv`` file.
-            * nust have a column ``time`` that is a pandas datetime column.
+            * must be a ``.csv`` file
+            * nust have a column ``time`` that is a pandas datetime column
         Tips:
             * Sometimes a dataset will have an index column that can
               be read as an ``Unnamed Column: 0``. If a user supplies
@@ -110,8 +110,8 @@ def daily_hourly(data_path, N_seasons=365, N_hours=24):
     ----------
     data_path : string
         The path to the time series data
-            * must be a ``.csv`` file.
-            * nust have a column ``time`` that is a pandas datetime column.
+            * must be a ``.csv`` file
+            * must have a column ``time`` that is a pandas datetime column
         Tips:
             * Sometimes a dataset will have an index column that can
               be read as an ``Unnamed Column: 0``. If a user supplies

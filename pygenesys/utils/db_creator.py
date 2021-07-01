@@ -355,7 +355,7 @@ def create_demand_table(connector, demand_list, years):
         Used to connect to and write to an sqlite database.
 
     demand_list : list
-        A list of DemandCommodity objects
+        A list of DemandCommodity objects.
 
     years : list or array
         A list of the years in the model simulation.

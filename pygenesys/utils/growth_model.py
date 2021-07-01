@@ -30,9 +30,9 @@ def linear_growth(init_value, start_year, end_year, N_years, growth_rate):
     Parameters
     ----------
     init_value : float
-        The initial value value
+        The initial value.
     start_year : integer
-        The first year of the simulation
+        The first year of the simulation.
     end_year : integer
         The last year of the simulation
     N_years : integer
@@ -64,11 +64,11 @@ def exponential_growth(init_value, start_year, end_year, N_years, growth_rate):
     Parameters
     ----------
     init_value : float
-        The initial value value
+        The initial value.
     start_year : integer
-        The first year of the simulation
+        The first year of the simulation.
     end_year : integer
-        The last year of the simulation
+        The last year of the simulation.
     N_years : integer
         The number of years simulated between ``start_year`` and
         ``end_year``.
@@ -106,11 +106,11 @@ def logistic_growth(
     Parameters
     ----------
     init_value : float
-        The initial value value
+        The initial value.
     start_year : integer
-        The first year of the simulation
+        The first year of the simulation.
     end_year : integer
-        The last year of the simulation
+        The last year of the simulation.
     N_years : integer
         The number of years simulated between ``start_year`` and
         ``end_year``.
