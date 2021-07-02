@@ -1,6 +1,6 @@
 import numpy as np
 import sqlite3
-from pygenesys.db_creator import *
+from pygenesys.utils.db_creator import *
 
 
 class ModelInfo(object):
@@ -14,9 +14,12 @@ class ModelInfo(object):
                  scenario_name,
                  start_year,
                  end_year,
-                 year_step,
+                 N_years,
                  N_seasons,
-                 N_hours):
+                 N_hours,
+                 demands,
+                 resources,
+                 emissions,):
         """
         This class holds information about the PyGenesys and
         Temoa model.
@@ -38,28 +41,36 @@ class ModelInfo(object):
         N_seasons : int
             The number of seasons in the simulation. Several values
             are acceptable. E.g.
-                * 1; there are no seasonal differences
+                * 1; there are no seasonal differences (not implemented)
                 * 4; spring,summer,fall,winter
                 * 365; full year, daily resolution
         N_hours : int
             The number of hours in the simulation. Several values
             are acceptable. E.g.
-                * 1; there is no daily variation
-                * 2; diurnal variation, step function
+                * 1; there is no daily variation  (not implemented)
+                * 2; diurnal variation, step function (not implemented)
                 * 24; full day, hourly resolution
+        commodities : dictionary
         """
 
         self.output_db = output_db
         self.scenario_name = scenario_name
         self.start_year = start_year
         self.end_year = end_year
-        self.year_step = year_step
+        self.N_years = N_years
         self.N_seasons = N_seasons
         self.N_hours = N_hours
+        self.commodities = {
+            'demand': demands,
+            'resources': resources,
+            'emissions': emissions
+        }
 
         # derived quantities
         self.time_horizon = self._calculate_time_horizon()
         self.seg_frac = self._calculate_seg_frac()
+        self.regions = self._collect_regions()
+        print(self.regions)
 
         return
 
@@ -70,11 +81,11 @@ class ModelInfo(object):
         database.
         """
 
-        time_horizon = [(year, 'f') for year in range(self.start_year,
-                                                      (self.end_year +
-                                                       self.year_step + 1),
-                                                      self.year_step)]
-        return time_horizon
+        years = np.linspace(self.start_year,
+                            self.end_year,
+                            self.N_years).astype('int')
+
+        return years
 
     def _calculate_seg_frac(self):
         """
@@ -88,9 +99,19 @@ class ModelInfo(object):
 
         return seg_frac
 
+    def _collect_regions(self):
+
+        regions = []
+        for demand_comm in self.commodities['demand']:
+            comm_regions = list(demand_comm.demand.keys())
+            for r in comm_regions:
+                regions.append(r)
+
+        return np.unique(regions)
+
     def _write_sqlite_database(self):
         """
-        Writes model info directly to a sqlite database.
+        Writes model info directly to an sqlite database.
         """
 
         conn = establish_connection(self.output_db)
@@ -101,6 +122,15 @@ class ModelInfo(object):
         create_time_periods(conn, self.time_horizon)
         time_slices = create_time_of_day(conn, self.N_hours)
         create_segfrac(conn, self.seg_frac, seasons, time_slices)
-
+        create_regions(conn, self.regions)
+        create_commodity_labels(conn)
+        create_commodities(conn, self.commodities)
+        create_demand_table(conn,
+                            self.commodities['demand'],
+                            self.time_horizon)
+        create_demand_specific_distribution(conn,
+                                            self.commodities['demand'],
+                                            time_slices,
+                                            seasons)
         conn.close()
         return

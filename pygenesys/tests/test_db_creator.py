@@ -1,5 +1,6 @@
-from pygenesys.db_creator import *
+from pygenesys.utils.db_creator import *
 import os
+import numpy as np
 
 curr_dir = os.path.dirname(__file__)
 test_db = curr_dir + '/test_db.sqlite'
@@ -7,11 +8,9 @@ N_seasons = 4
 N_hours = 24
 start_year = 2020
 end_year = 2050
-year_step = 5
+N_years = 6
 seasons = [[f'S{i+1}'] for i in range(N_seasons)]
-periods = [(year, 'f') for year in range(start_year,
-                                         end_year + 1,
-                                         year_step)]
+periods = np.linspace(start_year, end_year, N_years)
 
 
 def test_establish_connection():
@@ -67,7 +66,7 @@ def test_create_time_periods():
     conn.close()
 
     # tests
-    assert(len(table_data) == len(periods))
+    assert(len(table_data) - 1 == len(periods))
 
     os.remove(test_db)
     return
