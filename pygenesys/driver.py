@@ -73,19 +73,20 @@ def main():
                                  scenario_name=infile.scenario_name,
                                  start_year=infile.start_year,
                                  end_year=infile.end_year,
-                                 year_step=infile.year_step,
+                                 N_years=infile.N_years,
                                  N_seasons=infile.N_seasons,
                                  N_hours=infile.N_hours,
+                                 demands=infile.demands_list,
+                                 resources=infile.resources_list,
+                                 emissions=infile.emissions_list,
                                  )
     print(f"Database will be exported to {model.output_db} \n")
 
     print(f"The years simulated by the model are \n {model.time_horizon} \n")
 
-    print(f"The year fraction is \n {model.seg_frac} \n")
-
     # Should check if the model is to be written to a sql or sqlite database
     model._write_sqlite_database()
 
-    print("The main function")
+    print("Input file written successfully.\n")
 
     return

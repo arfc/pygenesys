@@ -68,7 +68,7 @@ def create_time_season(connector, N_seasons):
     return seasons
 
 
-def create_time_periods(connector, time_horizon):
+def create_time_periods(connector, future_years):
     """
     This function writes the time_periods table to an sqlite
     database. Only "future" time periods will be written.
@@ -79,7 +79,7 @@ def create_time_periods(connector, time_horizon):
         An object for connecting to a specific SQLite
         database.
 
-    time_horizon : list or array
+    future_years : list or array
         The yearly resolution of the energy system model.
 
     Returns
@@ -98,6 +98,9 @@ def create_time_periods(connector, time_horizon):
                      INSERT INTO "time_periods" VALUES(?,?)
                      """
 
+    time_horizon = [(int(year), 'f') for year in future_years]
+    # set boundary year
+    time_horizon.append((int(future_years[-1] + 1), 'f'))
     cursor = connector.cursor()
     cursor.execute(table_command)
     cursor.executemany(insert_command, time_horizon)
@@ -227,6 +230,242 @@ def create_segfrac(connector, segfrac, seasons, hours):
     return table_command
 
 
+def create_commodity_labels(connector):
+    """
+    Writes a ``commodity_labels`` table to an SQLite database.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        Used to connect to and write to an sqlite database.
+
+    Returns
+    -------
+    table_command : string
+        The command for generating the "commodity_labels" table.
+    """
+    table_command = """CREATE TABLE "commodity_labels" (
+                       "comm_labels"	text,
+                       "comm_labels_desc"	text,
+                       PRIMARY KEY("comm_labels")
+                    );
+                    """
+
+    insert_command = """
+                     INSERT INTO "commodity_labels" VALUES (?,?)
+                     """
+    labels = [("p", "physical commodity"),
+              ("d", "demand commodity"), ("e", "emissions commodity")]
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, labels)
+    connector.commit()
+
+    return
+
+
+def create_commodities(connector, comm_data):
+    """
+    Writes a ``commodities`` table to an SQLite database.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        Used to connect to and write to an sqlite database.
+
+    comm_data : dictionary
+        A dictionary of Commodity objects with keys
+        * demand
+        * resources
+        * emissions
+
+    Returns
+    -------
+    table_command : string
+        The command for generating the "commodities" table.
+    """
+    table_command = """CREATE TABLE "commodities" (
+                    	"comm_name"	text,
+                    	"flag"	text,
+                    	"comm_desc"	text,
+                    	PRIMARY KEY("comm_name"),
+                    	FOREIGN KEY("flag") REFERENCES "commodity_labels"("comm_labels")
+                    );"""
+    insert_command = """
+                     INSERT INTO "commodities" VALUES(?,?,?)
+                     """
+    demand_entries = [comm._db_entry() for comm in comm_data['demand']]
+    resource_entries = [comm._db_entry() for comm in comm_data['resources']]
+    emission_entries = [comm._db_entry() for comm in comm_data['emissions']]
+
+    labels = demand_entries + resource_entries + emission_entries
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, labels)
+    connector.commit()
+
+    return table_command
+
+
+def create_regions(connector, regions):
+    """
+    Writes a ``regions`` table to an SQLite database.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        Used to connect to and write to an sqlite database.
+
+    regions : list
+        A list of strings containing the unique regions in the
+        model.
+
+    Returns
+    -------
+    table_command : string
+        The command for generating the "regions" table.
+    """
+    table_command = """CREATE TABLE "regions" (
+                    	"regions"	TEXT,
+                    	"region_note"	TEXT,
+                    	PRIMARY KEY("regions")
+                    );"""
+    insert_command = """
+                     INSERT INTO "regions" VALUES (?,?)
+                     """
+    labels = [(r, '') for r in regions]
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, labels)
+    connector.commit()
+
+    return
+
+
+def create_demand_table(connector, demand_list, years):
+    """
+    Writes a ``demand`` table to an SQLite database.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        Used to connect to and write to an sqlite database.
+
+    demand_list : list
+        A list of DemandCommodity objects.
+
+    years : list or array
+        A list of the years in the model simulation.
+
+    Returns
+    -------
+    table_command : string
+        The command for generating the "demand" table.
+    """
+    table_command = """CREATE TABLE "Demand" (
+                    	"regions"	text,
+                    	"periods"	integer,
+                    	"demand_comm"	text,
+                    	"demand"	real,
+                    	"demand_units"	text,
+                    	"demand_notes"	text,
+                    	PRIMARY KEY("regions","periods","demand_comm"),
+                    	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("demand_comm") REFERENCES "commodities"("comm_name")
+                    );"""
+
+    insert_command = """
+                    INSERT INTO "Demand" VALUES (?,?,?,?,?,?)
+    """
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    # loops over each commodity (electricity, steam, h2, etc.)
+    for demand_comm in demand_list:
+        demand_dict = demand_comm.demand
+        # loops over each region where the commodity is defined
+        for region in demand_dict:
+            data = demand_dict[region]
+            db_entry = [(region,
+                         int(y),
+                         demand_comm.comm_name,
+                         d,
+                         demand_comm.units,
+                         '') for d, y in zip(data, years)]
+            cursor.executemany(insert_command, db_entry)
+
+    connector.commit()
+    return table_command
+
+
+def create_demand_specific_distribution(connector,
+                                        demand_list,
+                                        seasons,
+                                        hours):
+    """
+    This function writes the ``DemandSpecificDistribution`` table
+    in Temoa.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        Used to connect to and write to an sqlite database.
+    demand_list : list of DemandCommodity objects
+        The list of objects that store information about
+        the demand commodities for the Temoa simulation.
+    seasons : list
+        The list of seasons in the simulation.
+    hours : list
+        The list of hours in the simulation.
+
+    Returns
+    -------
+    table_command : string
+        The command for creating the SQLite table.
+    """
+    table_command = """CREATE TABLE "DemandSpecificDistribution" (
+                    	"regions"	text,
+                    	"season_name"	text,
+                    	"time_of_day_name"	text,
+                    	"demand_name"	text,
+                    	"dds"	real CHECK("dds" >= 0 AND "dds" <= 1),
+                    	"dds_notes"	text,
+                    	PRIMARY KEY("regions","season_name","time_of_day_name","demand_name"),
+                    	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
+                    	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day"),
+                    	FOREIGN KEY("demand_name") REFERENCES "commodities"("comm_name")
+                    );"""
+    insert_command = """
+                     INSERT INTO "DemandSpecificDistribution" VALUES (?,?,?,?,?,?)
+                     """
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    for demand_comm in demand_list:
+        time_slices = itertools.product(hours, seasons)
+        demand_dict = demand_comm.distribution
+        # loops over each region where the commodity is defined
+        for region in demand_dict:
+            data = demand_dict[region]
+            db_entry = [
+                (region,
+                 ts[0][0],
+                    ts[1][0],
+                    demand_comm.comm_name,
+                    d,
+                    demand_comm.units) for d,
+                ts in zip(
+                    data,
+                    time_slices)]
+            cursor.executemany(insert_command, db_entry)
+    connector.commit()
+    return table_command
+
+
 """
 def create_():
 CREATE TABLE "technology_labels" (
@@ -306,13 +545,6 @@ CREATE TABLE "sector_labels" (
 );
 return
 
-def create_():
-CREATE TABLE "regions" (
-	"regions"	TEXT,
-	"region_note"	TEXT,
-	PRIMARY KEY("regions")
-);
-return
 
 def create_():
 CREATE TABLE "groups" (
@@ -323,22 +555,6 @@ CREATE TABLE "groups" (
 return
 
 def create_():
-CREATE TABLE "commodity_labels" (
-	"comm_labels"	text,
-	"comm_labels_desc"	text,
-	PRIMARY KEY("comm_labels")
-);
-return
-
-def create_():
-CREATE TABLE "commodities" (
-	"comm_name"	text,
-	"flag"	text,
-	"comm_desc"	text,
-	PRIMARY KEY("comm_name"),
-	FOREIGN KEY("flag") REFERENCES "commodity_labels"("comm_labels")
-);
-return
 
 def create_():
 CREATE TABLE "TechOutputSplit" (
@@ -774,34 +990,8 @@ CREATE TABLE "DiscountRate" (
 );
 return
 
-def create_():
-CREATE TABLE "DemandSpecificDistribution" (
-	"regions"	text,
-	"season_name"	text,
-	"time_of_day_name"	text,
-	"demand_name"	text,
-	"dds"	real CHECK("dds" >= 0 AND "dds" <= 1),
-	"dds_notes"	text,
-	PRIMARY KEY("regions","season_name","time_of_day_name","demand_name"),
-	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
-	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day"),
-	FOREIGN KEY("demand_name") REFERENCES "commodities"("comm_name")
-);
-return
 
-def create_():
-CREATE TABLE "Demand" (
-	"regions"	text,
-	"periods"	integer,
-	"demand_comm"	text,
-	"demand"	real,
-	"demand_units"	text,
-	"demand_notes"	text,
-	PRIMARY KEY("regions","periods","demand_comm"),
-	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("demand_comm") REFERENCES "commodities"("comm_name")
-);
-return
+
 
 def create_():
 CREATE TABLE "CostVariable" (
