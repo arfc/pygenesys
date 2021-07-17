@@ -53,15 +53,27 @@ STM_DEMAND.set_distribution(region='UIUC',
                             n_seasons=N_seasons,
                             n_hours=N_hours)
 
+
 from pygenesys.commodity.resource import electricity, steam, ethos
+
+# Add technologies
+from pygenesys.technology.supply import imp_natgas
+
 
 # Collect the commodities here
 demands_list = [ELC_DEMAND, STM_DEMAND]
 resources_list = [electricity, steam, ethos]
 emissions_list = []
 
+
+
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    plt.plot(STM_DEMAND.demand['UIUC'])
-    plt.show()
+    # plt.plot(STM_DEMAND.demand['UIUC'])
+    # plt.show()
+
+    print(STM_DEMAND.comm_name)
+    STM_DEMAND.comm_name = 'McSteamy'
+    print(STM_DEMAND.comm_name)
