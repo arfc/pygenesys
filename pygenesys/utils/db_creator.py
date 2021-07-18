@@ -495,13 +495,13 @@ def create_technology_labels(connector):
               ("ps", "storage production technology"),
               ("r", "resource technology")]
 
-
     cursor = connector.cursor()
     cursor.execute(table_command)
     cursor.executemany(insert_command, labels)
     connector.commit()
 
     return
+
 
 def create_sectors(connector, sector_list):
 
@@ -524,6 +524,7 @@ def create_sectors(connector, sector_list):
 
     return
 
+
 def create_technologies(connector, technology_list):
     """
     Creates the ``technologies`` table in Temoa.
@@ -537,7 +538,7 @@ def create_technologies(connector, technology_list):
         All of the technologies initialized in the input file
     """
 
-    table_command= """
+    table_command = """
                     CREATE TABLE "technologies" (
                     "tech"	text,
                     "flag"	text,
@@ -559,6 +560,8 @@ def create_technologies(connector, technology_list):
     connector.commit()
 
     return table_command
+
+
 """
 
 

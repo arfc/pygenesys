@@ -11,7 +11,7 @@ imp_natgas = Technology(tech_name='IMP_NATGAS',
                         input_comm=ethos,
                         output_comm=natural_gas,
                         units="MMBTU/hr",
-                        tech_sector = 'supply',
+                        tech_sector='supply',
                         tech_lifetime=1000,
                         loan_lifetime=None,
                         )

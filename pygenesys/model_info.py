@@ -65,10 +65,10 @@ class ModelInfo(object):
         self.N_seasons = N_seasons
         self.N_hours = N_hours
         self.commodities = {
-                            'demand':demands,
-                            'resources':resources,
-                            'emissions':emissions
-                            }
+            'demand': demands,
+            'resources': resources,
+            'emissions': emissions
+        }
         self.technologies = technologies
 
         # derived quantities
@@ -114,13 +114,11 @@ class ModelInfo(object):
 
         return np.unique(regions)
 
-
     def _collect_tech_sectors(self):
 
         sectors = np.unique([t.tech_sector for t in self.technologies])
 
         return sectors
-
 
     def _write_sqlite_database(self):
         """

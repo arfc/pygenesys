@@ -69,7 +69,7 @@ def collect_technologies(module_name):
     for member, attrib in inspect.getmembers(module_name):
         try:
             string_attr = str(attrib)
-        except:
+        except BaseException:
             string_attr = ''
 
         if 'Technology' in string_attr:
@@ -77,6 +77,7 @@ def collect_technologies(module_name):
             technologies.append(getattr(module_name, member))
 
     return technologies
+
 
 def main():
 
@@ -104,10 +105,10 @@ def main():
                                  N_years=infile.N_years,
                                  N_seasons=infile.N_seasons,
                                  N_hours=infile.N_hours,
-                                 demands = infile.demands_list,
-                                 resources = infile.resources_list,
-                                 emissions = infile.emissions_list,
-                                 technologies = technology_list
+                                 demands=infile.demands_list,
+                                 resources=infile.resources_list,
+                                 emissions=infile.emissions_list,
+                                 technologies=technology_list
                                  )
     print(f"Database will be exported to {model.output_db} \n")
 

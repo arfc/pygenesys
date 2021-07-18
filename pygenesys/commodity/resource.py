@@ -5,11 +5,11 @@ electricity = Commodity(comm_name='ELC',
                         description='Electricity')
 
 steam = Commodity(comm_name='STM',
-                  units = 'GWh(th)',
-                  description = 'Steam')
+                  units='GWh(th)',
+                  description='Steam')
 
 natural_gas = Commodity(comm_name='NATGAS',
-                        units = 'MMBTU',
+                        units='MMBTU',
                         description='natural gas')
 
 ethos = Commodity(comm_name='ethos',

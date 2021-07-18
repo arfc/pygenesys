@@ -1,9 +1,11 @@
 
-#==============================================================================
-#==============================================================================
+# ==============================================================================
+# ==============================================================================
 # Defines Technology
-#==============================================================================
-#==============================================================================
+# ==============================================================================
+# ==============================================================================
+
+
 class Technology(object):
     """
     This class holds the information for technologies
@@ -81,13 +83,12 @@ class Technology(object):
         self.cost_fixed = cost_fixed
         self.cost_capital = cost_capital
 
-
         return
 
     def __repr__(self):
-        return  (f"{self._type}"+
-                f"(\"{self.tech_name}\","+
-                f"\"{self.tech_label}\","+
+        return (f"{self._type}" +
+                f"(\"{self.tech_name}\"," +
+                f"\"{self.tech_label}\"," +
                 f"\"{self.units}\")")
 
     def _db_entry(self):
@@ -97,10 +98,9 @@ class Technology(object):
                 self.description + ", " + self.units,
                 self.category)
 
-
-    def add_tech_region(self,
-                        region,
-                        **kwargs):
+    def add_tech_data(self,
+                      region,
+                      **kwargs):
         """
         This function adds regional data for each parameter.
         Non-required items are kwargs.
@@ -109,11 +109,10 @@ class Technology(object):
         """
         # check if region is a list or a string.
 
-
         # check if region already exists
         if region in self.regions:
-            print(f'Technology already exists in the {region} region.'+
-                   'Overwriting.')
+            print(f'Technology already exists in the {region} region.' +
+                  'Overwriting.')
         else:
             self.regions.append(region)
 
