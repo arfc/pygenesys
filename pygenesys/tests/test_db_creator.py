@@ -12,6 +12,7 @@ N_years = 6
 seasons = [[f'S{i+1}'] for i in range(N_seasons)]
 periods = np.linspace(start_year, end_year, N_years)
 
+
 def test_establish_connection():
     conn = establish_connection(test_db)
 
@@ -65,7 +66,7 @@ def test_create_time_periods():
     conn.close()
 
     # tests
-    assert(len(table_data)-1 == len(periods))
+    assert(len(table_data) - 1 == len(periods))
 
     os.remove(test_db)
     return

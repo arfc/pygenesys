@@ -100,7 +100,7 @@ def create_time_periods(connector, future_years):
 
     time_horizon = [(int(year), 'f') for year in future_years]
     # set boundary year
-    time_horizon.append((int(future_years[-1]+1), 'f'))
+    time_horizon.append((int(future_years[-1] + 1), 'f'))
     cursor = connector.cursor()
     cursor.execute(table_command)
     cursor.executemany(insert_command, time_horizon)
@@ -254,8 +254,8 @@ def create_commodity_labels(connector):
     insert_command = """
                      INSERT INTO "commodity_labels" VALUES (?,?)
                      """
-    labels = [("p", "physical commodity"), ("d", "demand commodity"), ("e", "emissions commodity")]
-
+    labels = [("p", "physical commodity"),
+              ("d", "demand commodity"), ("e", "emissions commodity")]
 
     cursor = connector.cursor()
     cursor.execute(table_command)
@@ -301,7 +301,6 @@ def create_commodities(connector, comm_data):
 
     labels = demand_entries + resource_entries + emission_entries
 
-
     cursor = connector.cursor()
     cursor.execute(table_command)
     cursor.executemany(insert_command, labels)
@@ -343,7 +342,6 @@ def create_regions(connector, regions):
     cursor.executemany(insert_command, labels)
     connector.commit()
 
-
     return
 
 
@@ -357,7 +355,7 @@ def create_demand_table(connector, demand_list, years):
         Used to connect to and write to an sqlite database.
 
     demand_list : list
-        A list of DemandCommodity objects
+        A list of DemandCommodity objects.
 
     years : list or array
         A list of the years in the model simulation.
@@ -396,7 +394,7 @@ def create_demand_table(connector, demand_list, years):
                          demand_comm.comm_name,
                          d,
                          demand_comm.units,
-                         '') for d,y in zip(data, years)]
+                         '') for d, y in zip(data, years)]
             cursor.executemany(insert_command, db_entry)
 
     connector.commit()
@@ -444,7 +442,6 @@ def create_demand_specific_distribution(connector,
                      INSERT INTO "DemandSpecificDistribution" VALUES (?,?,?,?,?,?)
                      """
 
-
     cursor = connector.cursor()
     cursor.execute(table_command)
 
@@ -454,12 +451,16 @@ def create_demand_specific_distribution(connector,
         # loops over each region where the commodity is defined
         for region in demand_dict:
             data = demand_dict[region]
-            db_entry = [(region,
-                         ts[0][0],
-                         ts[1][0],
-                         demand_comm.comm_name,
-                         d,
-                         demand_comm.units) for d,ts in zip(data, time_slices)]
+            db_entry = [
+                (region,
+                 ts[0][0],
+                    ts[1][0],
+                    demand_comm.comm_name,
+                    d,
+                    demand_comm.units) for d,
+                ts in zip(
+                    data,
+                    time_slices)]
             cursor.executemany(insert_command, db_entry)
     connector.commit()
     return table_command

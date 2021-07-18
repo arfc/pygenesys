@@ -79,7 +79,6 @@ class ModelInfo(object):
 
         return
 
-
     def _calculate_time_horizon(self):
         """
         Calculates the complete simulation time horizon.
@@ -93,7 +92,6 @@ class ModelInfo(object):
 
         return years
 
-
     def _calculate_seg_frac(self):
         """
         Calculates the fraction of a year represented
@@ -105,7 +103,6 @@ class ModelInfo(object):
         seg_frac = 1 / (self.N_seasons * self.N_hours)
 
         return seg_frac
-
 
     def _collect_regions(self):
 
