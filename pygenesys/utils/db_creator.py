@@ -427,19 +427,19 @@ def create_demand_specific_distribution(connector,
         The command for creating the SQLite table.
     """
     table_command = """CREATE TABLE "DemandSpecificDistribution" (
-    	"regions"	text,
-    	"season_name"	text,
-    	"time_of_day_name"	text,
-    	"demand_name"	text,
-    	"dds"	real CHECK("dds" >= 0 AND "dds" <= 1),
-    	"dds_notes"	text,
-    	PRIMARY KEY("regions","season_name","time_of_day_name","demand_name"),
-    	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
-    	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day"),
-    	FOREIGN KEY("demand_name") REFERENCES "commodities"("comm_name")
-        );"""
+                	"regions"	text,
+                	"season_name"	text,
+                	"time_of_day_name"	text,
+                	"demand_name"	text,
+                	"dds"	real CHECK("dds" >= 0 AND "dds" <= 1),
+                	"dds_notes"	text,
+                	PRIMARY KEY("regions","season_name","time_of_day_name","demand_name"),
+                	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
+                	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day"),
+                	FOREIGN KEY("demand_name") REFERENCES "commodities"("comm_name")
+                    );"""
     insert_command = """
-     INSERT INTO "DemandSpecificDistribution" VALUES (?,?,?,?,?,?)
+                     INSERT INTO "DemandSpecificDistribution" VALUES (?,?,?,?,?,?)
                      """
 
     cursor = connector.cursor()
