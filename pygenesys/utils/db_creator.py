@@ -427,16 +427,16 @@ def create_demand_specific_distribution(connector,
         The command for creating the SQLite table.
     """
     table_command = """CREATE TABLE "DemandSpecificDistribution" (
-                    	"regions"	text,
-                    	"season_name"	text,
-                    	"time_of_day_name"	text,
-                    	"demand_name"	text,
-                    	"dds"	real CHECK("dds" >= 0 AND "dds" <= 1),
-                    	"dds_notes"	text,
-                    	PRIMARY KEY("regions","season_name","time_of_day_name","demand_name"),
-                    	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
-                    	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day"),
-                    	FOREIGN KEY("demand_name") REFERENCES "commodities"("comm_name")
+                	"regions"	text,
+                	"season_name"	text,
+                	"time_of_day_name"	text,
+                	"demand_name"	text,
+                	"dds"	real CHECK("dds" >= 0 AND "dds" <= 1),
+                	"dds_notes"	text,
+                	PRIMARY KEY("regions","season_name","time_of_day_name","demand_name"),
+                	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
+                	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day"),
+                	FOREIGN KEY("demand_name") REFERENCES "commodities"("comm_name")
                     );"""
     insert_command = """
                      INSERT INTO "DemandSpecificDistribution" VALUES (?,?,?,?,?,?)
@@ -466,28 +466,103 @@ def create_demand_specific_distribution(connector,
     return table_command
 
 
+def create_technology_labels(connector):
+    """
+    Writes a ``technology_labels`` table to an SQLite database.
+
+    Parameters
+    ----------
+    connector : sqlite3 connection object
+        Used to connect to and write to an sqlite database.
+
+    Returns
+    -------
+    table_command : string
+        The command for generating the "commodity_labels" table.
+    """
+    table_command = """CREATE TABLE "technology_labels" (
+    	"tech_labels"	text,
+    	"tech_labels_desc"	text,
+    	PRIMARY KEY("tech_labels")
+    );
+                    """
+
+    insert_command = """
+                     INSERT INTO "technology_labels" VALUES (?,?)
+                     """
+    labels = [("p", "production technology"),
+              ("pb", "baseload production technology"),
+              ("ps", "storage production technology"),
+              ("r", "resource technology")]
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, labels)
+    connector.commit()
+
+    return
+
+
+def create_sectors(connector, sector_list):
+
+    table_command = """
+                    CREATE TABLE "sector_labels" (
+                    "sector"	text,
+                    PRIMARY KEY("sector")
+                    );"""
+
+    insert_command = """
+                     INSERT INTO "sector_labels" VALUES (?)
+                     """
+
+    sectors = [[s] for s in sector_list]
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, sectors)
+    connector.commit()
+
+    return
+
+
+def create_technologies(connector, technology_list):
+    """
+    Creates the ``technologies`` table in Temoa.
+
+    Parameters
+    ----------
+    connector : sqlite connector
+        The connection to an sqlite database
+
+    technology_list : list of ``Technology`` objects
+        All of the technologies initialized in the input file
+    """
+
+    table_command = """
+                    CREATE TABLE "technologies" (
+                    "tech"	text,
+                    "flag"	text,
+                    "sector"	text,
+                    "tech_desc"	text,
+                    "tech_category"	text,
+                    PRIMARY KEY("tech"),
+                    FOREIGN KEY("flag") REFERENCES "technology_labels"("tech_labels"),
+                    FOREIGN KEY("sector") REFERENCES "sector_labels"("sector")
+                    );"""
+    insert_command = """
+                     INSERT INTO "technologies" VALUES (?,?,?,?,?)
+                     """
+    tech_entries = [tech._db_entry() for tech in technology_list]
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, tech_entries)
+    connector.commit()
+
+    return table_command
+
+
 """
-def create_():
-CREATE TABLE "technology_labels" (
-	"tech_labels"	text,
-	"tech_labels_desc"	text,
-	PRIMARY KEY("tech_labels")
-);
-return
-
-
-def create_():
-CREATE TABLE "technologies" (
-	"tech"	text,
-	"flag"	text,
-	"sector"	text,
-	"tech_desc"	text,
-	"tech_category"	text,
-	PRIMARY KEY("tech"),
-	FOREIGN KEY("flag") REFERENCES "technology_labels"("tech_labels"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector")
-);
-return
 
 
 def create_():
@@ -538,12 +613,6 @@ CREATE TABLE "tech_annual" (
 );
 return
 
-def create_():
-CREATE TABLE "sector_labels" (
-	"sector"	text,
-	PRIMARY KEY("sector")
-);
-return
 
 
 def create_():

@@ -17,6 +17,7 @@ class ModelInfo(object):
                  N_years,
                  N_seasons,
                  N_hours,
+                 technologies,
                  demands,
                  resources,
                  emissions,):
@@ -51,6 +52,9 @@ class ModelInfo(object):
                 * 2; diurnal variation, step function (not implemented)
                 * 24; full day, hourly resolution
         commodities : dictionary
+            A dictionary of the demand, resource, and emissions commodities.
+        technologies : list
+             A list of ``Technology`` objects
         """
 
         self.output_db = output_db
@@ -65,12 +69,13 @@ class ModelInfo(object):
             'resources': resources,
             'emissions': emissions
         }
+        self.technologies = technologies
 
         # derived quantities
         self.time_horizon = self._calculate_time_horizon()
         self.seg_frac = self._calculate_seg_frac()
         self.regions = self._collect_regions()
-        print(self.regions)
+        self.tech_sectors = self._collect_tech_sectors()
 
         return
 
@@ -109,6 +114,12 @@ class ModelInfo(object):
 
         return np.unique(regions)
 
+    def _collect_tech_sectors(self):
+
+        sectors = np.unique([t.tech_sector for t in self.technologies])
+
+        return sectors
+
     def _write_sqlite_database(self):
         """
         Writes model info directly to an sqlite database.
@@ -132,5 +143,8 @@ class ModelInfo(object):
                                             self.commodities['demand'],
                                             time_slices,
                                             seasons)
+        create_technology_labels(conn)
+        create_sectors(conn, self.tech_sectors)
+        create_technologies(conn, self.technologies)
         conn.close()
         return
