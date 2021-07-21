@@ -3,7 +3,7 @@ PyGenesys Input File
 To run execute:
 
 ```bash
-genesys --infile test_inputfile.py
+genesys --infile example_inputfile.py
 ```
 """
 # So the database can be saved in the location from which
