@@ -2,6 +2,7 @@
 
 import numpy as np
 import importlib
+import inspect
 import argparse
 import os
 import sys
@@ -9,6 +10,7 @@ import sqlite3
 
 # custom imports
 from pygenesys import model_info
+from pygenesys.technology.technology import Technology
 
 
 def name_from_path(infile_path):
@@ -53,6 +55,30 @@ def load_infile(infile_path):
     return infile
 
 
+def collect_technologies(module_name):
+    """
+    Collects the technologies from the PyGenesys input file.
+
+    Parameters
+    ----------
+    module_name : python module
+        The PyGenesys input file once imported. Should be "infile."
+    """
+    technologies = []
+
+    for member, attrib in inspect.getmembers(module_name):
+        try:
+            string_attr = str(attrib)
+        except BaseException:
+            string_attr = ''
+
+        if 'Technology' in string_attr:
+            print(f"{member} is Technology")
+            technologies.append(getattr(module_name, member))
+
+    return technologies
+
+
 def main():
 
     # Read commandline arguments
@@ -68,6 +94,9 @@ def main():
     except BaseException:
         out_path = "./" + out_db
 
+    # get infile technologies
+    technology_list = collect_technologies(infile)
+
     # create the model object
     model = model_info.ModelInfo(output_db=out_path,
                                  scenario_name=infile.scenario_name,
@@ -79,8 +108,13 @@ def main():
                                  demands=infile.demands_list,
                                  resources=infile.resources_list,
                                  emissions=infile.emissions_list,
+                                 technologies=technology_list
                                  )
     print(f"Database will be exported to {model.output_db} \n")
+
+    # print('=========================\n')
+    # print(f"{technology_list}")
+    # print('=========================\n')
 
     print(f"The years simulated by the model are \n {model.time_horizon} \n")
 
