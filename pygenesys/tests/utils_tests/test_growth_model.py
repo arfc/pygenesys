@@ -8,8 +8,8 @@ def test_choose_growth_method_no_imput():
     if str(linear).find("linear_growth") != -1:
         pass
     else:
-        raise ValueError('The wrong function was 
-                        used by choose_growth_method.')
+        raise ValueError("""The wrong function was
+                            used by choose_growth_method.""")
 
     return
 
@@ -25,11 +25,11 @@ def test_linear_growth_unit():
     end_year = 1
     N_years = 2
     growth_rate = 1
-    growth = pyutgm.linear_growth(init_value, 
-                                    start_year, 
-                                    end_year, 
-                                    N_years, 
-                                    growth_rate)
+    growth = pyutgm.linear_growth(init_value,
+                                start_year,
+                                end_year,
+                                N_years,
+                                growth_rate)
 
     assert((growth == np.array([1, 2])).all())
 
@@ -47,11 +47,11 @@ def test_exponential_growth_unit():
     end_year = 1
     N_years = 2
     growth_rate = 1
-    growth = pyutgm.exponential_growth(init_value, 
-                                        start_year, 
-                                        end_year, 
-                                        N_years, 
-                                        growth_rate)
+    growth = pyutgm.exponential_growth(init_value,
+                                    start_year,
+                                    end_year,
+                                    N_years,
+                                    growth_rate)
 
     assert(growth == approx(np.array([1., 2.71828183])))
 
@@ -72,15 +72,15 @@ def test_logistic_growth_unit():
     N_years = 2
     growth_rate = 1
     cap = 2
-    growth = pyutgm.logistic_growth(init_value, 
-                                    start_year, 
-                                    end_year, 
-                                    N_years, 
-                                    growth_rate, 
+    growth = pyutgm.logistic_growth(init_value,
+                                    start_year,
+                                    end_year,
+                                    N_years,
+                                    growth_rate,
                                     cap)
 
-    assert(growth == approx(np.array([1, 
-                                    1.4621171572600098, 
-                                    1.7615941559557646])))
+    assert(growth == approx(np.array([1,
+                                        1.4621171572600098,
+                                        1.7615941559557646])))
 
     return
