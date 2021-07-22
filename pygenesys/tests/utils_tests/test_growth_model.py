@@ -26,10 +26,10 @@ def test_linear_growth_unit():
     N_years = 2
     growth_rate = 1
     growth = pyutgm.linear_growth(init_value,
-                                start_year,
-                                end_year,
-                                N_years,
-                                growth_rate)
+                                  start_year,
+                                  end_year,
+                                  N_years,
+                                  growth_rate)
 
     assert((growth == np.array([1, 2])).all())
 
@@ -48,10 +48,10 @@ def test_exponential_growth_unit():
     N_years = 2
     growth_rate = 1
     growth = pyutgm.exponential_growth(init_value,
-                                    start_year,
-                                    end_year,
-                                    N_years,
-                                    growth_rate)
+                                       start_year,
+                                       end_year,
+                                       N_years,
+                                       growth_rate)
 
     assert(growth == approx(np.array([1., 2.71828183])))
 
@@ -80,7 +80,7 @@ def test_logistic_growth_unit():
                                     cap)
 
     assert(growth == approx(np.array([1,
-                                        1.4621171572600098,
-                                        1.7615941559557646])))
+                                      1.4621171572600098,
+                                      1.7615941559557646])))
 
     return
