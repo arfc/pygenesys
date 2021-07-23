@@ -37,7 +37,7 @@ N_seasons = 4  # the number of "seasons" in the model
 N_hours = 24  # the number of hours in a day
 
 # Import commodities here
-from pygenesys.commodity.resource import electricity, steam, ethos
+from pygenesys.commodity.resource import electricity, steam, ethos, uranium_leu
 from pygenesys.commodity.demand import ELC_DEMAND, STM_DEMAND
 ELC_DEMAND.add_demand(region='IL',
                       init_demand=183,
@@ -74,7 +74,14 @@ STM_DEMAND.set_distribution(region='UIUC',
 
 # Add technologies
 from pygenesys.technology.supply import imp_natgas
+from pygenesys.technology.electric import NUCLEAR_ELC
 
+
+# Set region specific data
+NUCLEAR_ELC.add_regional_data(region='IL',
+                              input_comm=ethos,
+                              output_comm=electricity,
+                              efficiency=1.0)
 
 # Collect the commodities here
 demands_list = [ELC_DEMAND, STM_DEMAND]

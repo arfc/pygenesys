@@ -131,6 +131,7 @@ class ModelInfo(object):
         seasons = create_time_season(conn, self.N_seasons)
         create_time_period_labels(conn)
         create_time_periods(conn, self.time_horizon)
+        # create_existing_periods(conn, self.technology_list)
         time_slices = create_time_of_day(conn, self.N_hours)
         create_segfrac(conn, self.seg_frac, seasons, time_slices)
         create_regions(conn, self.regions)
@@ -146,5 +147,7 @@ class ModelInfo(object):
         create_technology_labels(conn)
         create_sectors(conn, self.tech_sectors)
         create_technologies(conn, self.technologies)
+        # create_existing_capacity(conn, self.technologies)
+        create_efficiency(conn, self.technologies, self.time_horizon)
         conn.close()
         return

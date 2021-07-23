@@ -561,7 +561,68 @@ def create_technologies(connector, technology_list):
 
     return table_command
 
+def create_efficiency(connector, technology_list, future):
+    """
+    This function writes the efficiency table in Temoa.
+    """
 
+    table_command = """CREATE TABLE "Efficiency" (
+                    	"regions"	text,
+                    	"input_comm"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"output_comm"	text,
+                    	"efficiency"	real CHECK("efficiency" > 0),
+                    	"eff_notes"	text,
+                    	PRIMARY KEY("regions","input_comm","tech","vintage","output_comm"),
+                    	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name")
+                    );"""
+    insert_command = """
+                    INSERT INTO "Efficiency" VALUES (?,?,?,?,?,?,?)
+                     """
+    entries = []
+    for tech in technology_list:
+        # loop through regions
+        for place in tech.regions:
+            # check for existing capacity
+            # if len(tech.existing_capacity[place])>0:
+            try:
+                existing_years = tech.existing_capacity[place].keys()
+                data = [(place,
+                        str(tech.input_comm[place].comm_name),
+                        str(tech.tech_name),
+                        int(year),
+                        str(tech.output_comm[place].comm_name),
+                        tech.efficiency[place],
+                        'NULL'
+                        ) for year in existing_years]
+                entries += data
+            except:
+                pass
+            # write future years
+            data = [(place,
+                     str(tech.input_comm[place].comm_name),
+                     str(tech.tech_name),
+                     int(year),
+                     str(tech.output_comm[place].comm_name),
+                     tech.efficiency[place],
+                     'NULL'
+                     ) for year in future]
+
+            entries += data
+
+    print(future)
+    # for entry in entries:
+    #     print(entry)
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    return table_command
 """
 
 
@@ -1029,22 +1090,7 @@ CREATE TABLE "EmissionActivity" (
 );
 return
 
-def create_():
-CREATE TABLE "Efficiency" (
-	"regions"	text,
-	"input_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_comm"	text,
-	"efficiency"	real CHECK("efficiency" > 0),
-	"eff_notes"	text,
-	PRIMARY KEY("regions","input_comm","tech","vintage","output_comm"),
-	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name")
-);
-return
+
 
 def create_():
 CREATE TABLE "DiscountRate" (

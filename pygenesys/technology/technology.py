@@ -16,19 +16,12 @@ class Technology(object):
 
     def __init__(self,
                  tech_name,
-                 input_comm,
-                 output_comm,
                  units,
-                 regions=[],
-                 tech_lifetime=None,
-                 loan_lifetime=None,
-                 cost_variable=None,
-                 cost_fixed=None,
-                 cost_capital=None,
                  tech_sector='energy',
                  tech_label='p',
                  description='',
-                 category=''):
+                 category='',
+                 ):
         """
         This class contains information about a technology used
         in a Temoa model.
@@ -72,16 +65,18 @@ class Technology(object):
         self.tech_sector = tech_sector
         self.tech_label = tech_label
         self.description = description
-        self.category = category
-        self.input_comm = input_comm
-        self.output_comm = output_comm
         self.units = units
-        self.regions = regions
-        self.tech_lifetime = tech_lifetime
-        self.loan_lifetime = loan_lifetime
-        self.cost_variable = cost_variable
-        self.cost_fixed = cost_fixed
-        self.cost_capital = cost_capital
+        self.category = category
+        self.regions = []
+        self.input_comm = {}
+        self.output_comm = {}
+        self.efficiency ={}
+        self.existing_capacity = {}
+        self.tech_lifetime = {}
+        self.loan_lifetime = {}
+        self.cost_variable = {}
+        self.cost_fixed = {}
+        self.cost_capital = {}
 
         return
 
@@ -98,7 +93,7 @@ class Technology(object):
                 self.description + ", " + self.units,
                 self.category)
 
-    def add_tech_data(self,
+    def add_regional_data(self,
                       region,
                       **kwargs):
         """
@@ -107,31 +102,45 @@ class Technology(object):
 
 
         """
-        # check if region is a list or a string.
+        attr_dict = {
+                    "input_comm":self.input_comm,
+                    "output_comm":self.output_comm,
+                    "regions":self.regions,
+                    "tech_lifetime":self.tech_lifetime,
+                    "loan_lifetime":self.loan_lifetime,
+                    "cost_variable":self.cost_variable,
+                    "cost_fixed":self.cost_fixed,
+                    "cost_capital":self.cost_capital,
+                    "efficiency":self.efficiency,
+                    "existing":self.existing_capacity
+                    }
 
-        # check if region already exists
-        if region in self.regions:
-            print(f'Technology already exists in the {region} region.' +
-                  'Overwriting.')
-        else:
-            self.regions.append(region)
+        # check if region is a list or a string
+        if type(region) is str:
+            if region in self.regions:
+                pass
+            else:
+                self.regions.append(region)
+            for kw in kwargs:
+                print(kw, kwargs[kw])
+                attribute = attr_dict[kw]
+                attribute[region] = kwargs[kw]
 
+        elif type(region) is list:
+            self.regions += region
+            self.regions = list(np.unique(self.regions))
+            for kw in kwargs:
+                print(kw, kwargs[kw])
+                attribute = attr_dict[kw]
+                for pl in region:
+                    attribute[pl] = kwargs[kw]
+
+
+        print(self.input_comm)
+        print(self.output_comm)
+        print(self.efficiency)
         return
 
 
 if __name__ == '__main__':
-    t = Technology(tech_name='kitchenaid',
-                   input_comm='flour',
-                   output_comm='dough',
-                   units='lbs',
-                   tech_sector='home')
-
-    print(t._db_entry())
-    print(repr(t))
-
-    if isinstance(t, Technology):
-        print('success')
-    else:
-        print('fail')
-
-    print(t._type)
+    pass
