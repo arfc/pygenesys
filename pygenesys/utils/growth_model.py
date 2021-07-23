@@ -123,9 +123,9 @@ def logistic_growth(
         An array of the value for each year in a simulation.
     """
 
-    sigmoid = 1/growth_rate * np.log(cap/init_value - 1)
     def model(x, rate, cap, sigmoid): return cap * \
         1/(1 + np.exp(-rate * (x - sigmoid)))
+    sigmoid = 1/growth_rate * np.log(cap/init_value - 1)
     years = np.linspace(start_year, end_year, N_years).astype('int')
     growth_data = model(years, growth_rate, cap, sigmoid)
 
