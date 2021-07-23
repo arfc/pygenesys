@@ -12,6 +12,10 @@ natural_gas = Commodity(comm_name='NATGAS',
                         units='MMBTU',
                         description='natural gas')
 
+uranium_ntl = Commodity(comm_name='uranium_ntl',
+                        units='tonnes',
+                        description='natural uranium -- infinite reservoir')
+
 ethos = Commodity(comm_name='ethos',
                   units='NULL',
                   description='placeholder commodity -- infinite reservoir')
