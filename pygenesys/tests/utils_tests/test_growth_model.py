@@ -1,11 +1,11 @@
-import pygenesys.utils.growth_model as pyutgm
+from pygenesys.utils import growth_model
 from pytest import approx
 import numpy as np
 
 
-def test_choose_growth_method_no_imput():
-    linear = pyutgm.choose_growth_method()
-    if str(linear).find("linear_growth") != -1:
+def test_choose_growth_method_no_input():
+    linear = growth_model.choose_growth_method()
+    if "linear_growth" in str(linear):
         pass
     else:
         raise ValueError("""The wrong function was
@@ -25,7 +25,7 @@ def test_linear_growth_unit():
     end_year = 1
     N_years = 2
     growth_rate = 1
-    growth = pyutgm.linear_growth(init_value,
+    growth = growth_model.linear_growth(init_value,
                                   start_year,
                                   end_year,
                                   N_years,
@@ -47,7 +47,7 @@ def test_exponential_growth_unit():
     end_year = 1
     N_years = 2
     growth_rate = 1
-    growth = pyutgm.exponential_growth(init_value,
+    growth = growth_model.exponential_growth(init_value,
                                        start_year,
                                        end_year,
                                        N_years,
@@ -72,7 +72,7 @@ def test_logistic_growth_unit():
     N_years = 2
     growth_rate = 1
     cap = 2
-    growth = pyutgm.logistic_growth(init_value,
+    growth = growth_model.logistic_growth(init_value,
                                     start_year,
                                     end_year,
                                     N_years,
