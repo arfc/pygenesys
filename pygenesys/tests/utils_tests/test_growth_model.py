@@ -60,16 +60,16 @@ def test_exponential_growth_unit():
 
 def test_logistic_growth_unit():
     """
-    Test logistic growth over one step
+    Test logistic growth over two steps
     for a unit growth rate. With a carrying
     capacity smaller than pure exponential
     growth would exhibit.
     """
 
     init_value = 1
-    start_year = 1
+    start_year = 0
     end_year = 2
-    N_years = 2
+    N_years = 3
     growth_rate = 1
     cap = 2
     growth = growth_model.logistic_growth(init_value,
@@ -79,7 +79,7 @@ def test_logistic_growth_unit():
                                     growth_rate,
                                     cap)
 
-    assert(growth == approx(np.array([1,
+    assert(growth == approx(np.array([1.,
                                       1.4621171572600098,
                                       1.7615941559557646])))
 

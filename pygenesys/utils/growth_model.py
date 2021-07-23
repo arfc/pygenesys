@@ -10,7 +10,6 @@ def choose_growth_method(method_name='linear'):
     ----------
     method_name : string
         The name of the growth method. Accepts: linear
-        TODO: add logistic.
     """
 
     method = {
@@ -114,7 +113,6 @@ def logistic_growth(
         ``end_year``.
     growth_rate : float
         The rate of growth for the given quantity.
-
     cap : float
         The "carrying capacity" for a given quantity. I.e. the maximum
         sustainable value.
@@ -126,11 +124,9 @@ def logistic_growth(
     """
 
     sigmoid = 1/growth_rate * np.log(cap/init_value - 1)
+    def model(x, rate, cap, sigmoid): return cap * \
+        1/(1 + np.exp(-rate * (x - sigmoid)))
     years = np.linspace(start_year, end_year, N_years).astype('int')
-    growth_data = [init_value]
-    for year in years:
-        growth = cap/(1 + np.exp(-growth_rate * (year - sigmoid)))
-        growth_data.append(growth)
-    np.asarray(growth_data)
+    growth_data = model(years, growth_rate, cap, sigmoid)
 
     return growth_data
