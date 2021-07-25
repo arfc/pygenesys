@@ -6,6 +6,8 @@ input file:
 
 ```py
 import pygenesys.data.library as pdl
+
+x = pdl.my_data
 ```
 or
 ```py
@@ -38,3 +40,12 @@ at the UIUC campus. However, the _distribution_ of data may be
 representative of other campuses or office buildings.
 """
 campus_stm_demand = curr_dir + "/uiuc_steam_data.csv"
+
+
+"""
+``eia_electric_generators`` : dataset
+From the EIA website: https://www.eia.gov/electricity/data/eia860m/
+Contains data for all of the operating generators in the United States.
+"""
+
+eia_electric_generators = curr_dir + "/april_generator2021.xlsx"

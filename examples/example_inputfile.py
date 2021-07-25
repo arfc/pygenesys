@@ -76,12 +76,21 @@ STM_DEMAND.set_distribution(region='UIUC',
 from pygenesys.technology.supply import imp_natgas
 from pygenesys.technology.electric import NUCLEAR_ELC
 
+# import technology data from EIA
+from pygenesys.utils.eia_data import get_eia_generators, get_existing_capacity
+curr_data = get_eia_generators()
+
 
 # Set region specific data
 NUCLEAR_ELC.add_regional_data(region='IL',
                               input_comm=ethos,
                               output_comm=electricity,
-                              efficiency=1.0)
+                              efficiency=1.0,
+                              existing=get_existing_capacity(curr_data,
+                                                             'IL',
+                                                             'Nuclear'),
+
+                              )
 
 # Collect the commodities here
 demands_list = [ELC_DEMAND, STM_DEMAND]
@@ -98,3 +107,5 @@ if __name__ == '__main__':
     print(STM_DEMAND.comm_name)
     STM_DEMAND.comm_name = 'McSteamy'
     print(STM_DEMAND.comm_name)
+
+    print(NUCLEAR_ELC.existing_capacity)

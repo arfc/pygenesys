@@ -68,7 +68,7 @@ def create_time_season(connector, N_seasons):
     return seasons
 
 
-def create_time_periods(connector, future_years):
+def create_time_periods(connector, future_years, existing_years):
     """
     This function writes the time_periods table to an sqlite
     database. Only "future" time periods will be written.
@@ -98,12 +98,18 @@ def create_time_periods(connector, future_years):
                      INSERT INTO "time_periods" VALUES(?,?)
                      """
 
-    time_horizon = [(int(year), 'f') for year in future_years]
+    if len(existing_years) == 0:
+        past_horizon = [(int(future_years[0] - 1), 'e')]
+    else:
+        past_horizon = [(int(year), 'e') for year in existing_years]
+    future_horizon = [(int(year), 'f') for year in future_years]
     # set boundary year
-    time_horizon.append((int(future_years[-1] + 1), 'f'))
+    future_horizon.append((int(future_years[-1] + 1), 'f'))
+    entries = past_horizon + future_horizon
+
     cursor = connector.cursor()
     cursor.execute(table_command)
-    cursor.executemany(insert_command, time_horizon)
+    cursor.executemany(insert_command, entries)
     connector.commit()
     return table_command
 
@@ -504,7 +510,9 @@ def create_technology_labels(connector):
 
 
 def create_sectors(connector, sector_list):
-
+    """
+    Creates the ``sectors`` table in Temoa.
+    """
     table_command = """
                     CREATE TABLE "sector_labels" (
                     "sector"	text,
@@ -603,6 +611,8 @@ def create_efficiency(connector, technology_list, future):
             except:
                 pass
             # write future years
+
+            # if the technology only has one input and one output
             data = [(place,
                      str(tech.input_comm[place].comm_name),
                      str(tech.tech_name),
@@ -613,6 +623,23 @@ def create_efficiency(connector, technology_list, future):
                      ) for year in future]
 
             entries += data
+
+            # if the technology has one input and one output -- default
+            if True:
+                pass
+            # if the technology has two or more outputs
+            elif (type(tech.output_comm[place]) == 'list'):
+                pass
+
+            # if the technology has two or more inputs
+            elif (type(tech.input_comm[place]) == 'list'):
+                pass
+
+            # if the technology has two or more inputs and outputs
+            elif ((type(tech.input_comm[place]) == 'list') and
+                  (type(tech.output_comm[place]) == 'list')):
+                pass
+
 
     print(future)
     # for entry in entries:

@@ -73,9 +73,11 @@ class ModelInfo(object):
 
         # derived quantities
         self.time_horizon = self._calculate_time_horizon()
+        self.existing_years = self._collect_existing_years()
         self.seg_frac = self._calculate_seg_frac()
         self.regions = self._collect_regions()
         self.tech_sectors = self._collect_tech_sectors()
+
 
         return
 
@@ -120,6 +122,21 @@ class ModelInfo(object):
 
         return sectors
 
+
+    def _collect_existing_years(self):
+        """
+        Collects a unique list of existing years from the technologies
+        in the model.
+        """
+        years = []
+        for tech in self.technologies:
+            for place in tech.regions:
+                ex_years = list(tech.existing_capacity[place].keys())
+                years += ex_years
+
+        return np.unique(years)
+
+
     def _write_sqlite_database(self):
         """
         Writes model info directly to an sqlite database.
@@ -130,7 +147,7 @@ class ModelInfo(object):
         # create fundamental tables
         seasons = create_time_season(conn, self.N_seasons)
         create_time_period_labels(conn)
-        create_time_periods(conn, self.time_horizon)
+        create_time_periods(conn, self.time_horizon, self.existing_years)
         # create_existing_periods(conn, self.technology_list)
         time_slices = create_time_of_day(conn, self.N_hours)
         create_segfrac(conn, self.seg_frac, seasons, time_slices)
