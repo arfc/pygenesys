@@ -54,7 +54,7 @@ class Technology(object):
         tech_lifetime : integer
             The operational lifetime of the technology.
         loan_lifetime : integer
-            The ammortization period of the technology capital cost.
+            The ammortization period of the technology invest cost.
         description : string
              A short 1-4 word description of the technology.
         category : string
@@ -76,7 +76,7 @@ class Technology(object):
         self.loan_lifetime = {}
         self.cost_variable = {}
         self.cost_fixed = {}
-        self.cost_capital = {}
+        self.cost_invest = {}
 
         return
 
@@ -110,7 +110,7 @@ class Technology(object):
                     "loan_lifetime":self.loan_lifetime,
                     "cost_variable":self.cost_variable,
                     "cost_fixed":self.cost_fixed,
-                    "cost_capital":self.cost_capital,
+                    "cost_invest":self.cost_invest,
                     "efficiency":self.efficiency,
                     "existing":self.existing_capacity
                     }

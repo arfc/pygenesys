@@ -650,6 +650,52 @@ def create_efficiency(connector, technology_list, future):
     connector.commit()
 
     return table_command
+
+def create_existing_capacity(connector, technology_list):
+    """
+    Writes the ``ExistingCapacity`` table.
+    """
+
+    table_command = """CREATE TABLE "ExistingCapacity" (
+                    	"regions"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"exist_cap"	real,
+                    	"exist_cap_units"	text,
+                    	"exist_cap_notes"	text,
+                    	PRIMARY KEY("regions","tech","vintage"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
+                    );"""
+
+    insert_command = """
+                     INSERT INTO "ExistingCapacity" VALUES (?,?,?,?,?,?)
+                     """
+
+    entries = []
+    for tech in technology_list:
+        for place in tech.regions:
+            years = list(tech.existing_capacity[place].keys())
+            caps = list(tech.existing_capacity[place].values())
+
+            data = [(place,
+                     tech.tech_name,
+                     int(year),
+                     cap,
+                     tech.units,
+                     '') for year, cap in zip(years, caps)]
+            entries += data
+
+    if len(entries) > 0:
+        cursor = connector.cursor()
+        cursor.execute(table_command)
+        cursor.executemany(insert_command, entries)
+        connector.commit()
+    else:
+        return table_command
+
+    return table_command
+
 """
 
 
@@ -1069,19 +1115,7 @@ CREATE TABLE "GlobalDiscountRate" (
 );
 return
 
-def create_():
-CREATE TABLE "ExistingCapacity" (
-	"regions"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"exist_cap"	real,
-	"exist_cap_units"	text,
-	"exist_cap_notes"	text,
-	PRIMARY KEY("regions","tech","vintage"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
-);
-return
+
 
 def create_():
 CREATE TABLE "EmissionLimit" (
