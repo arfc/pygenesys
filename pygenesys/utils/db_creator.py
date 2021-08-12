@@ -718,8 +718,6 @@ def create_lifetime_tech(connector, technology_list):
                      """
     entries = []
 
-    print("=====================================")
-    print("=====================================")
 
     for tech in technology_list:
         tech_name = tech.tech_name
@@ -727,11 +725,9 @@ def create_lifetime_tech(connector, technology_list):
                 tech_name,
                 tech.tech_lifetime[place],
                 'NULL') for place in tech.regions]
-        print(data)
+
         entries += data
-    print(entries)
-    print("=====================================")
-    print("=====================================")
+
 
     cursor = connector.cursor()
     cursor.execute(table_command)
@@ -766,7 +762,73 @@ def create_variable_cost(connector, technology_list, time_horizon):
                 	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
                 	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
                 );"""
-    return
+
+    insert_command = """
+                     INSERT INTO "CostVariable" VALUES (?,?,?,?,?,?,?)
+                     """
+    entries = []
+    for tech in technology_list:
+        # loop through regions
+        for place in tech.regions:
+            lifetime = float(tech.tech_lifetime[place])
+            # if there are existing vintages of the technology
+            try:
+                existing_years = tech.existing_capacity[place].keys()
+                data = []
+                for vintage in existing_years:
+                    for year in time_horizon:
+                        # check if cost_variable is dict
+                        # check the lifetime
+                        if (year-vintage) < lifetime:
+                            print(type(tech.cost_variable[place]))
+                            try:
+                                data.append((place,
+                                             int(year),
+                                             tech.tech_name,
+                                             int(vintage),
+                                             tech.cost_variable[place][year],
+                                             "",
+                                             ""))
+                            except:
+                                data.append((place,
+                                             int(year),
+                                             tech.tech_name,
+                                             int(vintage),
+                                             tech.cost_variable[place],
+                                             "",
+                                             ""))
+                entries += data
+            except:
+                pass
+            # write future years
+            data = []
+            for vintage in time_horizon:
+                for year in time_horizon:
+                    if (year-vintage) < lifetime:
+                        try:
+                            data.append((place,
+                                         int(year),
+                                         tech.tech_name,
+                                         int(vintage),
+                                         tech.cost_variable[place][year],
+                                         "",
+                                         ""))
+                        except:
+                            data.append((place,
+                                         int(year),
+                                         tech.tech_name,
+                                         int(vintage),
+                                         tech.cost_variable[place],
+                                         "",
+                                         ""))
+        entries += data
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    return table_command
 
 
 def create_invest_cost(connector, technology_list, time_horizon):
@@ -792,6 +854,26 @@ def create_invest_cost(connector, technology_list, time_horizon):
                 	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
                 );
                 """
+
+    insert_command = """
+                     INSERT INTO "CostInvest" VALUES (?,?,?,?,?,?)
+                     """
+    entries = []
+    for tech in technology_list:
+        for place in tech.regions:
+            data  = [(place,
+                      tech.tech_name,
+                      int(year),
+                      tech.cost_invest[place],
+                      "",
+                      "") for year in time_horizon]
+            entries += data
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
     return
 
 

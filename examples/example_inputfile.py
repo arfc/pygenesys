@@ -107,7 +107,7 @@ NUCLEAR_ELC.add_regional_data(region='IL',
                               existing=get_existing_capacity(curr_data,
                                                              'IL',
                                                              'Nuclear'),
-                              cost_invest=nuclear_invest_annual,
+                              cost_invest=nuclear_invest,
                               cost_fixed=nuclear_fixed_annual,
                               cost_variable=nuclear_variable_annual,
                               )
