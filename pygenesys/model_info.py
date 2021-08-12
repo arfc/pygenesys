@@ -166,5 +166,6 @@ class ModelInfo(object):
         create_technologies(conn, self.technologies)
         create_existing_capacity(conn, self.technologies)
         create_efficiency(conn, self.technologies, self.time_horizon)
+        create_lifetime_tech(conn, self.technologies)
         conn.close()
         return

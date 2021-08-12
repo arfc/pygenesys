@@ -77,19 +77,39 @@ from pygenesys.technology.supply import imp_natgas
 from pygenesys.technology.electric import NUCLEAR_ELC
 
 # import technology data from EIA
-from pygenesys.utils.eia_data import get_eia_generators, get_existing_capacity
+from pygenesys.data.eia_data import get_eia_generators, get_existing_capacity
 curr_data = get_eia_generators()
 
 
 # Set region specific data
+
+import numpy as np
+# nuclear cost in M$/MW
+years = np.linspace(start_year, end_year, N_years).astype('int')
+
+nuclear_invest = 5.905853
+nuclear_fixed = 121.09221
+nuclear_variable = 0.009158
+nuclear_invest_annual = {}
+nuclear_fixed_annual = {}
+nuclear_variable_annual = {}
+
+for year in years:
+    nuclear_invest_annual[year] = nuclear_invest
+    nuclear_fixed_annual[year] = nuclear_fixed
+    nuclear_variable_annual[year] = nuclear_variable
+
 NUCLEAR_ELC.add_regional_data(region='IL',
                               input_comm=ethos,
                               output_comm=electricity,
                               efficiency=1.0,
+                              tech_lifetime = 40.0,
                               existing=get_existing_capacity(curr_data,
                                                              'IL',
                                                              'Nuclear'),
-
+                              cost_invest=nuclear_invest_annual,
+                              cost_fixed=nuclear_fixed_annual,
+                              cost_variable=nuclear_variable_annual,
                               )
 
 # Collect the commodities here
@@ -109,3 +129,4 @@ if __name__ == '__main__':
     print(STM_DEMAND.comm_name)
 
     print(NUCLEAR_ELC.existing_capacity)
+    print(NUCLEAR_ELC.tech_lifetime)

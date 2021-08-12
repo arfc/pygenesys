@@ -696,6 +696,134 @@ def create_existing_capacity(connector, technology_list):
 
     return table_command
 
+
+def create_lifetime_tech(connector, technology_list):
+    """
+    This function writes the lifetime tech table in Temoa.
+
+    TO DO: Update this function to handle technologies with
+    technology lifetimes that vary by region.
+    """
+    table_command = """CREATE TABLE "LifetimeTech" (
+                    	"regions"	text,
+                    	"tech"	text,
+                    	"life"	real,
+                    	"life_notes"	text,
+                    	PRIMARY KEY("regions","tech"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+
+    insert_command = """
+                     INSERT INTO "LifetimeTech" VALUES (?,?,?,?)
+                     """
+    entries = []
+
+    print("=====================================")
+    print("=====================================")
+
+    for tech in technology_list:
+        tech_name = tech.tech_name
+        data = [(place,
+                tech_name,
+                tech.tech_lifetime[place],
+                'NULL') for place in tech.regions]
+        print(data)
+        entries += data
+    print(entries)
+    print("=====================================")
+    print("=====================================")
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+
+    return table_command
+
+
+def create_variable_cost(connector, technology_list, time_horizon):
+    """
+    This function writes the variable cost table in Temoa.
+
+    Parameters
+    ----------
+    connector : sqlite connector
+
+    technology_list : list of ``Technology`` objects
+        All of the technologies initialized in the input file
+    """
+    table_command = """CREATE TABLE "CostVariable" (
+                	"regions"	text NOT NULL,
+                	"periods"	integer NOT NULL,
+                	"tech"	text NOT NULL,
+                	"vintage"	integer NOT NULL,
+                	"cost_variable"	real,
+                	"cost_variable_units"	text,
+                	"cost_variable_notes"	text,
+                	PRIMARY KEY("regions","periods","tech","vintage"),
+                	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
+                );"""
+    return
+
+
+def create_invest_cost(connector, technology_list, time_horizon):
+    """
+    This function writes the investment cost table in Temoa.
+
+    Parameters
+    ----------
+    connector : sqlite connector
+
+    technology_list : list of ``Technology`` objects
+        All of the technologies initialized in the input file
+    """
+    table_command = """CREATE TABLE "CostInvest" (
+                	"regions"	text,
+                	"tech"	text,
+                	"vintage"	integer,
+                	"cost_invest"	real,
+                	"cost_invest_units"	text,
+                	"cost_invest_notes"	text,
+                	PRIMARY KEY("regions","tech","vintage"),
+                	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
+                );
+                """
+    return
+
+
+def create_fixed_cost(connector, technology_list, time_horizon):
+    """
+    This function writes the fixed cost table in Temoa.
+
+    Parameters
+    ----------
+    connector : sqlite connector
+
+    technology_list : list of ``Technology`` objects
+        All of the technologies initialized in the input file
+    """
+    table_command = """CREATE TABLE "CostFixed" (
+                	"regions"	text NOT NULL,
+                	"periods"	integer NOT NULL,
+                	"tech"	text NOT NULL,
+                	"vintage"	integer NOT NULL,
+                	"cost_fixed"	real,
+                	"cost_fixed_units"	text,
+                	"cost_fixed_notes"	text,
+                	PRIMARY KEY("regions","periods","tech","vintage"),
+                	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
+                );"""
+
+    insert_command = """
+                     INSERT INTO "CostFixed" VALUES (?,?,?,?,?,?,?)
+                     """
+    return
 """
 
 
@@ -1052,17 +1180,6 @@ CREATE TABLE "MaxActivity" (
 return
 
 def create_():
-CREATE TABLE "LifetimeTech" (
-	"regions"	text,
-	"tech"	text,
-	"life"	real,
-	"life_notes"	text,
-	PRIMARY KEY("regions","tech"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
-
-def create_():
 CREATE TABLE "LifetimeProcess" (
 	"regions"	text,
 	"tech"	text,
@@ -1166,54 +1283,6 @@ CREATE TABLE "DiscountRate" (
 );
 return
 
-
-
-
-def create_():
-CREATE TABLE "CostVariable" (
-	"regions"	text NOT NULL,
-	"periods"	integer NOT NULL,
-	"tech"	text NOT NULL,
-	"vintage"	integer NOT NULL,
-	"cost_variable"	real,
-	"cost_variable_units"	text,
-	"cost_variable_notes"	text,
-	PRIMARY KEY("regions","periods","tech","vintage"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
-);
-return
-
-def create_():
-CREATE TABLE "CostInvest" (
-	"regions"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"cost_invest"	real,
-	"cost_invest_units"	text,
-	"cost_invest_notes"	text,
-	PRIMARY KEY("regions","tech","vintage"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
-);
-return
-
-def create_():
-CREATE TABLE "CostFixed" (
-	"regions"	text NOT NULL,
-	"periods"	integer NOT NULL,
-	"tech"	text NOT NULL,
-	"vintage"	integer NOT NULL,
-	"cost_fixed"	real,
-	"cost_fixed_units"	text,
-	"cost_fixed_notes"	text,
-	PRIMARY KEY("regions","periods","tech","vintage"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
-);
-return
 
 def create_():
 CREATE TABLE "CapacityToActivity" (

@@ -49,3 +49,27 @@ Contains data for all of the operating generators in the United States.
 """
 
 eia_electric_generators = curr_dir + "/april_generator2021.xlsx"
+
+"""
+``nrel_electric_costs`` : dataset
+From the National Renewable Energy Laboratory Annual Technology Baseline.
+NREL also offers a transportation dataset in the 2021 ATB.
+"""
+nrel_electric_costs = curr_dir + "/ATBe.csv"
+
+
+if __name__ == "__main__":
+    import pandas as pd
+    import numpy as np
+
+
+    df = pd.read_csv(nrel_electric_costs, usecols=['atb_year',
+                                                   'core_metric_parameter',
+                                                   'technology',
+                                                   'techdetail',
+                                                   'scenario',
+                                                   'core_metric_variable',
+                                                   'value',
+                                                   'units'])
+    df = df[df['core_metric_parameter']=='Fuel']
+    print(df.head())
