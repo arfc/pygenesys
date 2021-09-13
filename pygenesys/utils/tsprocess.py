@@ -31,7 +31,7 @@ def choose_distribution_method(N_seasons, N_hours):
     return distribution_func
 
 
-def four_seasons_hourly(data_path, N_seasons=4, N_hours=24):
+def four_seasons_hourly(data_path, N_seasons=4, N_hours=24, kind='demand'):
     """
     This function calculates a seasonal trend based on the
     input data. Answers the question: what fraction of the annual
@@ -47,7 +47,11 @@ def four_seasons_hourly(data_path, N_seasons=4, N_hours=24):
             * Sometimes a dataset will have an index column that can
               be read as an ``Unnamed Column: 0``. If a user supplies
               their own data, this should be removed where applicable.
-
+    kind : string
+        The string representing the kind of profile we're interested in.
+        Accepts: 'CF', 'cf', 'demand', 'Demand', 'DEMAND'
+            'CF' : A capacity factor profile is returned (sum != 1).
+            'Demand': Returns a demand profile (sum = 1)
     N_seasons : integer
         The number of seasons in the energy system model.
     N_hours : integer
@@ -65,6 +69,7 @@ def four_seasons_hourly(data_path, N_seasons=4, N_hours=24):
                               parse_dates=True,
                               )
 
+    # assumes northern latitudes
     spring_mask = ((time_series.index.month >= 3) &
                    (time_series.index.month <= 5))
     summer_mask = ((time_series.index.month >= 6) &
@@ -94,13 +99,17 @@ def four_seasons_hourly(data_path, N_seasons=4, N_hours=24):
             avg_hourly[j] = hour_data.iloc[:, 0].mean()
             std_hourly[j] = hour_data.iloc[:, 0].std()
 
-        data = (avg_hourly / (N_seasons * avg_hourly.sum()))
+        if kind.lower() == "demand":
+            data = (avg_hourly / (N_seasons * avg_hourly.sum()))
+        elif kind.lower() == "cf":
+            data = (avg_hourly / (time_series.iloc[:,0].max()))
+
         seasonal_hourly_profile[i] = data
 
     return seasonal_hourly_profile
 
 
-def daily_hourly(data_path, N_seasons=365, N_hours=24):
+def daily_hourly(data_path, N_seasons=365, N_hours=24, kind='demand'):
     """
     This function calculates a seasonal trend based on the
     input data. Answers the question: what fraction of the annual
@@ -155,15 +164,20 @@ def daily_hourly(data_path, N_seasons=365, N_hours=24):
             data_list.append(np.array(data.iloc[:, 0])[:8760])
         else:
             pass
+            # data_list.append(np.array(data.iloc[:, 0]))
     data_list = np.array(data_list)
     average_profile = data_list.mean(axis=0)
-    daily_hourly_profile = average_profile / average_profile.sum()
+    if kind.lower() == "demand":
+        daily_hourly_profile = average_profile / average_profile.sum()
+    elif kind.lower() == "cf":
+        daily_hourly_profile = (average_profile / (time_series.iloc[:,0].max()))
     return daily_hourly_profile
 
 
 if __name__ == '__main__':
 
     from pygenesys.data.library import campus_stm_demand, campus_elc_demand
+    from pygenesys.data.library import railsplitter_data, solarfarm_data
     import matplotlib.pyplot as plt
     plt.style.use('ggplot')
 
@@ -175,13 +189,17 @@ if __name__ == '__main__':
     N_seasons = 4
     N_hours = 24
     method = choose_distribution_method(N_seasons, N_hours)
-    profile = method(campus_elc_demand)
+    profile = method(solarfarm_data, kind='cf')
     print(profile.sum())
     for i in range(N_seasons):
         plt.plot(range(N_hours),
                  profile[i],
                  label=f'{seasons[i].capitalize()}',
                  marker='.')
+    # plt.scatter(range(N_hours*N_seasons),
+    #          profile,
+    #          marker='.')
     # plt.plot(profile)
     plt.legend()
     plt.show()
+    # print(len(profile))

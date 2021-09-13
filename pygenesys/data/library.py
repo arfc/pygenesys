@@ -41,6 +41,25 @@ representative of other campuses or office buildings.
 """
 campus_stm_demand = curr_dir + "/uiuc_steam_data.csv"
 
+"""
+``railsplitter_data`` : dataset
+columns : [time, kw]
+    * ``time`` is a Pandas Datetime index
+    * ``MWh`` is the average power produced per hour. Units: MWh
+This dataset represents the hourly wind power generation at Railsplitter
+Wind Farm from 2016 to 2019 that was sent to the University of Illinois.
+"""
+railsplitter_data = curr_dir + "/railsplitter-data.csv"
+
+"""
+``railsplitter_data`` : dataset
+columns : [time, kw]
+    * ``time`` is a Pandas Datetime index
+    * ``MWh`` is the average power produced per hour. Units: MWh
+This dataset represents the hourly wind power generation at Railsplitter
+Wind Farm from 2016 to 2019 that was sent to the University of Illinois.
+"""
+solarfarm_data = curr_dir + "/solarfarm_data.csv"
 
 """
 ``eia_electric_generators`` : dataset
