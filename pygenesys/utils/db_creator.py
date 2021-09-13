@@ -772,57 +772,23 @@ def create_variable_cost(connector, technology_list, time_horizon):
         for place in tech.regions:
             lifetime = float(tech.tech_lifetime[place])
             # if there are existing vintages of the technology
-            try:
-                existing_years = tech.existing_capacity[place].keys()
-                data = []
-                for vintage in existing_years:
-                    for year in time_horizon:
-                        # check if cost_variable is dict
-                        # check the lifetime
-                        if (year-vintage) < lifetime:
-                            print(type(tech.cost_variable[place]))
-                            try:
-                                data.append((place,
-                                             int(year),
-                                             tech.tech_name,
-                                             int(vintage),
-                                             tech.cost_variable[place][year],
-                                             "",
-                                             ""))
-                            except:
-                                data.append((place,
-                                             int(year),
-                                             tech.tech_name,
-                                             int(vintage),
-                                             tech.cost_variable[place],
-                                             "",
-                                             ""))
-                entries += data
-            except:
-                pass
-            # write future years
-            data = []
-            for vintage in time_horizon:
-                for year in time_horizon:
-                    if (year-vintage) < lifetime:
-                        try:
-                            data.append((place,
-                                         int(year),
-                                         tech.tech_name,
-                                         int(vintage),
-                                         tech.cost_variable[place][year],
-                                         "",
-                                         ""))
-                        except:
-                            data.append((place,
-                                         int(year),
-                                         tech.tech_name,
-                                         int(vintage),
-                                         tech.cost_variable[place],
-                                         "",
-                                         ""))
-        entries += data
-
+            if len(tech.existing_capacity[place]) > 0 :
+                years = list(tech.existing_capacity[place].keys()) + \
+                        list(time_horizon)
+            else:
+                years = time_horizon
+            year_pairs = itertools.product(time_horizon, years)
+            for year, vintage in year_pairs:
+                if (year-vintage) < lifetime:
+                    entries.append((place,
+                                    int(year),
+                                    tech.tech_name,
+                                    int(vintage),
+                                    tech.cost_variable[place][year],
+                                    "",
+                                    ""))
+                else:
+                    pass
     cursor = connector.cursor()
     cursor.execute(table_command)
     cursor.executemany(insert_command, entries)

@@ -97,7 +97,7 @@ nuclear_variable_annual = {}
 for year in years:
     nuclear_invest_annual[year] = nuclear_invest
     nuclear_fixed_annual[year] = nuclear_fixed
-    nuclear_variable_annual[year] = nuclear_variable
+    nuclear_variable_annual[year] = nuclear_variable*(year%2+1)
 
 NUCLEAR_ELC.add_regional_data(region='IL',
                               input_comm=ethos,
