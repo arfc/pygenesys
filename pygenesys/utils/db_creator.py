@@ -777,6 +777,7 @@ def create_variable_cost(connector, technology_list, time_horizon):
                         list(time_horizon)
             else:
                 years = time_horizon
+            # generate future/vintage pairs
             year_pairs = itertools.product(time_horizon, years)
             for year, vintage in year_pairs:
                 if (year-vintage) < lifetime:
@@ -871,7 +872,36 @@ def create_fixed_cost(connector, technology_list, time_horizon):
     insert_command = """
                      INSERT INTO "CostFixed" VALUES (?,?,?,?,?,?,?)
                      """
-    return
+    entries = []
+    for tech in technology_list:
+        # loop through regions
+        for place in tech.regions:
+            lifetime = float(tech.tech_lifetime[place])
+            # if there are existing vintages of the technology
+            if len(tech.existing_capacity[place]) > 0 :
+                years = list(tech.existing_capacity[place].keys()) + \
+                        list(time_horizon)
+            else:
+                years = time_horizon
+            # generate future/vintage pairs
+            year_pairs = itertools.product(time_horizon, years)
+            for year, vintage in year_pairs:
+                if (year-vintage) < lifetime:
+                    entries.append((place,
+                                    int(year),
+                                    tech.tech_name,
+                                    int(vintage),
+                                    tech.cost_fixed[place][year],
+                                    "",
+                                    ""))
+                else:
+                    pass
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    return table_command
 """
 
 
