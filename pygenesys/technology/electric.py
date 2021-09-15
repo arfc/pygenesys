@@ -16,3 +16,11 @@ NUCLEAR_ELC = Technology(tech_name='NUCLEAR_ELC',
                          tech_label='pb',
                          description='nuclear power plant',
                          category='uranium')
+
+
+SOLAR_FARM = Technology(tech_name='SOLAR_FARM',
+                        units="MWe",
+                        tech_sector='electricity',
+                        tech_label='p',
+                        description='utility scale solar',
+                        category='solar')

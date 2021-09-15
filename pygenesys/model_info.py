@@ -164,7 +164,7 @@ class ModelInfo(object):
         create_technology_labels(conn)
         create_sectors(conn, self.tech_sectors)
         create_technologies(conn, self.technologies)
-        create_existing_capacity(conn, self.technologies)
+        create_existing_capacity(conn, self.technologies, self.time_horizon)
         create_efficiency(conn, self.technologies, self.time_horizon)
         create_lifetime_tech(conn, self.technologies)
         create_invest_cost(conn, self.technologies, self.time_horizon)

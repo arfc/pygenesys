@@ -74,7 +74,7 @@ STM_DEMAND.set_distribution(region='UIUC',
 
 # Add technologies
 from pygenesys.technology.supply import imp_natgas
-from pygenesys.technology.electric import NUCLEAR_ELC
+from pygenesys.technology.electric import NUCLEAR_ELC, SOLAR_FARM
 
 # import technology data from EIA
 from pygenesys.data.eia_data import get_eia_generators, get_existing_capacity
@@ -99,6 +99,11 @@ for year in years:
     nuclear_fixed_annual[year] = nuclear_fixed
     nuclear_variable_annual[year] = nuclear_variable*(year%2+1)
 
+
+# add capacity factor data
+from pygenesys.data.library import solarfarm_data, railsplitter_data
+from pygenesys.utils.tsprocess import four_seasons_hourly
+
 NUCLEAR_ELC.add_regional_data(region='IL',
                               input_comm=ethos,
                               output_comm=electricity,
@@ -111,6 +116,15 @@ NUCLEAR_ELC.add_regional_data(region='IL',
                               cost_fixed=nuclear_fixed_annual,
                               cost_variable=nuclear_variable_annual,
                               )
+
+SOLAR_FARM.add_regional_data(region='IL',
+                             input_comm=ethos,
+                             output_comm=electricity,
+                             efficiency=1.0,
+                             tech_lifetime=25,
+                             existing=get_existing_capacity(curr_data,
+                                                            'IL',
+                                                            'Solar Photovoltaic'),)
 
 # Collect the commodities here
 demands_list = [ELC_DEMAND, STM_DEMAND]
@@ -130,3 +144,5 @@ if __name__ == '__main__':
 
     print(NUCLEAR_ELC.existing_capacity)
     print(NUCLEAR_ELC.tech_lifetime)
+
+    print(SOLAR_FARM.existing_capacity)

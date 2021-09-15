@@ -1,6 +1,7 @@
 
 import itertools
 import sqlite3
+import numpy as np
 
 
 def establish_connection(output_db):
@@ -72,6 +73,10 @@ def create_time_periods(connector, future_years, existing_years):
     """
     This function writes the time_periods table to an sqlite
     database. Only "future" time periods will be written.
+
+    Note: This function does not truncate the existing years based
+    on the lifetime of technologies. It should be okay that some
+    existing years go unused.
 
     Parameters
     ----------
@@ -651,7 +656,7 @@ def create_efficiency(connector, technology_list, future):
 
     return table_command
 
-def create_existing_capacity(connector, technology_list):
+def create_existing_capacity(connector, technology_list, time_horizon):
     """
     Writes the ``ExistingCapacity`` table.
     """
@@ -674,16 +679,20 @@ def create_existing_capacity(connector, technology_list):
 
     entries = []
     for tech in technology_list:
+        first_year = time_horizon[0]
         for place in tech.regions:
-            years = list(tech.existing_capacity[place].keys())
-            caps = list(tech.existing_capacity[place].values())
+            lifetime = tech.tech_lifetime[place]
+            years = np.array(list(tech.existing_capacity[place].keys()))
+            # only keep the vintages that will exist in the first sim year
+            years = years[(first_year-years) < lifetime]
+            # caps = list(tech.existing_capacity[place].values())
 
             data = [(place,
                      tech.tech_name,
                      int(year),
-                     cap,
+                     tech.existing_capacity[place][year],
                      tech.units,
-                     '') for year, cap in zip(years, caps)]
+                     '') for year in years]
             entries += data
 
     if len(entries) > 0:
@@ -768,6 +777,11 @@ def create_variable_cost(connector, technology_list, time_horizon):
                      """
     entries = []
     for tech in technology_list:
+        # check that cost exists
+        if len(tech.cost_variable) > 0:
+            pass
+        else:
+            continue
         # loop through regions
         for place in tech.regions:
             lifetime = float(tech.tech_lifetime[place])
@@ -827,6 +841,10 @@ def create_invest_cost(connector, technology_list, time_horizon):
                      """
     entries = []
     for tech in technology_list:
+        if len(tech.cost_invest) > 0:
+            pass
+        else:
+            continue
         for place in tech.regions:
             data  = [(place,
                       tech.tech_name,
@@ -874,6 +892,10 @@ def create_fixed_cost(connector, technology_list, time_horizon):
                      """
     entries = []
     for tech in technology_list:
+        if len(tech.cost_fixed) > 0:
+            pass
+        else:
+            continue
         # loop through regions
         for place in tech.regions:
             lifetime = float(tech.tech_lifetime[place])
