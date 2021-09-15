@@ -116,7 +116,8 @@ NUCLEAR_ELC.add_regional_data(region='IL',
                               cost_fixed=nuclear_fixed_annual,
                               cost_variable=nuclear_variable_annual,
                               )
-
+solar_cf = four_seasons_hourly(solarfarm_data,
+                               kind='CF').flatten()
 SOLAR_FARM.add_regional_data(region='IL',
                              input_comm=ethos,
                              output_comm=electricity,
@@ -124,7 +125,8 @@ SOLAR_FARM.add_regional_data(region='IL',
                              tech_lifetime=25,
                              existing=get_existing_capacity(curr_data,
                                                             'IL',
-                                                            'Solar Photovoltaic'),)
+                                                            'Solar Photovoltaic'),
+                             capacity_factor_tech=solar_cf)
 
 # Collect the commodities here
 demands_list = [ELC_DEMAND, STM_DEMAND]
@@ -146,3 +148,4 @@ if __name__ == '__main__':
     print(NUCLEAR_ELC.tech_lifetime)
 
     print(SOLAR_FARM.existing_capacity)
+    print(solar_cf)

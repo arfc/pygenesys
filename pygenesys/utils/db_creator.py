@@ -418,7 +418,10 @@ def create_demand_specific_distribution(connector,
                                         hours):
     """
     This function writes the ``DemandSpecificDistribution`` table
-    in Temoa.
+    in Temoa. Demand list is a list of objects with a "distribution"
+    attribute. "Distribution" is a dictionary with "region" keys and
+    values of data lists. The data in this dictionary is flattened before
+    being entered here.
 
     Parameters
     ----------
@@ -465,13 +468,11 @@ def create_demand_specific_distribution(connector,
             db_entry = [
                 (region,
                  ts[0][0],
-                    ts[1][0],
-                    demand_comm.comm_name,
-                    d,
-                    demand_comm.units) for d,
-                ts in zip(
-                    data,
-                    time_slices)]
+                 ts[1][0],
+                 demand_comm.comm_name,
+                 d,
+                 demand_comm.units) for d,
+                 ts in zip(data, time_slices)]
             cursor.executemany(insert_command, db_entry)
     connector.commit()
     return table_command
@@ -924,6 +925,57 @@ def create_fixed_cost(connector, technology_list, time_horizon):
     connector.commit()
 
     return table_command
+
+
+def create_capacity_factor_tech(connector, technology_list, hours, seasons):
+    table_command = """
+        CREATE TABLE "CapacityFactorTech" (
+        	"regions"	text,
+        	"season_name"	text,
+        	"time_of_day_name"	text,
+        	"tech"	text,
+        	"cf_tech"	real CHECK("cf_tech" >= 0 AND "cf_tech" <= 1),
+        	"cf_tech_notes"	text,
+        	PRIMARY KEY("regions","season_name","time_of_day_name","tech"),
+        	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
+        	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day"),
+        	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+        );
+        """
+
+    insert_command = """
+                     INSERT INTO "CapacityFactorTech" VALUES (?,?,?,?,?,?)
+                     """
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    for tech in technology_list:
+        time_slices = itertools.product(seasons, hours)
+        cft_dict = tech.capacity_factor_tech
+        # loops over each region where the commodity is defined
+        for place in cft_dict:
+            data = cft_dict[place]
+            if (type(data) == list) or (type(data) == np.ndarray):
+                print('data is list or np array')
+                pass
+            elif (type(data) == int) or (type(data) == float64):
+                # for constant capacity factor
+                print('data is float or int')
+                data = np.ones(len(hours)*len(seasons))*data
+
+            db_entry = [(place,
+                         ts[0][0],
+                         ts[1][0],
+                         tech.tech_name,
+                         float(d),
+                         '') for d,
+                         ts in zip(data, time_slices)]
+            # breakpoint()
+            cursor.executemany(insert_command, db_entry)
+
+    connector.commit()
+    return table_command
+
 """
 
 
@@ -1395,20 +1447,6 @@ CREATE TABLE "CapacityToActivity" (
 );
 return
 
-def create_():
-CREATE TABLE "CapacityFactorTech" (
-	"regions"	text,
-	"season_name"	text,
-	"time_of_day_name"	text,
-	"tech"	text,
-	"cf_tech"	real CHECK("cf_tech" >= 0 AND "cf_tech" <= 1),
-	"cf_tech_notes"	text,
-	PRIMARY KEY("regions","season_name","time_of_day_name","tech"),
-	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
-	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
 
 def create_():
 CREATE TABLE "CapacityFactorProcess" (

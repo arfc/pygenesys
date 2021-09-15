@@ -77,6 +77,7 @@ class Technology(object):
         self.cost_variable = {}
         self.cost_fixed = {}
         self.cost_invest = {}
+        self.capacity_factor_tech = {}
 
         return
 
@@ -112,7 +113,8 @@ class Technology(object):
                     "cost_fixed":self.cost_fixed,
                     "cost_invest":self.cost_invest,
                     "efficiency":self.efficiency,
-                    "existing":self.existing_capacity
+                    "existing":self.existing_capacity,
+                    "capacity_factor_tech" : self.capacity_factor_tech
                     }
 
         # check if region is a list or a string

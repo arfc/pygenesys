@@ -49,7 +49,7 @@ columns : [time, kw]
 This dataset represents the hourly wind power generation at Railsplitter
 Wind Farm from 2016 to 2019 that was sent to the University of Illinois.
 """
-railsplitter_data = curr_dir + "/railsplitter-data.csv"
+railsplitter_data = curr_dir + "/railsplitter_data.csv"
 
 """
 ``railsplitter_data`` : dataset

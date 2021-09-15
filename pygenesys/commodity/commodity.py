@@ -159,7 +159,8 @@ class DemandCommodity(Commodity):
                          data,
                          n_seasons=4,
                          n_hours=24,
-                         normalize=True):
+                         normalize=True,
+                         kind='demand'):
         """
         This function generates a distribution time series. The sum
         of this distribution must be equal to unity. If users
@@ -188,7 +189,8 @@ class DemandCommodity(Commodity):
                                                                  n_hours)
             distribution = distribution_calculator(data,
                                                    n_seasons,
-                                                   n_hours)
+                                                   n_hours,
+                                                   kind)
         else:
             pass
 

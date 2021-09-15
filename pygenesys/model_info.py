@@ -170,5 +170,9 @@ class ModelInfo(object):
         create_invest_cost(conn, self.technologies, self.time_horizon)
         create_variable_cost(conn, self.technologies, self.time_horizon)
         create_fixed_cost(conn, self.technologies, self.time_horizon)
+        create_capacity_factor_tech(conn,
+                                    self.technologies,
+                                    time_slices,
+                                    seasons)
         conn.close()
         return
