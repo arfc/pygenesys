@@ -927,7 +927,7 @@ def create_fixed_cost(connector, technology_list, time_horizon):
     return table_command
 
 
-def create_capacity_factor_tech(connector, technology_list, hours, seasons):
+def create_capacity_factor_tech(connector, technology_list, seasons, hours):
     table_command = """
         CREATE TABLE "CapacityFactorTech" (
         	"regions"	text,
@@ -950,7 +950,7 @@ def create_capacity_factor_tech(connector, technology_list, hours, seasons):
     cursor.execute(table_command)
 
     for tech in technology_list:
-        time_slices = itertools.product(seasons, hours)
+        time_slices = itertools.product(hours, seasons)
         cft_dict = tech.capacity_factor_tech
         # loops over each region where the commodity is defined
         for place in cft_dict:
