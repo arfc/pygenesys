@@ -20,7 +20,8 @@ class ModelInfo(object):
                  technologies,
                  demands,
                  resources,
-                 emissions,):
+                 emissions,
+                 reserve_margin):
         """
         This class holds information about the PyGenesys and
         Temoa model.
@@ -54,7 +55,13 @@ class ModelInfo(object):
         commodities : dictionary
             A dictionary of the demand, resource, and emissions commodities.
         technologies : list
-             A list of ``Technology`` objects
+            A list of ``Technology`` objects
+        reserve_margin : float
+            The value of the "planning reserve margin." This value forces
+            Temoa to include enough excess capacity above peak demand to
+            ensure reliability. E.g. reserve_margin = 0.3 corresponds to
+            a Planning Reserve Margin of 30 percent, or total generating
+            capacity that is 30 percent greater than the annual peak demand.
         """
 
         self.output_db = output_db
@@ -70,6 +77,7 @@ class ModelInfo(object):
             'emissions': emissions
         }
         self.technologies = technologies
+        self.reserve_margin = reserve_margin
 
         # derived quantities
         self.time_horizon = self._calculate_time_horizon()
@@ -174,5 +182,17 @@ class ModelInfo(object):
                                     self.technologies,
                                     time_slices,
                                     seasons)
+        create_reserve_margin(conn, self.reserve_margin)
+
+        # output tables
+        create_output_vcapacity(conn)
+        create_output_vflow_out(conn)
+        create_output_vflow_in(conn)
+        create_output_objective(conn)
+        create_output_curtailment(conn)
+        create_output_emissions(conn)
+        create_output_costs(conn)
+        create_output_duals(conn)
+        create_output_capacitybyperiodtech(conn)
         conn.close()
         return

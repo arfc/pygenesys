@@ -35,6 +35,7 @@ end_year = 2050  # the last year optimized by the model
 N_years = 6  # the number of years optimized by the model
 N_seasons = 4  # the number of "seasons" in the model
 N_hours = 24  # the number of hours in a day
+reserve_margin = {'IL':0.3} # fraction of excess capacity to ensure reliability
 
 # Import commodities here
 from pygenesys.commodity.resource import electricity, steam, ethos, uranium_leu
@@ -115,6 +116,7 @@ NUCLEAR_ELC.add_regional_data(region='IL',
                               cost_invest=nuclear_invest,
                               cost_fixed=nuclear_fixed_annual,
                               cost_variable=nuclear_variable_annual,
+                              capacity_factor_tech=0.935,
                               )
 solar_cf = four_seasons_hourly(solarfarm_data,
                                kind='CF').flatten()

@@ -108,7 +108,8 @@ def main():
                                  demands=infile.demands_list,
                                  resources=infile.resources_list,
                                  emissions=infile.emissions_list,
-                                 technologies=technology_list
+                                 technologies=technology_list,
+                                 reserve_margin=infile.reserve_margin
                                  )
     print(f"Database will be exported to {model.output_db} \n")
 

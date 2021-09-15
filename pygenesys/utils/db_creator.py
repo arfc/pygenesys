@@ -958,11 +958,11 @@ def create_capacity_factor_tech(connector, technology_list, seasons, hours):
             if (type(data) == list) or (type(data) == np.ndarray):
                 print('data is list or np array')
                 pass
-            elif (type(data) == int) or (type(data) == float64):
-                # for constant capacity factor
+            elif (type(data) == int) or (type(data) == float):
+                # for constant capacity factor, must be on the interval [0,1]
                 print('data is float or int')
                 data = np.ones(len(hours)*len(seasons))*data
-
+            # breakpoint()
             db_entry = [(place,
                          ts[0][0],
                          ts[1][0],
@@ -976,6 +976,231 @@ def create_capacity_factor_tech(connector, technology_list, seasons, hours):
     connector.commit()
     return table_command
 
+
+
+def create_output_vcapacity(connector):
+    table_command = """CREATE TABLE "Output_V_Capacity" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"capacity"	real,
+                    	PRIMARY KEY("regions","scenario","tech","vintage"),
+                    	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_vflow_out(connector):
+    table_command = """CREATE TABLE "Output_VFlow_Out" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"t_periods"	integer,
+                    	"t_season"	text,
+                    	"t_day"	text,
+                    	"input_comm"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"output_comm"	text,
+                    	"vflow_out"	real,
+                    	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm"),
+                    	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+                    	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
+                    	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_vflow_in(connector):
+    table_command = """CREATE TABLE "Output_VFlow_In" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"t_periods"	integer,
+                    	"t_season"	text,
+                    	"t_day"	text,
+                    	"input_comm"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"output_comm"	text,
+                    	"vflow_in"	real,
+                    	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+                    	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
+                    	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_objective(connector):
+    table_command = """CREATE TABLE "Output_Objective" (
+                    	"scenario"	text,
+                    	"objective_name"	text,
+                    	"total_system_cost"	real
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_emissions(connector):
+    table_command = """CREATE TABLE "Output_Emissions" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"t_periods"	integer,
+                    	"emissions_comm"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"emissions"	real,
+                    	PRIMARY KEY("regions","scenario","t_periods","emissions_comm","tech","vintage"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("emissions_comm") REFERENCES "EmissionActivity"("emis_comm"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+                    	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_curtailment(connector):
+    table_command = """CREATE TABLE "Output_Curtailment" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"t_periods"	integer,
+                    	"t_season"	text,
+                    	"t_day"	text,
+                    	"input_comm"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"output_comm"	text,
+                    	"curtailment"	real,
+                    	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_costs(connector):
+    table_command = """CREATE TABLE "Output_Costs" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"output_name"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"output_cost"	real,
+                    	PRIMARY KEY("regions","scenario","output_name","tech","vintage"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_duals(connector):
+    table_command = """CREATE TABLE "Output_Duals" (
+                    	"constraint_name"	text,
+                    	"scenario"	text,
+                    	"dual"	real,
+                    	PRIMARY KEY("constraint_name","scenario")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_capacitybyperiodtech(connector):
+    table_command = """CREATE TABLE "Output_CapacityByPeriodAndTech" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"t_periods"	integer,
+                    	"tech"	text,
+                    	"capacity"	real,
+                    	PRIMARY KEY("regions","scenario","t_periods","tech"),
+                    	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+                    	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_reserve_margin(connector, prm):
+    """
+    This function writes the planning reserve margin table
+    in Temoa.
+
+    Parameters
+    ----------
+    connector : sqlite connector
+    prm : dictionary
+        A dictionary with regions as keys and reserve margins as values.
+    """
+    table_command = """CREATE TABLE "PlanningReserveMargin" (
+                    	`regions`	text,
+                    	`reserve_margin`	REAL,
+                    	PRIMARY KEY(regions),
+                    	FOREIGN KEY(`regions`) REFERENCES regions
+                    );"""
+    insert_command = """
+                     INSERT INTO "PlanningReserveMargin" VALUES (?,?)
+                     """
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    db_entry = [(place,
+                 margin
+                ) for place, margin in zip(prm.keys(), prm.values())]
+
+    cursor.executemany(insert_command, db_entry)
+    connector.commit()
+    return
 """
 
 
@@ -1090,161 +1315,6 @@ CREATE TABLE "PlanningReserveMargin" (
 );
 return
 
-def create_():
-CREATE TABLE "Output_V_Capacity" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"capacity"	real,
-	PRIMARY KEY("regions","scenario","tech","vintage"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
-);
-return
-
-def create_():
-CREATE TABLE "Output_VFlow_Out" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"t_season"	text,
-	"t_day"	text,
-	"input_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_comm"	text,
-	"vflow_out"	real,
-	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm"),
-	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name")
-);
-return
-
-def create_():
-CREATE TABLE "Output_VFlow_In" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"t_season"	text,
-	"t_day"	text,
-	"input_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_comm"	text,
-	"vflow_in"	real,
-	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
-
-def create_():
-CREATE TABLE "Output_Objective" (
-	"scenario"	text,
-	"objective_name"	text,
-	"total_system_cost"	real
-);
-return
-
-def create_():
-CREATE TABLE "Output_Emissions" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"emissions_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"emissions"	real,
-	PRIMARY KEY("regions","scenario","t_periods","emissions_comm","tech","vintage"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("emissions_comm") REFERENCES "EmissionActivity"("emis_comm"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods")
-);
-return
-
-def create_():
-CREATE TABLE "Output_Curtailment" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"t_season"	text,
-	"t_day"	text,
-	"input_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_comm"	text,
-	"curtailment"	real,
-	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day")
-);
-return
-
-def create_():
-CREATE TABLE "Output_Costs" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"output_name"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_cost"	real,
-	PRIMARY KEY("regions","scenario","output_name","tech","vintage"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
-
-def create_():
-CREATE TABLE "Output_Duals" (
-	"constraint_name"	text,
-	"scenario"	text,
-	"dual"	real,
-	PRIMARY KEY("constraint_name","scenario")
-);
-return
-
-def create_():
-CREATE TABLE "Output_CapacityByPeriodAndTech" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"tech"	text,
-	"capacity"	real,
-	PRIMARY KEY("regions","scenario","t_periods","tech"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
 
 def create_():
 CREATE TABLE "MyopicBaseyear" (
