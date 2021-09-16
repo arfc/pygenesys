@@ -77,6 +77,7 @@ STM_DEMAND.set_distribution(region='UIUC',
 # Add technologies
 from pygenesys.technology.supply import imp_natgas
 from pygenesys.technology.electric import NUCLEAR_ELC, SOLAR_FARM
+from pygenesys.technology.storage import LI_BATTERY
 
 # import technology data from EIA
 from pygenesys.data.eia_data import get_eia_generators, get_existing_capacity
@@ -120,6 +121,7 @@ NUCLEAR_ELC.add_regional_data(region='IL',
                               capacity_factor_tech=0.935,
                               ramp_up=0.25,
                               ramp_down=0.25,
+                              loan_lifetime=40,
                               )
 solar_cf = four_seasons_hourly(solarfarm_data,
                                kind='CF').flatten()
@@ -131,7 +133,20 @@ SOLAR_FARM.add_regional_data(region='IL',
                              existing=get_existing_capacity(curr_data,
                                                             'IL',
                                                             'Solar Photovoltaic'),
-                             capacity_factor_tech=solar_cf)
+                             capacity_factor_tech=solar_cf,
+                             loan_lifetime=15)
+
+LI_BATTERY.add_regional_data(region='IL',
+                             input_comm=electricity,
+                             output_comm=electricity,
+                             efficiency=0.8,
+                             tech_lifetime=15,
+                             existing=get_existing_capacity(curr_data,
+                                                            'IL',
+                                                            'Batteries'),
+                             capacity_factor_tech=0.76,
+                             storage_duration=8,
+                             loan_lifetime=10)
 
 # Collect the commodities here
 demands_list = [ELC_DEMAND, STM_DEMAND]

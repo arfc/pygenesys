@@ -1326,6 +1326,73 @@ def create_tech_ramping(connector, technology_list):
     connector.commit()
     return
 
+def create_tech_storage(connector, technology_list):
+    """
+    This function writes the ``StorageDuration`` table.
+    """
+    cursor = connector.cursor()
+
+    storage_techs = [tech for tech in technology_list if tech.storage_tech]
+
+    table_command = """CREATE TABLE "StorageDuration" (
+                    	"regions"	text,
+                    	"tech"	text,
+                    	"duration"	real,
+                    	"duration_notes"	text,
+                    	PRIMARY KEY("regions","tech")
+                    );
+                    """
+    insert_command = """
+                     INSERT INTO "StorageDuration" VALUES (?,?,?,?)
+                     """
+    cursor.execute(table_command)
+
+    entries = []
+    for tech in storage_techs:
+        db_entry = [(place,
+                     tech.tech_name,
+                     storage,
+                     '')
+                     for place, storage in zip(list(tech.storage_duration.keys()),
+                                               list(tech.storage_duration.values()))]
+        entries += db_entry
+
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+    return
+
+
+def create_loan_lifetime(connector, technology_list):
+    """
+    This function writes the LifetimeLoanTech table in Temoa.
+    """
+    table_command = """CREATE TABLE "LifetimeLoanTech" (
+                    	"regions"	text,
+                    	"tech"	text,
+                    	"loan"	real,
+                    	"loan_notes"	text,
+                    	PRIMARY KEY("regions","tech"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+    insert_command = """INSERT INTO "LifetimeLoanTech" VALUES(?,?,?,?)"""
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    entries = []
+    for tech in technology_list:
+        db_entry = [(place,
+                     tech.tech_name,
+                     int(loan),
+                     '')
+                     for place, loan in zip(list(tech.loan_lifetime.keys()),
+                                            list(tech.loan_lifetime.values()))]
+        entries += db_entry
+
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+    return
+
 """
 def create_():
 CREATE TABLE "tech_exchange" (
@@ -1517,16 +1584,6 @@ CREATE TABLE "LifetimeProcess" (
 );
 return
 
-def create_():
-CREATE TABLE "LifetimeLoanTech" (
-	"regions"	text,
-	"tech"	text,
-	"loan"	real,
-	"loan_notes"	text,
-	PRIMARY KEY("regions","tech"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
 
 def create_():
 CREATE TABLE "GrowthRateSeed" (

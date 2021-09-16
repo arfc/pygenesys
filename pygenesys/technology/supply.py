@@ -11,7 +11,8 @@ imp_natgas = Technology(tech_name='IMP_NATGAS',
                         units="MMBTU/hr",
                         tech_sector='supply',
                         description='natural gas pipeline',
-                        category='natural gas'
+                        category='natural gas',
+                        capacity_to_activity=8760,
                         )
 
 

@@ -16,6 +16,7 @@ NUCLEAR_ELC = Technology(tech_name='NUCLEAR_ELC',
                          tech_label='pb',
                          description='nuclear power plant',
                          category='uranium',
+                         capacity_to_activity=8.76,
                          reserve_tech=True,
                          ramping_tech=True,)
 
@@ -25,4 +26,6 @@ SOLAR_FARM = Technology(tech_name='SOLAR_FARM',
                         tech_sector='electricity',
                         tech_label='p',
                         description='utility scale solar',
-                        category='solar')
+                        category='solar',
+                        capacity_to_activity=8.76,
+                        )

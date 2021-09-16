@@ -22,7 +22,8 @@ class Technology(object):
                  description='',
                  category='',
                  reserve_tech=False,
-                 ramping_tech=False
+                 ramping_tech=False,
+                 storage_tech=False
                  ):
         """
         This class contains information about a technology used
@@ -77,6 +78,7 @@ class Technology(object):
         self.category = category
         self.reserve_tech = reserve_tech
         self.ramping_tech = ramping_tech
+        self.storage_tech = storage_tech
         self.regions = []
         self.input_comm = {}
         self.output_comm = {}
@@ -90,6 +92,7 @@ class Technology(object):
         self.capacity_factor_tech = {}
         self.ramp_up = {}
         self.ramp_down = {}
+        self.storage_duration = {}
 
         return
 
@@ -129,6 +132,7 @@ class Technology(object):
                     "capacity_factor_tech" : self.capacity_factor_tech,
                     "ramp_up":self.ramp_up,
                     "ramp_down":self.ramp_down,
+                    "storage_duration":self.storage_duration,
                     }
 
         # check if region is a list or a string
