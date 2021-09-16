@@ -176,6 +176,7 @@ class ModelInfo(object):
         create_technology_labels(conn)
         create_sectors(conn, self.tech_sectors)
         create_technologies(conn, self.technologies)
+        create_capacity_to_activity(conn, self.technologies)
         create_tech_reserve(conn, self.technologies)
         create_tech_ramping(conn, self.technologies)
         create_tech_storage(conn, self.technologies)

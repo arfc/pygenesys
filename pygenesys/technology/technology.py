@@ -17,6 +17,7 @@ class Technology(object):
     def __init__(self,
                  tech_name,
                  units,
+                 capacity_to_activity,
                  tech_sector='energy',
                  tech_label='p',
                  description='',
@@ -54,6 +55,10 @@ class Technology(object):
             This specifies the units for the technology. Helps
             calculate the ``cap2act`` property for the ``Capacity2Activity
             table in Temoa.
+        capacity_to_activity : float
+            This specifies how much of commodity, A, can be produced by
+            capacity, C, in one year. E.g. 1 MWe can produce 8760 MWh(e)
+            in one year.
         tech_lifetime : integer
             The operational lifetime of the technology.
         loan_lifetime : integer
@@ -75,6 +80,7 @@ class Technology(object):
         self.tech_label = tech_label
         self.description = description
         self.units = units
+        self.capacity_to_activity = capacity_to_activity
         self.category = category
         self.reserve_tech = reserve_tech
         self.ramping_tech = ramping_tech

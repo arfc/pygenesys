@@ -1393,6 +1393,36 @@ def create_loan_lifetime(connector, technology_list):
     connector.commit()
     return
 
+
+def create_capacity_to_activity(connector, technology_list):
+    """
+    This function writes the capacity to activity table in Temoa.
+    """
+    table_command = """CREATE TABLE "CapacityToActivity" (
+                    	"regions"	text,
+                    	"tech"	text,
+                    	"c2a"	real,
+                    	"c2a_notes"	TEXT,
+                    	PRIMARY KEY("regions","tech"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+    insert_command = """INSERT INTO "CapacityToActivity" VALUES (?,?,?,?)"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    entries = []
+    for tech in technology_list:
+        db_entry = [(place,
+                     tech.tech_name,
+                     tech.capacity_to_activity,
+                     '')
+                     for place in tech.regions]
+        entries += db_entry
+
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+    return
+
 """
 def create_():
 CREATE TABLE "tech_exchange" (
@@ -1655,18 +1685,6 @@ CREATE TABLE "DiscountRate" (
 	PRIMARY KEY("regions","tech","vintage"),
 	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
 	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
-);
-return
-
-
-def create_():
-CREATE TABLE "CapacityToActivity" (
-	"regions"	text,
-	"tech"	text,
-	"c2a"	real,
-	"c2a_notes"	TEXT,
-	PRIMARY KEY("regions","tech"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
 );
 return
 
