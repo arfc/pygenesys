@@ -15,7 +15,8 @@ NUCLEAR_ELC = Technology(tech_name='NUCLEAR_ELC',
                          tech_sector='electricity',
                          tech_label='pb',
                          description='nuclear power plant',
-                         category='uranium')
+                         category='uranium',
+                         reserve_tech = True,)
 
 
 SOLAR_FARM = Technology(tech_name='SOLAR_FARM',

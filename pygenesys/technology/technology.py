@@ -21,6 +21,7 @@ class Technology(object):
                  tech_label='p',
                  description='',
                  category='',
+                 reserve_tech=False
                  ):
         """
         This class contains information about a technology used
@@ -67,6 +68,7 @@ class Technology(object):
         self.description = description
         self.units = units
         self.category = category
+        self.reserve_tech = reserve_tech
         self.regions = []
         self.input_comm = {}
         self.output_comm = {}
@@ -114,7 +116,7 @@ class Technology(object):
                     "cost_invest":self.cost_invest,
                     "efficiency":self.efficiency,
                     "existing":self.existing_capacity,
-                    "capacity_factor_tech" : self.capacity_factor_tech
+                    "capacity_factor_tech" : self.capacity_factor_tech,
                     }
 
         # check if region is a list or a string

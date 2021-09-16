@@ -1201,16 +1201,34 @@ def create_reserve_margin(connector, prm):
     cursor.executemany(insert_command, db_entry)
     connector.commit()
     return
+
+
+def create_tech_reserve(connector, technology_list):
+    table_command = """CREATE TABLE "tech_reserve" (
+                    	"tech"	text,
+                    	"notes"	text,
+                    	PRIMARY KEY("tech")
+                    );"""
+    insert_command = """
+                     INSERT INTO "tech_reserve" VALUES (?,?)
+                     """
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    db_entry = [(tech.tech_name, '')
+                for tech in technology_list
+                if tech.reserve_tech]
+
+    # breakpoint()
+    cursor.executemany(insert_command, db_entry)
+    connector.commit()
+
+    return
 """
 
 
-def create_():
-CREATE TABLE "tech_reserve" (
-	"tech"	text,
-	"notes"	text,
-	PRIMARY KEY("tech")
-);
-return
+
 
 
 def create_():

@@ -183,6 +183,7 @@ class ModelInfo(object):
                                     time_slices,
                                     seasons)
         create_reserve_margin(conn, self.reserve_margin)
+        create_tech_reserve(conn, self.technologies)
 
         # output tables
         create_output_vcapacity(conn)
