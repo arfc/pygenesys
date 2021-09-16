@@ -35,7 +35,8 @@ end_year = 2050  # the last year optimized by the model
 N_years = 6  # the number of years optimized by the model
 N_seasons = 4  # the number of "seasons" in the model
 N_hours = 24  # the number of hours in a day
-reserve_margin = {'IL':0.3} # fraction of excess capacity to ensure reliability
+reserve_margin = {'IL':0.3}  # fraction of excess capacity to ensure reliability
+discount_rate = 0.05  # The discount rate applied globally.
 
 # Import commodities here
 from pygenesys.commodity.resource import electricity, steam, ethos, uranium_leu

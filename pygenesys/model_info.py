@@ -21,7 +21,8 @@ class ModelInfo(object):
                  demands,
                  resources,
                  emissions,
-                 reserve_margin):
+                 reserve_margin,
+                 global_discount):
         """
         This class holds information about the PyGenesys and
         Temoa model.
@@ -78,6 +79,7 @@ class ModelInfo(object):
         }
         self.technologies = technologies
         self.reserve_margin = reserve_margin
+        self.global_discount = global_discount
 
         # derived quantities
         self.time_horizon = self._calculate_time_horizon()
@@ -162,6 +164,8 @@ class ModelInfo(object):
         create_regions(conn, self.regions)
         create_commodity_labels(conn)
         create_commodities(conn, self.commodities)
+        create_global_discount(conn, self.global_discount)
+        create_reserve_margin(conn, self.reserve_margin)
         create_demand_table(conn,
                             self.commodities['demand'],
                             self.time_horizon)
@@ -172,6 +176,7 @@ class ModelInfo(object):
         create_technology_labels(conn)
         create_sectors(conn, self.tech_sectors)
         create_technologies(conn, self.technologies)
+        create_tech_reserve(conn, self.technologies)
         create_existing_capacity(conn, self.technologies, self.time_horizon)
         create_efficiency(conn, self.technologies, self.time_horizon)
         create_lifetime_tech(conn, self.technologies)
@@ -182,8 +187,6 @@ class ModelInfo(object):
                                     self.technologies,
                                     time_slices,
                                     seasons)
-        create_reserve_margin(conn, self.reserve_margin)
-        create_tech_reserve(conn, self.technologies)
 
         # output tables
         create_output_vcapacity(conn)

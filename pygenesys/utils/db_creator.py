@@ -1225,12 +1225,32 @@ def create_tech_reserve(connector, technology_list):
     connector.commit()
 
     return
+
+
+def create_global_discount(connector, gdr):
+    """
+    This function writes the global discount rate table.
+
+    Parameters
+    ----------
+    connector : sqlite connector
+    gdr : float
+        The global discount rate to be applied.
+    """
+    table_command = """CREATE TABLE "GlobalDiscountRate" (
+                    	"rate"	real
+                    );"""
+    insert_command = """INSERT INTO "GlobalDiscountRate" VALUES (?)"""
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.execute(insert_command, [gdr])
+    connector.commit()
+    return
+
+
+
 """
-
-
-
-
-
 def create_():
 CREATE TABLE "tech_exchange" (
 	"tech"	text,
@@ -1319,17 +1339,6 @@ CREATE TABLE "StorageDuration" (
 	"duration"	real,
 	"duration_notes"	text,
 	PRIMARY KEY("regions","tech")
-);
-return
-
-
-
-def create_():
-CREATE TABLE "PlanningReserveMargin" (
-	`regions`	text,
-	`reserve_margin`	REAL,
-	PRIMARY KEY(regions),
-	FOREIGN KEY(`regions`) REFERENCES regions
 );
 return
 
@@ -1465,13 +1474,6 @@ CREATE TABLE "GrowthRateMax" (
 	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
 );
 return
-
-def create_():
-CREATE TABLE "GlobalDiscountRate" (
-	"rate"	real
-);
-return
-
 
 
 def create_():
