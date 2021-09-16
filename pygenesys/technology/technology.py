@@ -21,7 +21,8 @@ class Technology(object):
                  tech_label='p',
                  description='',
                  category='',
-                 reserve_tech=False
+                 reserve_tech=False,
+                 ramping_tech=False
                  ):
         """
         This class contains information about a technology used
@@ -60,6 +61,12 @@ class Technology(object):
              A short 1-4 word description of the technology.
         category : string
             The fuel category of the technology. Optional attribute.
+        reserve_tech : boolean
+            Indicates if the technology will be held in reserve to meet
+            the planning reserve margin.
+        ramping_tech : boolean
+            Indicates if the technology has a ramp rate. Only valid for
+            non-intermittent technologies.
         """
         self._type = 'Technology'
         self.tech_name = tech_name
@@ -69,6 +76,7 @@ class Technology(object):
         self.units = units
         self.category = category
         self.reserve_tech = reserve_tech
+        self.ramping_tech = ramping_tech
         self.regions = []
         self.input_comm = {}
         self.output_comm = {}
@@ -80,6 +88,8 @@ class Technology(object):
         self.cost_fixed = {}
         self.cost_invest = {}
         self.capacity_factor_tech = {}
+        self.ramp_up = {}
+        self.ramp_down = {}
 
         return
 
@@ -117,6 +127,8 @@ class Technology(object):
                     "efficiency":self.efficiency,
                     "existing":self.existing_capacity,
                     "capacity_factor_tech" : self.capacity_factor_tech,
+                    "ramp_up":self.ramp_up,
+                    "ramp_down":self.ramp_down,
                     }
 
         # check if region is a list or a string

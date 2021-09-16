@@ -1249,6 +1249,82 @@ def create_global_discount(connector, gdr):
     return
 
 
+def create_tech_ramping(connector, technology_list):
+    """
+    This function writes three tables: ``tech_ramping``,
+    ``RampUp``, and ``RampDown``. Any technology that has
+    The ``ramping_tech`` parameter set to ``True`` should also
+    have values set for ``RampUp`` and ``RampDown``
+    """
+    table_command = """CREATE TABLE "tech_ramping" (
+                    	"tech"	text,
+                    	"notes"	text,
+                    	PRIMARY KEY("tech")
+                    );"""
+    insert_command = """
+                     INSERT INTO "tech_ramping" VALUES (?,?)
+                     """
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    ramping_techs = [tech for tech in technology_list if tech.ramping_tech]
+
+    db_entry = [(tech.tech_name, '')
+                for tech in ramping_techs]
+
+    cursor.executemany(insert_command, db_entry)
+    connector.commit()
+
+    table_command = """CREATE TABLE RampUp(
+                    	"regions" text,
+                    	"tech" text,
+                    	"ramp_up" real,
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	PRIMARY KEY ("regions", "tech")
+                    );"""
+    insert_command = """
+                     INSERT INTO "RampUp" VALUES (?,?,?)
+                     """
+    cursor.execute(table_command)
+
+    entries = []
+    for tech in ramping_techs:
+        db_entry = [(place,
+                     tech.tech_name,
+                     up_rate)
+                     for place, up_rate in zip(list(tech.ramp_up.keys()),
+                                               list(tech.ramp_up.values()))]
+        entries += db_entry
+
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    # RAMP DOWN
+    table_command = """CREATE TABLE RampDown(
+                     	"regions" text,
+                     	"tech" text,
+                     	"ramp_down" real,
+                     	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                     	PRIMARY KEY ("regions", "tech")
+                    );"""
+    insert_command = """
+                     INSERT INTO "RampDown" VALUES (?,?,?)
+                     """
+
+    cursor.execute(table_command)
+
+    entries = []
+    for tech in ramping_techs:
+        db_entry = [(place,
+                     tech.tech_name,
+                     up_rate)
+                     for place, up_rate in zip(list(tech.ramp_down.keys()),
+                                               list(tech.ramp_down.values()))]
+        entries += db_entry
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+    return
 
 """
 def create_():

@@ -177,6 +177,7 @@ class ModelInfo(object):
         create_sectors(conn, self.tech_sectors)
         create_technologies(conn, self.technologies)
         create_tech_reserve(conn, self.technologies)
+        create_tech_ramping(conn, self.technologies)
         create_existing_capacity(conn, self.technologies, self.time_horizon)
         create_efficiency(conn, self.technologies, self.time_horizon)
         create_lifetime_tech(conn, self.technologies)

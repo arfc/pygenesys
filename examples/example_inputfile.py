@@ -118,6 +118,8 @@ NUCLEAR_ELC.add_regional_data(region='IL',
                               cost_fixed=nuclear_fixed_annual,
                               cost_variable=nuclear_variable_annual,
                               capacity_factor_tech=0.935,
+                              ramp_up=0.25,
+                              ramp_down=0.25,
                               )
 solar_cf = four_seasons_hourly(solarfarm_data,
                                kind='CF').flatten()
