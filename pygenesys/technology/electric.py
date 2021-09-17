@@ -1,11 +1,12 @@
 """
-This file contains information for pre-made electricity produciton technologies.
-These technologies generate electricity as the primary energy carrier.
+This file contains information for pre-made electricity production
+technologies.These technologies generate electricity as the primary energy
+carrier.
 
 Possible confusion:
     * NUCLEAR_ELC produces electricity and is written in this file.
-    * NUCLEAR_THM produces thermal energy (e.g. steam) and is written in another
-    file, ``thermal.py``.
+    * NUCLEAR_THM produces thermal energy (e.g. steam) and is written in
+      another file, ``thermal.py``.
 """
 
 from pygenesys.technology.technology import Technology
