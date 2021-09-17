@@ -99,6 +99,7 @@ class Technology(object):
         self.ramp_up = {}
         self.ramp_down = {}
         self.storage_duration = {}
+        self.emissions = {}
 
         return
 
@@ -116,8 +117,8 @@ class Technology(object):
                 self.category)
 
     def add_regional_data(self,
-                      region,
-                      **kwargs):
+                          region,
+                          **kwargs):
         """
         This function adds regional data for each parameter.
         Non-required items are kwargs.
@@ -139,6 +140,7 @@ class Technology(object):
                     "ramp_up":self.ramp_up,
                     "ramp_down":self.ramp_down,
                     "storage_duration":self.storage_duration,
+                    "emissions":self.emissions
                     }
 
         # check if region is a list or a string

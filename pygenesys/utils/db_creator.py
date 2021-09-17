@@ -1462,6 +1462,66 @@ def create_emissions_limit(connector, emissions_list):
 
     return
 
+
+def create_emissions_activity(connector, technology_list, time_horizon):
+    """
+    This function writes the emissions activity table in Temoa.
+    """
+
+    table_command = """CREATE TABLE "EmissionActivity" (
+                    	"regions"	text,
+                    	"emis_comm"	text,
+                    	"input_comm"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"output_comm"	text,
+                    	"emis_act"	real,
+                    	"emis_act_units"	text,
+                    	"emis_act_notes"	text,
+                    	PRIMARY KEY("regions","emis_comm","input_comm","tech","vintage","output_comm"),
+                    	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("emis_comm") REFERENCES "commodities"("comm_name")
+                    );"""
+    insert_command = """
+                     INSERT INTO "EmissionActivity" VALUES (?,?,?,?,?,?,?,?,?)
+                     """
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    entries = []
+    for tech in technology_list:
+        regions = list(tech.emissions.keys())
+        for place in regions:
+            emissions_list = list(tech.emissions[place].keys())
+            if len(tech.existing_capacity[place]) > 0 :
+                years = list(tech.existing_capacity[place].keys()) + \
+                list(time_horizon)
+                years = np.array(years)
+                # keep only those vintages that survive to the start of the
+                # simulation
+                years = years[(time_horizon[0] - years) < \
+                               tech.tech_lifetime[place]]
+            else:
+                years = time_horizon
+            for emis in emissions_list:
+                db_entry = [(place,
+                             emis.comm_name,
+                             tech.input_comm[place].comm_name,
+                             tech.tech_name,
+                             int(vintage),
+                             tech.output_comm[place].comm_name,
+                             tech.emissions[place][emis],
+                             f"{emis.units}/{tech.output_comm[place].units}",
+                             '') for vintage in years]
+                entries += db_entry
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+    return
+
+
 """
 def create_():
 CREATE TABLE "tech_exchange" (
@@ -1676,28 +1736,6 @@ CREATE TABLE "GrowthRateMax" (
 	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
 );
 return
-
-
-def create_():
-CREATE TABLE "EmissionActivity" (
-	"regions"	text,
-	"emis_comm"	text,
-	"input_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_comm"	text,
-	"emis_act"	real,
-	"emis_act_units"	text,
-	"emis_act_notes"	text,
-	PRIMARY KEY("regions","emis_comm","input_comm","tech","vintage","output_comm"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("emis_comm") REFERENCES "commodities"("comm_name")
-);
-return
-
 
 
 def create_():

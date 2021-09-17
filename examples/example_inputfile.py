@@ -123,6 +123,7 @@ NUCLEAR_ELC.add_regional_data(region='IL',
                               ramp_up=0.25,
                               ramp_down=0.25,
                               loan_lifetime=40,
+                              emissions={co2eq:1.2e-5}
                               )
 solar_cf = four_seasons_hourly(solarfarm_data,
                                kind='CF').flatten()
@@ -135,7 +136,8 @@ SOLAR_FARM.add_regional_data(region='IL',
                                                             'IL',
                                                             'Solar Photovoltaic'),
                              capacity_factor_tech=solar_cf,
-                             loan_lifetime=15)
+                             loan_lifetime=15,
+                             emissions={co2eq:4.8e-5})
 
 LI_BATTERY.add_regional_data(region='IL',
                              input_comm=electricity,
