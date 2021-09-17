@@ -102,7 +102,7 @@ def four_seasons_hourly(data_path, N_seasons=4, N_hours=24, kind='demand'):
         if kind.lower() == "demand":
             data = (avg_hourly / (N_seasons * avg_hourly.sum()))
         elif kind.lower() == "cf":
-            data = (avg_hourly / (time_series.iloc[:,0].max()))
+            data = (avg_hourly / (time_series.iloc[:, 0].max()))
 
         seasonal_hourly_profile[i] = data
 
@@ -170,7 +170,8 @@ def daily_hourly(data_path, N_seasons=365, N_hours=24, kind='demand'):
     if kind.lower() == "demand":
         daily_hourly_profile = average_profile / average_profile.sum()
     elif kind.lower() == "cf":
-        daily_hourly_profile = (average_profile / (time_series.iloc[:,0].max()))
+        daily_hourly_profile = (
+            average_profile / (time_series.iloc[:, 0].max()))
     return daily_hourly_profile
 
 

@@ -81,7 +81,6 @@ if __name__ == "__main__":
     import pandas as pd
     import numpy as np
 
-
     df = pd.read_csv(nrel_electric_costs, usecols=['atb_year',
                                                    'core_metric_parameter',
                                                    'technology',
@@ -90,5 +89,5 @@ if __name__ == "__main__":
                                                    'core_metric_variable',
                                                    'value',
                                                    'units'])
-    df = df[df['core_metric_parameter']=='Fuel']
+    df = df[df['core_metric_parameter'] == 'Fuel']
     print(df.head())

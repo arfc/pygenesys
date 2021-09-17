@@ -3,10 +3,10 @@ import numpy as np
 
 
 def nrel_cost_projection(tech,
-                        cost_metric,
-                        tech_detail=None,
-                        scenario='Moderate',
-                        atb_year=2020):
+                         cost_metric,
+                         tech_detail=None,
+                         scenario='Moderate',
+                         atb_year=2020):
     """
     Returns cost projections from the NREL Annual
     Technology Baseline.

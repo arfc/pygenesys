@@ -277,7 +277,6 @@ class EmissionsCommodity(Commodity):
         else:
             self.emissions_limit.update({region: limits})
 
-
         return
 
 

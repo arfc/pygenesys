@@ -88,7 +88,7 @@ class Technology(object):
         self.regions = []
         self.input_comm = {}
         self.output_comm = {}
-        self.efficiency ={}
+        self.efficiency = {}
         self.existing_capacity = {}
         self.tech_lifetime = {}
         self.loan_lifetime = {}
@@ -126,25 +126,25 @@ class Technology(object):
 
         """
         attr_dict = {
-                    "input_comm":self.input_comm,
-                    "output_comm":self.output_comm,
-                    "regions":self.regions,
-                    "tech_lifetime":self.tech_lifetime,
-                    "loan_lifetime":self.loan_lifetime,
-                    "cost_variable":self.cost_variable,
-                    "cost_fixed":self.cost_fixed,
-                    "cost_invest":self.cost_invest,
-                    "efficiency":self.efficiency,
-                    "existing":self.existing_capacity,
-                    "capacity_factor_tech" : self.capacity_factor_tech,
-                    "ramp_up":self.ramp_up,
-                    "ramp_down":self.ramp_down,
-                    "storage_duration":self.storage_duration,
-                    "emissions":self.emissions
-                    }
+            "input_comm": self.input_comm,
+            "output_comm": self.output_comm,
+            "regions": self.regions,
+            "tech_lifetime": self.tech_lifetime,
+            "loan_lifetime": self.loan_lifetime,
+            "cost_variable": self.cost_variable,
+            "cost_fixed": self.cost_fixed,
+            "cost_invest": self.cost_invest,
+            "efficiency": self.efficiency,
+            "existing": self.existing_capacity,
+            "capacity_factor_tech": self.capacity_factor_tech,
+            "ramp_up": self.ramp_up,
+            "ramp_down": self.ramp_down,
+            "storage_duration": self.storage_duration,
+            "emissions": self.emissions
+        }
 
         # check if region is a list or a string
-        if type(region) is str:
+        if isinstance(region, str):
             if region in self.regions:
                 pass
             else:
@@ -154,7 +154,7 @@ class Technology(object):
                 attribute = attr_dict[kw]
                 attribute[region] = kwargs[kw]
 
-        elif type(region) is list:
+        elif isinstance(region, list):
             self.regions += region
             self.regions = list(np.unique(self.regions))
             for kw in kwargs:
@@ -162,7 +162,6 @@ class Technology(object):
                 attribute = attr_dict[kw]
                 for pl in region:
                     attribute[pl] = kwargs[kw]
-
 
         print(self.input_comm)
         print(self.output_comm)

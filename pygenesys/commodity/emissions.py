@@ -13,9 +13,9 @@ co2eq = EmissionsCommodity(comm_name='co2eq',
 if __name__ == "__main__":
 
     from pygenesys.commodity.commodity import *
-    
+
     import numpy as np
 
     types = np.array([EmissionsCommodity, DemandCommodity, Commodity])
     print(type(co2eq))
-    print(np.any(types == type(co2eq)))
+    print(np.any(isinstance(co2eq, types)))

@@ -472,7 +472,7 @@ def create_demand_specific_distribution(connector,
                  demand_comm.comm_name,
                  d,
                  demand_comm.units) for d,
-                 ts in zip(data, time_slices)]
+                ts in zip(data, time_slices)]
             cursor.executemany(insert_command, db_entry)
     connector.commit()
     return table_command
@@ -575,6 +575,7 @@ def create_technologies(connector, technology_list):
 
     return table_command
 
+
 def create_efficiency(connector, technology_list, future):
     """
     This function writes the efficiency table in Temoa.
@@ -606,15 +607,15 @@ def create_efficiency(connector, technology_list, future):
             try:
                 existing_years = tech.existing_capacity[place].keys()
                 data = [(place,
-                        str(tech.input_comm[place].comm_name),
-                        str(tech.tech_name),
-                        int(year),
-                        str(tech.output_comm[place].comm_name),
-                        tech.efficiency[place],
-                        'NULL'
-                        ) for year in existing_years]
+                         str(tech.input_comm[place].comm_name),
+                         str(tech.tech_name),
+                         int(year),
+                         str(tech.output_comm[place].comm_name),
+                         tech.efficiency[place],
+                         'NULL'
+                         ) for year in existing_years]
                 entries += data
-            except:
+            except BaseException:
                 pass
             # write future years
 
@@ -634,18 +635,17 @@ def create_efficiency(connector, technology_list, future):
             if True:
                 pass
             # if the technology has two or more outputs
-            elif (type(tech.output_comm[place]) == 'list'):
+            elif (isinstance(tech.output_comm[place], 'list')):
                 pass
 
             # if the technology has two or more inputs
-            elif (type(tech.input_comm[place]) == 'list'):
+            elif (isinstance(tech.input_comm[place], 'list')):
                 pass
 
             # if the technology has two or more inputs and outputs
-            elif ((type(tech.input_comm[place]) == 'list') and
-                  (type(tech.output_comm[place]) == 'list')):
+            elif ((isinstance(tech.input_comm[place], 'list')) and
+                  (isinstance(tech.output_comm[place], 'list'))):
                 pass
-
 
     print(future)
     # for entry in entries:
@@ -656,6 +656,7 @@ def create_efficiency(connector, technology_list, future):
     connector.commit()
 
     return table_command
+
 
 def create_existing_capacity(connector, technology_list, time_horizon):
     """
@@ -685,7 +686,7 @@ def create_existing_capacity(connector, technology_list, time_horizon):
             lifetime = tech.tech_lifetime[place]
             years = np.array(list(tech.existing_capacity[place].keys()))
             # only keep the vintages that will exist in the first sim year
-            years = years[(first_year-years) < lifetime]
+            years = years[(first_year - years) < lifetime]
             # caps = list(tech.existing_capacity[place].values())
 
             data = [(place,
@@ -728,22 +729,19 @@ def create_lifetime_tech(connector, technology_list):
                      """
     entries = []
 
-
     for tech in technology_list:
         tech_name = tech.tech_name
         data = [(place,
-                tech_name,
-                tech.tech_lifetime[place],
-                'NULL') for place in tech.regions]
+                 tech_name,
+                 tech.tech_lifetime[place],
+                 'NULL') for place in tech.regions]
 
         entries += data
-
 
     cursor = connector.cursor()
     cursor.execute(table_command)
     cursor.executemany(insert_command, entries)
     connector.commit()
-
 
     return table_command
 
@@ -787,15 +785,15 @@ def create_variable_cost(connector, technology_list, time_horizon):
         for place in tech.regions:
             lifetime = float(tech.tech_lifetime[place])
             # if there are existing vintages of the technology
-            if len(tech.existing_capacity[place]) > 0 :
+            if len(tech.existing_capacity[place]) > 0:
                 years = list(tech.existing_capacity[place].keys()) + \
-                        list(time_horizon)
+                    list(time_horizon)
             else:
                 years = time_horizon
             # generate future/vintage pairs
             year_pairs = itertools.product(time_horizon, years)
             for year, vintage in year_pairs:
-                if (year-vintage) < lifetime:
+                if (year - vintage) < lifetime:
                     entries.append((place,
                                     int(year),
                                     tech.tech_name,
@@ -847,12 +845,12 @@ def create_invest_cost(connector, technology_list, time_horizon):
         else:
             continue
         for place in tech.regions:
-            data  = [(place,
-                      tech.tech_name,
-                      int(year),
-                      tech.cost_invest[place],
-                      "",
-                      "") for year in time_horizon]
+            data = [(place,
+                     tech.tech_name,
+                     int(year),
+                     tech.cost_invest[place],
+                     "",
+                     "") for year in time_horizon]
             entries += data
 
     cursor = connector.cursor()
@@ -901,15 +899,15 @@ def create_fixed_cost(connector, technology_list, time_horizon):
         for place in tech.regions:
             lifetime = float(tech.tech_lifetime[place])
             # if there are existing vintages of the technology
-            if len(tech.existing_capacity[place]) > 0 :
+            if len(tech.existing_capacity[place]) > 0:
                 years = list(tech.existing_capacity[place].keys()) + \
-                        list(time_horizon)
+                    list(time_horizon)
             else:
                 years = time_horizon
             # generate future/vintage pairs
             year_pairs = itertools.product(time_horizon, years)
             for year, vintage in year_pairs:
-                if (year-vintage) < lifetime:
+                if (year - vintage) < lifetime:
                     entries.append((place,
                                     int(year),
                                     tech.tech_name,
@@ -955,13 +953,13 @@ def create_capacity_factor_tech(connector, technology_list, seasons, hours):
         # loops over each region where the commodity is defined
         for place in cft_dict:
             data = cft_dict[place]
-            if (type(data) == list) or (type(data) == np.ndarray):
+            if (isinstance(data, list)) or (isinstance(data, np.ndarray)):
                 print('data is list or np array')
                 pass
-            elif (type(data) == int) or (type(data) == float):
+            elif (isinstance(data, int)) or (isinstance(data, float)):
                 # for constant capacity factor, must be on the interval [0,1]
                 print('data is float or int')
-                data = np.ones(len(hours)*len(seasons))*data
+                data = np.ones(len(hours) * len(seasons)) * data
             # breakpoint()
             db_entry = [(place,
                          ts[0][0],
@@ -969,13 +967,12 @@ def create_capacity_factor_tech(connector, technology_list, seasons, hours):
                          tech.tech_name,
                          float(d),
                          '') for d,
-                         ts in zip(data, time_slices)]
+                        ts in zip(data, time_slices)]
             # breakpoint()
             cursor.executemany(insert_command, db_entry)
 
     connector.commit()
     return table_command
-
 
 
 def create_output_vcapacity(connector):
@@ -1196,7 +1193,7 @@ def create_reserve_margin(connector, prm):
 
     db_entry = [(place,
                  margin
-                ) for place, margin in zip(prm.keys(), prm.values())]
+                 ) for place, margin in zip(prm.keys(), prm.values())]
 
     cursor.executemany(insert_command, db_entry)
     connector.commit()
@@ -1293,8 +1290,8 @@ def create_tech_ramping(connector, technology_list):
         db_entry = [(place,
                      tech.tech_name,
                      up_rate)
-                     for place, up_rate in zip(list(tech.ramp_up.keys()),
-                                               list(tech.ramp_up.values()))]
+                    for place, up_rate in zip(list(tech.ramp_up.keys()),
+                                              list(tech.ramp_up.values()))]
         entries += db_entry
 
     cursor.executemany(insert_command, entries)
@@ -1319,12 +1316,13 @@ def create_tech_ramping(connector, technology_list):
         db_entry = [(place,
                      tech.tech_name,
                      up_rate)
-                     for place, up_rate in zip(list(tech.ramp_down.keys()),
-                                               list(tech.ramp_down.values()))]
+                    for place, up_rate in zip(list(tech.ramp_down.keys()),
+                                              list(tech.ramp_down.values()))]
         entries += db_entry
     cursor.executemany(insert_command, entries)
     connector.commit()
     return
+
 
 def create_tech_storage(connector, technology_list):
     """
@@ -1353,8 +1351,8 @@ def create_tech_storage(connector, technology_list):
                      tech.tech_name,
                      storage,
                      '')
-                     for place, storage in zip(list(tech.storage_duration.keys()),
-                                               list(tech.storage_duration.values()))]
+                    for place, storage in zip(list(tech.storage_duration.keys()),
+                                              list(tech.storage_duration.values()))]
         entries += db_entry
 
     cursor.executemany(insert_command, entries)
@@ -1385,8 +1383,8 @@ def create_loan_lifetime(connector, technology_list):
                      tech.tech_name,
                      int(loan),
                      '')
-                     for place, loan in zip(list(tech.loan_lifetime.keys()),
-                                            list(tech.loan_lifetime.values()))]
+                    for place, loan in zip(list(tech.loan_lifetime.keys()),
+                                           list(tech.loan_lifetime.values()))]
         entries += db_entry
 
     cursor.executemany(insert_command, entries)
@@ -1416,12 +1414,13 @@ def create_capacity_to_activity(connector, technology_list):
                      tech.tech_name,
                      tech.capacity_to_activity,
                      '')
-                     for place in tech.regions]
+                    for place in tech.regions]
         entries += db_entry
 
     cursor.executemany(insert_command, entries)
     connector.commit()
     return
+
 
 def create_emissions_limit(connector, emissions_list):
     """
@@ -1496,14 +1495,14 @@ def create_emissions_activity(connector, technology_list, time_horizon):
         regions = list(tech.emissions.keys())
         for place in regions:
             emissions_list = list(tech.emissions[place].keys())
-            if len(tech.existing_capacity[place]) > 0 :
+            if len(tech.existing_capacity[place]) > 0:
                 years = list(tech.existing_capacity[place].keys()) + \
-                list(time_horizon)
+                    list(time_horizon)
                 years = np.array(years)
                 # keep only those vintages that survive to the start of the
                 # simulation
-                years = years[(time_horizon[0] - years) < \
-                               tech.tech_lifetime[place]]
+                years = years[(time_horizon[0] - years) <
+                              tech.tech_lifetime[place]]
             else:
                 years = time_horizon
             for emis in emissions_list:
