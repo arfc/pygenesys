@@ -11,6 +11,8 @@ end_year = 2050
 N_years = 6
 seasons = [[f'S{i+1}'] for i in range(N_seasons)]
 periods = np.linspace(start_year, end_year, N_years)
+existing_years = np.array([1990, 1995])
+
 
 
 def test_establish_connection():
@@ -60,13 +62,13 @@ def test_create_time_period_labels():
 def test_create_time_periods():
     # set up
     conn = establish_connection(test_db)
-    create_time_periods(conn, periods)
+    create_time_periods(conn, periods, existing_years)
     cursor = conn.cursor()
     table_data = list(cursor.execute("SELECT * FROM time_periods"))
     conn.close()
 
     # tests
-    assert(len(table_data) - 1 == len(periods))
+    assert(len(table_data) - 1 == (len(periods) + len(existing_years)))
 
     os.remove(test_db)
     return
