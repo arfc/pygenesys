@@ -19,3 +19,4 @@ imp_natgas = Technology(tech_name='IMP_NATGAS',
 if __name__ == '__main__':
     print(isinstance(imp_natgas, Technology))
     print(imp_natgas._type)
+    

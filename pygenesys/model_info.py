@@ -164,6 +164,7 @@ class ModelInfo(object):
         create_regions(conn, self.regions)
         create_commodity_labels(conn)
         create_commodities(conn, self.commodities)
+        create_emissions_limit(conn, self.commodities['emissions'])
         create_global_discount(conn, self.global_discount)
         create_reserve_margin(conn, self.reserve_margin)
         create_demand_table(conn,

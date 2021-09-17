@@ -1423,6 +1423,45 @@ def create_capacity_to_activity(connector, technology_list):
     connector.commit()
     return
 
+def create_emissions_limit(connector, emissions_list):
+    """
+    This function writes the emissions limit table in Temoa.
+    """
+
+    table_command = """CREATE TABLE "EmissionLimit" (
+                    	"regions"	text,
+                    	"periods"	integer,
+                    	"emis_comm"	text,
+                    	"emis_limit"	real,
+                    	"emis_limit_units"	text,
+                    	"emis_limit_notes"	text,
+                    	PRIMARY KEY("periods","emis_comm"),
+                    	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("emis_comm") REFERENCES "commodities"("comm_name")
+                    );"""
+    insert_command = """INSERT INTO "EmissionLimit" VALUES (?,?,?,?,?,?)"""
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    entries = []
+    for emis in emissions_list:
+        for place in list(emis.emissions_limit.keys()):
+            limit_data = emis.emissions_limit[place]
+            db_entry = [(place,
+                         year,
+                         emis.comm_name,
+                         limit,
+                         emis.units,
+                         '') for year, limit in zip(list(limit_data.keys()),
+                                                    list(limit_data.values()))]
+            entries += db_entry
+
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    return
+
 """
 def create_():
 CREATE TABLE "tech_exchange" (
@@ -1638,20 +1677,6 @@ CREATE TABLE "GrowthRateMax" (
 );
 return
 
-
-def create_():
-CREATE TABLE "EmissionLimit" (
-	"regions"	text,
-	"periods"	integer,
-	"emis_comm"	text,
-	"emis_limit"	real,
-	"emis_limit_units"	text,
-	"emis_limit_notes"	text,
-	PRIMARY KEY("periods","emis_comm"),
-	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("emis_comm") REFERENCES "commodities"("comm_name")
-);
-return
 
 def create_():
 CREATE TABLE "EmissionActivity" (

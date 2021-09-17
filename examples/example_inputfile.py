@@ -41,6 +41,7 @@ discount_rate = 0.05  # The discount rate applied globally.
 # Import commodities here
 from pygenesys.commodity.resource import electricity, steam, ethos, uranium_leu
 from pygenesys.commodity.demand import ELC_DEMAND, STM_DEMAND
+from pygenesys.commodity.emissions import co2eq
 ELC_DEMAND.add_demand(region='IL',
                       init_demand=183,
                       start_year=start_year,
@@ -148,10 +149,14 @@ LI_BATTERY.add_regional_data(region='IL',
                              storage_duration=8,
                              loan_lifetime=10)
 
+
+co2eq.add_regional_limit(region='IL',
+                         limits={2030:100, 2050:0.0})
+
 # Collect the commodities here
 demands_list = [ELC_DEMAND, STM_DEMAND]
 resources_list = [electricity, steam, ethos]
-emissions_list = []
+emissions_list = [co2eq]
 
 
 if __name__ == '__main__':

@@ -11,7 +11,7 @@ import sqlite3
 # custom imports
 from pygenesys import model_info
 from pygenesys.technology.technology import Technology
-
+from pygenesys.commodity.commodity import *
 
 def name_from_path(infile_path):
     """
@@ -75,6 +75,7 @@ def collect_technologies(module_name):
         if 'Technology' in string_attr:
             print(f"{member} is Technology")
             technologies.append(getattr(module_name, member))
+            print(f"using isinstance: {isinstance(attrib, Technology)}")
 
     return technologies
 
