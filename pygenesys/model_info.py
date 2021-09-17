@@ -88,7 +88,6 @@ class ModelInfo(object):
         self.regions = self._collect_regions()
         self.tech_sectors = self._collect_tech_sectors()
 
-
         return
 
     def _calculate_time_horizon(self):
@@ -132,7 +131,6 @@ class ModelInfo(object):
 
         return sectors
 
-
     def _collect_existing_years(self):
         """
         Collects a unique list of existing years from the technologies
@@ -145,7 +143,6 @@ class ModelInfo(object):
                 years += ex_years
 
         return np.unique(years)
-
 
     def _write_sqlite_database(self):
         """
