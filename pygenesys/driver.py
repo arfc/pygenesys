@@ -80,6 +80,53 @@ def collect_technologies(module_name):
     return technologies
 
 
+def _collect_commodities(technology_list):
+    """
+    Collects the unique commodities from the PyGenesys input file.
+    """
+
+    demand = {}
+    resource = {}
+    emission = {}
+
+    for tech in technology_list:
+        for region in tech.regions:
+            input_comm = tech.input_comm[region]
+            output_comm = tech.output_comm[region]
+            emissions = tech.emissions[region]
+
+            # check the input commodity type
+            if isinstance(input_comm, Commodity):
+                # resource
+                pass
+            elif isinstance(input_comm, DemandCommodity):
+                print(f"Warning: Input commodity of {tech.tech_name}" \
+                      f"is a Demand Commodity.")
+                # demand
+                pass
+            elif isinstance(input_comm, EmissionCommodity):
+                # emission
+                print(f"Warning: Input commodity of {tech.tech_name}" \
+                      f"is an Emission Commodity.")
+                pass
+
+            if isinstance(output_comm, Commodity):
+                # resource
+                pass
+            elif isinstance(output_comm, DemandCommodity):
+                # demand
+                pass
+            elif isinstance(output_comm, EmissionCommodity):
+                # emission
+                print(f"Warning: Output commodity of {tech.tech_name}" \
+                      f"is an Emission Commodity. Skipped.")
+                pass
+
+
+
+    return commodities
+
+
 def main():
 
     # Read commandline arguments
