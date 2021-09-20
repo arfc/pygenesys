@@ -1,3 +1,10 @@
+"""
+This file contains pre-made commodities.
+
+In practice, any commodity could be an "infinite reservoir" is there is no
+technology that "creates" the commodity.
+"""
+
 from pygenesys.commodity.commodity import Commodity
 
 electricity = Commodity(comm_name='ELC',
@@ -11,6 +18,14 @@ steam = Commodity(comm_name='STM',
 natural_gas = Commodity(comm_name='NATGAS',
                         units='MMBTU',
                         description='natural gas')
+
+uranium_leu = Commodity(comm_name='uranium_leu',
+                        units='tonnes',
+                        description='low enriched uranium')
+
+uranium_ntl = Commodity(comm_name='uranium_ntl',
+                        units='tonnes',
+                        description='natural uranium -- infinite reservoir')
 
 ethos = Commodity(comm_name='ethos',
                   units='NULL',

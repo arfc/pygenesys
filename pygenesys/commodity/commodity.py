@@ -159,7 +159,8 @@ class DemandCommodity(Commodity):
                          data,
                          n_seasons=4,
                          n_hours=24,
-                         normalize=True):
+                         normalize=True,
+                         kind='demand'):
         """
         This function generates a distribution time series. The sum
         of this distribution must be equal to unity. If users
@@ -188,7 +189,8 @@ class DemandCommodity(Commodity):
                                                                  n_hours)
             distribution = distribution_calculator(data,
                                                    n_seasons,
-                                                   n_hours)
+                                                   n_hours,
+                                                   kind)
         else:
             pass
 
@@ -204,7 +206,7 @@ class DemandCommodity(Commodity):
 
 class EmissionsCommodity(Commodity):
     """
-    This class holds data for a demand commodity in Temoa.
+    This class holds data for an emissions commodity in Temoa.
     """
 
     def __init__(self,
@@ -239,8 +241,41 @@ class EmissionsCommodity(Commodity):
                          units,
                          comm_label,
                          description,)
-        self.demand = demand
-        self.demand_distribution = demand_distribution
+
+        self.emissions_limit = {}
+
+        return
+
+    def add_regional_limit(self,
+                           region,
+                           limits,):
+        """
+        This function adds an emissions limit for a particular year
+        or set of years.
+
+        Parameters
+        ----------
+        region : string
+            The region of interest. This region must have technologies
+            that produce this emission.
+        limits : dictionary
+            A dictionary with years for keys and the emissions limits
+            for values. **Every year must be a simulation year.**
+
+            **Under consideration: applying a limit to the nearest
+            year in the simulation to the one provided.**
+            E.g. years in simulation = [2021, 2026, 2031];
+                 constraint year = 2025
+                 The constraint would be applied to 2026, rather than
+                 requiring the constraint year be exactly 2026 or
+                 similar.
+        """
+
+        if region in self.emissions_limit:
+            print(f'Region {region} already in database. Overwriting.')
+            self.emissions_limit[region] = limits
+        else:
+            self.emissions_limit.update({region: limits})
 
         return
 

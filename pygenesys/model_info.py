@@ -20,7 +20,9 @@ class ModelInfo(object):
                  technologies,
                  demands,
                  resources,
-                 emissions,):
+                 emissions,
+                 reserve_margin,
+                 global_discount):
         """
         This class holds information about the PyGenesys and
         Temoa model.
@@ -54,7 +56,13 @@ class ModelInfo(object):
         commodities : dictionary
             A dictionary of the demand, resource, and emissions commodities.
         technologies : list
-             A list of ``Technology`` objects
+            A list of ``Technology`` objects
+        reserve_margin : float
+            The value of the "planning reserve margin." This value forces
+            Temoa to include enough excess capacity above peak demand to
+            ensure reliability. E.g. reserve_margin = 0.3 corresponds to
+            a Planning Reserve Margin of 30 percent, or total generating
+            capacity that is 30 percent greater than the annual peak demand.
         """
 
         self.output_db = output_db
@@ -70,9 +78,12 @@ class ModelInfo(object):
             'emissions': emissions
         }
         self.technologies = technologies
+        self.reserve_margin = reserve_margin
+        self.global_discount = global_discount
 
         # derived quantities
         self.time_horizon = self._calculate_time_horizon()
+        self.existing_years = self._collect_existing_years()
         self.seg_frac = self._calculate_seg_frac()
         self.regions = self._collect_regions()
         self.tech_sectors = self._collect_tech_sectors()
@@ -120,6 +131,19 @@ class ModelInfo(object):
 
         return sectors
 
+    def _collect_existing_years(self):
+        """
+        Collects a unique list of existing years from the technologies
+        in the model.
+        """
+        years = []
+        for tech in self.technologies:
+            for place in tech.regions:
+                ex_years = list(tech.existing_capacity[place].keys())
+                years += ex_years
+
+        return np.unique(years)
+
     def _write_sqlite_database(self):
         """
         Writes model info directly to an sqlite database.
@@ -130,12 +154,16 @@ class ModelInfo(object):
         # create fundamental tables
         seasons = create_time_season(conn, self.N_seasons)
         create_time_period_labels(conn)
-        create_time_periods(conn, self.time_horizon)
+        create_time_periods(conn, self.time_horizon, self.existing_years)
+        # create_existing_periods(conn, self.technology_list)
         time_slices = create_time_of_day(conn, self.N_hours)
         create_segfrac(conn, self.seg_frac, seasons, time_slices)
         create_regions(conn, self.regions)
         create_commodity_labels(conn)
         create_commodities(conn, self.commodities)
+        create_emissions_limit(conn, self.commodities['emissions'])
+        create_global_discount(conn, self.global_discount)
+        create_reserve_margin(conn, self.reserve_margin)
         create_demand_table(conn,
                             self.commodities['demand'],
                             self.time_horizon)
@@ -146,5 +174,32 @@ class ModelInfo(object):
         create_technology_labels(conn)
         create_sectors(conn, self.tech_sectors)
         create_technologies(conn, self.technologies)
+        create_capacity_to_activity(conn, self.technologies)
+        create_lifetime_tech(conn, self.technologies)
+        create_loan_lifetime(conn, self.technologies)
+        create_tech_reserve(conn, self.technologies)
+        create_tech_ramping(conn, self.technologies)
+        create_tech_storage(conn, self.technologies)
+        create_existing_capacity(conn, self.technologies, self.time_horizon)
+        create_efficiency(conn, self.technologies, self.time_horizon)
+        create_emissions_activity(conn, self.technologies, self.time_horizon)
+        create_invest_cost(conn, self.technologies, self.time_horizon)
+        create_variable_cost(conn, self.technologies, self.time_horizon)
+        create_fixed_cost(conn, self.technologies, self.time_horizon)
+        create_capacity_factor_tech(conn,
+                                    self.technologies,
+                                    time_slices,
+                                    seasons)
+
+        # output tables
+        create_output_vcapacity(conn)
+        create_output_vflow_out(conn)
+        create_output_vflow_in(conn)
+        create_output_objective(conn)
+        create_output_curtailment(conn)
+        create_output_emissions(conn)
+        create_output_costs(conn)
+        create_output_duals(conn)
+        create_output_capacitybyperiodtech(conn)
         conn.close()
         return

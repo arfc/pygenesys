@@ -1,6 +1,7 @@
 
 import itertools
 import sqlite3
+import numpy as np
 
 
 def establish_connection(output_db):
@@ -68,10 +69,14 @@ def create_time_season(connector, N_seasons):
     return seasons
 
 
-def create_time_periods(connector, future_years):
+def create_time_periods(connector, future_years, existing_years):
     """
     This function writes the time_periods table to an sqlite
     database. Only "future" time periods will be written.
+
+    Note: This function does not truncate the existing years based
+    on the lifetime of technologies. It should be okay that some
+    existing years go unused.
 
     Parameters
     ----------
@@ -98,12 +103,18 @@ def create_time_periods(connector, future_years):
                      INSERT INTO "time_periods" VALUES(?,?)
                      """
 
-    time_horizon = [(int(year), 'f') for year in future_years]
+    if len(existing_years) == 0:
+        past_horizon = [(int(future_years[0] - 1), 'e')]
+    else:
+        past_horizon = [(int(year), 'e') for year in existing_years]
+    future_horizon = [(int(year), 'f') for year in future_years]
     # set boundary year
-    time_horizon.append((int(future_years[-1] + 1), 'f'))
+    future_horizon.append((int(future_years[-1] + 1), 'f'))
+    entries = past_horizon + future_horizon
+
     cursor = connector.cursor()
     cursor.execute(table_command)
-    cursor.executemany(insert_command, time_horizon)
+    cursor.executemany(insert_command, entries)
     connector.commit()
     return table_command
 
@@ -407,7 +418,10 @@ def create_demand_specific_distribution(connector,
                                         hours):
     """
     This function writes the ``DemandSpecificDistribution`` table
-    in Temoa.
+    in Temoa. Demand list is a list of objects with a "distribution"
+    attribute. "Distribution" is a dictionary with "region" keys and
+    values of data lists. The data in this dictionary is flattened before
+    being entered here.
 
     Parameters
     ----------
@@ -454,13 +468,11 @@ def create_demand_specific_distribution(connector,
             db_entry = [
                 (region,
                  ts[0][0],
-                    ts[1][0],
-                    demand_comm.comm_name,
-                    d,
-                    demand_comm.units) for d,
-                ts in zip(
-                    data,
-                    time_slices)]
+                 ts[1][0],
+                 demand_comm.comm_name,
+                 d,
+                 demand_comm.units) for d,
+                ts in zip(data, time_slices)]
             cursor.executemany(insert_command, db_entry)
     connector.commit()
     return table_command
@@ -504,7 +516,9 @@ def create_technology_labels(connector):
 
 
 def create_sectors(connector, sector_list):
-
+    """
+    Creates the ``sectors`` table in Temoa.
+    """
     table_command = """
                     CREATE TABLE "sector_labels" (
                     "sector"	text,
@@ -562,18 +576,952 @@ def create_technologies(connector, technology_list):
     return table_command
 
 
+def create_efficiency(connector, technology_list, future):
+    """
+    This function writes the efficiency table in Temoa.
+    """
+
+    table_command = """CREATE TABLE "Efficiency" (
+                    	"regions"	text,
+                    	"input_comm"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"output_comm"	text,
+                    	"efficiency"	real CHECK("efficiency" > 0),
+                    	"eff_notes"	text,
+                    	PRIMARY KEY("regions","input_comm","tech","vintage","output_comm"),
+                    	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name")
+                    );"""
+    insert_command = """
+                    INSERT INTO "Efficiency" VALUES (?,?,?,?,?,?,?)
+                     """
+    entries = []
+    for tech in technology_list:
+        # loop through regions
+        for place in tech.regions:
+            # check for existing capacity
+            # if len(tech.existing_capacity[place])>0:
+            try:
+                existing_years = tech.existing_capacity[place].keys()
+                data = [(place,
+                         str(tech.input_comm[place].comm_name),
+                         str(tech.tech_name),
+                         int(year),
+                         str(tech.output_comm[place].comm_name),
+                         tech.efficiency[place],
+                         'NULL'
+                         ) for year in existing_years]
+                entries += data
+            except BaseException:
+                pass
+            # write future years
+
+            # if the technology only has one input and one output
+            data = [(place,
+                     str(tech.input_comm[place].comm_name),
+                     str(tech.tech_name),
+                     int(year),
+                     str(tech.output_comm[place].comm_name),
+                     tech.efficiency[place],
+                     'NULL'
+                     ) for year in future]
+
+            entries += data
+
+            # if the technology has one input and one output -- default
+            if True:
+                pass
+            # if the technology has two or more outputs
+            elif (isinstance(tech.output_comm[place], 'list')):
+                pass
+
+            # if the technology has two or more inputs
+            elif (isinstance(tech.input_comm[place], 'list')):
+                pass
+
+            # if the technology has two or more inputs and outputs
+            elif ((isinstance(tech.input_comm[place], 'list')) and
+                  (isinstance(tech.output_comm[place], 'list'))):
+                pass
+
+    print(future)
+    # for entry in entries:
+    #     print(entry)
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    return table_command
+
+
+def create_existing_capacity(connector, technology_list, time_horizon):
+    """
+    Writes the ``ExistingCapacity`` table.
+    """
+
+    table_command = """CREATE TABLE "ExistingCapacity" (
+                    	"regions"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"exist_cap"	real,
+                    	"exist_cap_units"	text,
+                    	"exist_cap_notes"	text,
+                    	PRIMARY KEY("regions","tech","vintage"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
+                    );"""
+
+    insert_command = """
+                     INSERT INTO "ExistingCapacity" VALUES (?,?,?,?,?,?)
+                     """
+
+    entries = []
+    for tech in technology_list:
+        first_year = time_horizon[0]
+        for place in tech.regions:
+            lifetime = tech.tech_lifetime[place]
+            years = np.array(list(tech.existing_capacity[place].keys()))
+            # only keep the vintages that will exist in the first sim year
+            years = years[(first_year - years) < lifetime]
+            # caps = list(tech.existing_capacity[place].values())
+
+            data = [(place,
+                     tech.tech_name,
+                     int(year),
+                     tech.existing_capacity[place][year],
+                     tech.units,
+                     '') for year in years]
+            entries += data
+
+    if len(entries) > 0:
+        cursor = connector.cursor()
+        cursor.execute(table_command)
+        cursor.executemany(insert_command, entries)
+        connector.commit()
+    else:
+        return table_command
+
+    return table_command
+
+
+def create_lifetime_tech(connector, technology_list):
+    """
+    This function writes the lifetime tech table in Temoa.
+
+    TO DO: Update this function to handle technologies with
+    technology lifetimes that vary by region.
+    """
+    table_command = """CREATE TABLE "LifetimeTech" (
+                    	"regions"	text,
+                    	"tech"	text,
+                    	"life"	real,
+                    	"life_notes"	text,
+                    	PRIMARY KEY("regions","tech"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+
+    insert_command = """
+                     INSERT INTO "LifetimeTech" VALUES (?,?,?,?)
+                     """
+    entries = []
+
+    for tech in technology_list:
+        tech_name = tech.tech_name
+        data = [(place,
+                 tech_name,
+                 tech.tech_lifetime[place],
+                 'NULL') for place in tech.regions]
+
+        entries += data
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    return table_command
+
+
+def create_variable_cost(connector, technology_list, time_horizon):
+    """
+    This function writes the variable cost table in Temoa.
+
+    Parameters
+    ----------
+    connector : sqlite connector
+
+    technology_list : list of ``Technology`` objects
+        All of the technologies initialized in the input file
+    """
+    table_command = """CREATE TABLE "CostVariable" (
+                	"regions"	text NOT NULL,
+                	"periods"	integer NOT NULL,
+                	"tech"	text NOT NULL,
+                	"vintage"	integer NOT NULL,
+                	"cost_variable"	real,
+                	"cost_variable_units"	text,
+                	"cost_variable_notes"	text,
+                	PRIMARY KEY("regions","periods","tech","vintage"),
+                	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
+                );"""
+
+    insert_command = """
+                     INSERT INTO "CostVariable" VALUES (?,?,?,?,?,?,?)
+                     """
+    entries = []
+    for tech in technology_list:
+        # check that cost exists
+        if len(tech.cost_variable) > 0:
+            pass
+        else:
+            continue
+        # loop through regions
+        for place in tech.regions:
+            lifetime = float(tech.tech_lifetime[place])
+            # if there are existing vintages of the technology
+            if len(tech.existing_capacity[place]) > 0:
+                years = list(tech.existing_capacity[place].keys()) + \
+                    list(time_horizon)
+            else:
+                years = time_horizon
+            # generate future/vintage pairs
+            year_pairs = itertools.product(time_horizon, years)
+            for year, vintage in year_pairs:
+                if (year - vintage) < lifetime:
+                    entries.append((place,
+                                    int(year),
+                                    tech.tech_name,
+                                    int(vintage),
+                                    tech.cost_variable[place][year],
+                                    "",
+                                    ""))
+                else:
+                    pass
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    return table_command
+
+
+def create_invest_cost(connector, technology_list, time_horizon):
+    """
+    This function writes the investment cost table in Temoa.
+
+    Parameters
+    ----------
+    connector : sqlite connector
+
+    technology_list : list of ``Technology`` objects
+        All of the technologies initialized in the input file
+    """
+    table_command = """CREATE TABLE "CostInvest" (
+                	"regions"	text,
+                	"tech"	text,
+                	"vintage"	integer,
+                	"cost_invest"	real,
+                	"cost_invest_units"	text,
+                	"cost_invest_notes"	text,
+                	PRIMARY KEY("regions","tech","vintage"),
+                	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
+                );
+                """
+
+    insert_command = """
+                     INSERT INTO "CostInvest" VALUES (?,?,?,?,?,?)
+                     """
+    entries = []
+    for tech in technology_list:
+        if len(tech.cost_invest) > 0:
+            pass
+        else:
+            continue
+        for place in tech.regions:
+            data = [(place,
+                     tech.tech_name,
+                     int(year),
+                     tech.cost_invest[place],
+                     "",
+                     "") for year in time_horizon]
+            entries += data
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    return
+
+
+def create_fixed_cost(connector, technology_list, time_horizon):
+    """
+    This function writes the fixed cost table in Temoa.
+
+    Parameters
+    ----------
+    connector : sqlite connector
+
+    technology_list : list of ``Technology`` objects
+        All of the technologies initialized in the input file
+    """
+    table_command = """CREATE TABLE "CostFixed" (
+                	"regions"	text NOT NULL,
+                	"periods"	integer NOT NULL,
+                	"tech"	text NOT NULL,
+                	"vintage"	integer NOT NULL,
+                	"cost_fixed"	real,
+                	"cost_fixed_units"	text,
+                	"cost_fixed_notes"	text,
+                	PRIMARY KEY("regions","periods","tech","vintage"),
+                	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
+                );"""
+
+    insert_command = """
+                     INSERT INTO "CostFixed" VALUES (?,?,?,?,?,?,?)
+                     """
+    entries = []
+    for tech in technology_list:
+        if len(tech.cost_fixed) > 0:
+            pass
+        else:
+            continue
+        # loop through regions
+        for place in tech.regions:
+            lifetime = float(tech.tech_lifetime[place])
+            # if there are existing vintages of the technology
+            if len(tech.existing_capacity[place]) > 0:
+                years = list(tech.existing_capacity[place].keys()) + \
+                    list(time_horizon)
+            else:
+                years = time_horizon
+            # generate future/vintage pairs
+            year_pairs = itertools.product(time_horizon, years)
+            for year, vintage in year_pairs:
+                if (year - vintage) < lifetime:
+                    entries.append((place,
+                                    int(year),
+                                    tech.tech_name,
+                                    int(vintage),
+                                    tech.cost_fixed[place][year],
+                                    "",
+                                    ""))
+                else:
+                    pass
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    return table_command
+
+
+def create_capacity_factor_tech(connector, technology_list, seasons, hours):
+    table_command = """
+        CREATE TABLE "CapacityFactorTech" (
+        	"regions"	text,
+        	"season_name"	text,
+        	"time_of_day_name"	text,
+        	"tech"	text,
+        	"cf_tech"	real CHECK("cf_tech" >= 0 AND "cf_tech" <= 1),
+        	"cf_tech_notes"	text,
+        	PRIMARY KEY("regions","season_name","time_of_day_name","tech"),
+        	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
+        	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day"),
+        	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+        );
+        """
+
+    insert_command = """
+                     INSERT INTO "CapacityFactorTech" VALUES (?,?,?,?,?,?)
+                     """
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    for tech in technology_list:
+        time_slices = itertools.product(hours, seasons)
+        cft_dict = tech.capacity_factor_tech
+        # loops over each region where the commodity is defined
+        for place in cft_dict:
+            data = cft_dict[place]
+            if (isinstance(data, list)) or (isinstance(data, np.ndarray)):
+                print('data is list or np array')
+                pass
+            elif (isinstance(data, int)) or (isinstance(data, float)):
+                # for constant capacity factor, must be on the interval [0,1]
+                print('data is float or int')
+                data = np.ones(len(hours) * len(seasons)) * data
+            # breakpoint()
+            db_entry = [(place,
+                         ts[0][0],
+                         ts[1][0],
+                         tech.tech_name,
+                         float(d),
+                         '') for d,
+                        ts in zip(data, time_slices)]
+            # breakpoint()
+            cursor.executemany(insert_command, db_entry)
+
+    connector.commit()
+    return table_command
+
+
+def create_output_vcapacity(connector):
+    table_command = """CREATE TABLE "Output_V_Capacity" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"capacity"	real,
+                    	PRIMARY KEY("regions","scenario","tech","vintage"),
+                    	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_vflow_out(connector):
+    table_command = """CREATE TABLE "Output_VFlow_Out" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"t_periods"	integer,
+                    	"t_season"	text,
+                    	"t_day"	text,
+                    	"input_comm"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"output_comm"	text,
+                    	"vflow_out"	real,
+                    	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm"),
+                    	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+                    	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
+                    	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_vflow_in(connector):
+    table_command = """CREATE TABLE "Output_VFlow_In" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"t_periods"	integer,
+                    	"t_season"	text,
+                    	"t_day"	text,
+                    	"input_comm"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"output_comm"	text,
+                    	"vflow_in"	real,
+                    	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+                    	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
+                    	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_objective(connector):
+    table_command = """CREATE TABLE "Output_Objective" (
+                    	"scenario"	text,
+                    	"objective_name"	text,
+                    	"total_system_cost"	real
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_emissions(connector):
+    table_command = """CREATE TABLE "Output_Emissions" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"t_periods"	integer,
+                    	"emissions_comm"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"emissions"	real,
+                    	PRIMARY KEY("regions","scenario","t_periods","emissions_comm","tech","vintage"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("emissions_comm") REFERENCES "EmissionActivity"("emis_comm"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+                    	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_curtailment(connector):
+    table_command = """CREATE TABLE "Output_Curtailment" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"t_periods"	integer,
+                    	"t_season"	text,
+                    	"t_day"	text,
+                    	"input_comm"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"output_comm"	text,
+                    	"curtailment"	real,
+                    	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_costs(connector):
+    table_command = """CREATE TABLE "Output_Costs" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"output_name"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"output_cost"	real,
+                    	PRIMARY KEY("regions","scenario","output_name","tech","vintage"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_duals(connector):
+    table_command = """CREATE TABLE "Output_Duals" (
+                    	"constraint_name"	text,
+                    	"scenario"	text,
+                    	"dual"	real,
+                    	PRIMARY KEY("constraint_name","scenario")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_output_capacitybyperiodtech(connector):
+    table_command = """CREATE TABLE "Output_CapacityByPeriodAndTech" (
+                    	"regions"	text,
+                    	"scenario"	text,
+                    	"sector"	text,
+                    	"t_periods"	integer,
+                    	"tech"	text,
+                    	"capacity"	real,
+                    	PRIMARY KEY("regions","scenario","t_periods","tech"),
+                    	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+                    	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return table_command
+
+
+def create_reserve_margin(connector, prm):
+    """
+    This function writes the planning reserve margin table
+    in Temoa.
+
+    Parameters
+    ----------
+    connector : sqlite connector
+    prm : dictionary
+        A dictionary with regions as keys and reserve margins as values.
+    """
+    table_command = """CREATE TABLE "PlanningReserveMargin" (
+                    	`regions`	text,
+                    	`reserve_margin`	REAL,
+                    	PRIMARY KEY(regions),
+                    	FOREIGN KEY(`regions`) REFERENCES regions
+                    );"""
+    insert_command = """
+                     INSERT INTO "PlanningReserveMargin" VALUES (?,?)
+                     """
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    db_entry = [(place,
+                 margin
+                 ) for place, margin in zip(prm.keys(), prm.values())]
+
+    cursor.executemany(insert_command, db_entry)
+    connector.commit()
+    return
+
+
+def create_tech_reserve(connector, technology_list):
+    table_command = """CREATE TABLE "tech_reserve" (
+                    	"tech"	text,
+                    	"notes"	text,
+                    	PRIMARY KEY("tech")
+                    );"""
+    insert_command = """
+                     INSERT INTO "tech_reserve" VALUES (?,?)
+                     """
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    db_entry = [(tech.tech_name, '')
+                for tech in technology_list
+                if tech.reserve_tech]
+
+    # breakpoint()
+    cursor.executemany(insert_command, db_entry)
+    connector.commit()
+
+    return
+
+
+def create_global_discount(connector, gdr):
+    """
+    This function writes the global discount rate table.
+
+    Parameters
+    ----------
+    connector : sqlite connector
+    gdr : float
+        The global discount rate to be applied.
+    """
+    table_command = """CREATE TABLE "GlobalDiscountRate" (
+                    	"rate"	real
+                    );"""
+    insert_command = """INSERT INTO "GlobalDiscountRate" VALUES (?)"""
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    cursor.execute(insert_command, [gdr])
+    connector.commit()
+    return
+
+
+def create_tech_ramping(connector, technology_list):
+    """
+    This function writes three tables: ``tech_ramping``,
+    ``RampUp``, and ``RampDown``. Any technology that has
+    The ``ramping_tech`` parameter set to ``True`` should also
+    have values set for ``RampUp`` and ``RampDown``
+    """
+    table_command = """CREATE TABLE "tech_ramping" (
+                    	"tech"	text,
+                    	"notes"	text,
+                    	PRIMARY KEY("tech")
+                    );"""
+    insert_command = """
+                     INSERT INTO "tech_ramping" VALUES (?,?)
+                     """
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    ramping_techs = [tech for tech in technology_list if tech.ramping_tech]
+
+    db_entry = [(tech.tech_name, '')
+                for tech in ramping_techs]
+
+    cursor.executemany(insert_command, db_entry)
+    connector.commit()
+
+    table_command = """CREATE TABLE RampUp(
+                    	"regions" text,
+                    	"tech" text,
+                    	"ramp_up" real,
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	PRIMARY KEY ("regions", "tech")
+                    );"""
+    insert_command = """
+                     INSERT INTO "RampUp" VALUES (?,?,?)
+                     """
+    cursor.execute(table_command)
+
+    entries = []
+    for tech in ramping_techs:
+        db_entry = [(place,
+                     tech.tech_name,
+                     up_rate)
+                    for place, up_rate in zip(list(tech.ramp_up.keys()),
+                                              list(tech.ramp_up.values()))]
+        entries += db_entry
+
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    # RAMP DOWN
+    table_command = """CREATE TABLE RampDown(
+                     	"regions" text,
+                     	"tech" text,
+                     	"ramp_down" real,
+                     	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                     	PRIMARY KEY ("regions", "tech")
+                    );"""
+    insert_command = """
+                     INSERT INTO "RampDown" VALUES (?,?,?)
+                     """
+
+    cursor.execute(table_command)
+
+    entries = []
+    for tech in ramping_techs:
+        db_entry = [(place,
+                     tech.tech_name,
+                     up_rate)
+                    for place, up_rate in zip(list(tech.ramp_down.keys()),
+                                              list(tech.ramp_down.values()))]
+        entries += db_entry
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+    return
+
+
+def create_tech_storage(connector, technology_list):
+    """
+    This function writes the ``StorageDuration`` table.
+    """
+    cursor = connector.cursor()
+
+    storage_techs = [tech for tech in technology_list if tech.storage_tech]
+
+    table_command = """CREATE TABLE "StorageDuration" (
+                    	"regions"	text,
+                    	"tech"	text,
+                    	"duration"	real,
+                    	"duration_notes"	text,
+                    	PRIMARY KEY("regions","tech")
+                    );
+                    """
+    insert_command = """
+                     INSERT INTO "StorageDuration" VALUES (?,?,?,?)
+                     """
+    cursor.execute(table_command)
+
+    entries = []
+    for tech in storage_techs:
+        db_entry = [(place,
+                     tech.tech_name,
+                     storage,
+                     '')
+                    for place, storage in zip(list(tech.storage_duration.keys()),
+                                              list(tech.storage_duration.values()))]
+        entries += db_entry
+
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+    return
+
+
+def create_loan_lifetime(connector, technology_list):
+    """
+    This function writes the LifetimeLoanTech table in Temoa.
+    """
+    table_command = """CREATE TABLE "LifetimeLoanTech" (
+                    	"regions"	text,
+                    	"tech"	text,
+                    	"loan"	real,
+                    	"loan_notes"	text,
+                    	PRIMARY KEY("regions","tech"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+    insert_command = """INSERT INTO "LifetimeLoanTech" VALUES(?,?,?,?)"""
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    entries = []
+    for tech in technology_list:
+        db_entry = [(place,
+                     tech.tech_name,
+                     int(loan),
+                     '')
+                    for place, loan in zip(list(tech.loan_lifetime.keys()),
+                                           list(tech.loan_lifetime.values()))]
+        entries += db_entry
+
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+    return
+
+
+def create_capacity_to_activity(connector, technology_list):
+    """
+    This function writes the capacity to activity table in Temoa.
+    """
+    table_command = """CREATE TABLE "CapacityToActivity" (
+                    	"regions"	text,
+                    	"tech"	text,
+                    	"c2a"	real,
+                    	"c2a_notes"	TEXT,
+                    	PRIMARY KEY("regions","tech"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+    insert_command = """INSERT INTO "CapacityToActivity" VALUES (?,?,?,?)"""
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    entries = []
+    for tech in technology_list:
+        db_entry = [(place,
+                     tech.tech_name,
+                     tech.capacity_to_activity,
+                     '')
+                    for place in tech.regions]
+        entries += db_entry
+
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+    return
+
+
+def create_emissions_limit(connector, emissions_list):
+    """
+    This function writes the emissions limit table in Temoa.
+    """
+
+    table_command = """CREATE TABLE "EmissionLimit" (
+                    	"regions"	text,
+                    	"periods"	integer,
+                    	"emis_comm"	text,
+                    	"emis_limit"	real,
+                    	"emis_limit_units"	text,
+                    	"emis_limit_notes"	text,
+                    	PRIMARY KEY("periods","emis_comm"),
+                    	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("emis_comm") REFERENCES "commodities"("comm_name")
+                    );"""
+    insert_command = """INSERT INTO "EmissionLimit" VALUES (?,?,?,?,?,?)"""
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    entries = []
+    for emis in emissions_list:
+        for place in list(emis.emissions_limit.keys()):
+            limit_data = emis.emissions_limit[place]
+            db_entry = [(place,
+                         year,
+                         emis.comm_name,
+                         limit,
+                         emis.units,
+                         '') for year, limit in zip(list(limit_data.keys()),
+                                                    list(limit_data.values()))]
+            entries += db_entry
+
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    return
+
+
+def create_emissions_activity(connector, technology_list, time_horizon):
+    """
+    This function writes the emissions activity table in Temoa.
+    """
+
+    table_command = """CREATE TABLE "EmissionActivity" (
+                    	"regions"	text,
+                    	"emis_comm"	text,
+                    	"input_comm"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"output_comm"	text,
+                    	"emis_act"	real,
+                    	"emis_act_units"	text,
+                    	"emis_act_notes"	text,
+                    	PRIMARY KEY("regions","emis_comm","input_comm","tech","vintage","output_comm"),
+                    	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("emis_comm") REFERENCES "commodities"("comm_name")
+                    );"""
+    insert_command = """
+                     INSERT INTO "EmissionActivity" VALUES (?,?,?,?,?,?,?,?,?)
+                     """
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    entries = []
+    for tech in technology_list:
+        regions = list(tech.emissions.keys())
+        for place in regions:
+            emissions_list = list(tech.emissions[place].keys())
+            if len(tech.existing_capacity[place]) > 0:
+                years = list(tech.existing_capacity[place].keys()) + \
+                    list(time_horizon)
+                years = np.array(years)
+                # keep only those vintages that survive to the start of the
+                # simulation
+                years = years[(time_horizon[0] - years) <
+                              tech.tech_lifetime[place]]
+            else:
+                years = time_horizon
+            for emis in emissions_list:
+                db_entry = [(place,
+                             emis.comm_name,
+                             tech.input_comm[place].comm_name,
+                             tech.tech_name,
+                             int(vintage),
+                             tech.output_comm[place].comm_name,
+                             tech.emissions[place][emis],
+                             f"{emis.units}/{tech.output_comm[place].units}",
+                             '') for vintage in years]
+                entries += db_entry
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+    return
+
+
 """
-
-
-def create_():
-CREATE TABLE "tech_reserve" (
-	"tech"	text,
-	"notes"	text,
-	PRIMARY KEY("tech")
-);
-return
-
-
 def create_():
 CREATE TABLE "tech_exchange" (
 	"tech"	text,
@@ -666,172 +1614,6 @@ CREATE TABLE "StorageDuration" (
 return
 
 
-
-def create_():
-CREATE TABLE "PlanningReserveMargin" (
-	`regions`	text,
-	`reserve_margin`	REAL,
-	PRIMARY KEY(regions),
-	FOREIGN KEY(`regions`) REFERENCES regions
-);
-return
-
-def create_():
-CREATE TABLE "Output_V_Capacity" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"capacity"	real,
-	PRIMARY KEY("regions","scenario","tech","vintage"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
-);
-return
-
-def create_():
-CREATE TABLE "Output_VFlow_Out" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"t_season"	text,
-	"t_day"	text,
-	"input_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_comm"	text,
-	"vflow_out"	real,
-	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm"),
-	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name")
-);
-return
-
-def create_():
-CREATE TABLE "Output_VFlow_In" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"t_season"	text,
-	"t_day"	text,
-	"input_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_comm"	text,
-	"vflow_in"	real,
-	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
-
-def create_():
-CREATE TABLE "Output_Objective" (
-	"scenario"	text,
-	"objective_name"	text,
-	"total_system_cost"	real
-);
-return
-
-def create_():
-CREATE TABLE "Output_Emissions" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"emissions_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"emissions"	real,
-	PRIMARY KEY("regions","scenario","t_periods","emissions_comm","tech","vintage"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("emissions_comm") REFERENCES "EmissionActivity"("emis_comm"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods")
-);
-return
-
-def create_():
-CREATE TABLE "Output_Curtailment" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"t_season"	text,
-	"t_day"	text,
-	"input_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_comm"	text,
-	"curtailment"	real,
-	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day")
-);
-return
-
-def create_():
-CREATE TABLE "Output_Costs" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"output_name"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_cost"	real,
-	PRIMARY KEY("regions","scenario","output_name","tech","vintage"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
-
-def create_():
-CREATE TABLE "Output_Duals" (
-	"constraint_name"	text,
-	"scenario"	text,
-	"dual"	real,
-	PRIMARY KEY("constraint_name","scenario")
-);
-return
-
-def create_():
-CREATE TABLE "Output_CapacityByPeriodAndTech" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"tech"	text,
-	"capacity"	real,
-	PRIMARY KEY("regions","scenario","t_periods","tech"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
-
 def create_():
 CREATE TABLE "MyopicBaseyear" (
 	"year"	real
@@ -918,17 +1700,6 @@ CREATE TABLE "MaxActivity" (
 return
 
 def create_():
-CREATE TABLE "LifetimeTech" (
-	"regions"	text,
-	"tech"	text,
-	"life"	real,
-	"life_notes"	text,
-	PRIMARY KEY("regions","tech"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
-
-def create_():
 CREATE TABLE "LifetimeProcess" (
 	"regions"	text,
 	"tech"	text,
@@ -941,16 +1712,6 @@ CREATE TABLE "LifetimeProcess" (
 );
 return
 
-def create_():
-CREATE TABLE "LifetimeLoanTech" (
-	"regions"	text,
-	"tech"	text,
-	"loan"	real,
-	"loan_notes"	text,
-	PRIMARY KEY("regions","tech"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
 
 def create_():
 CREATE TABLE "GrowthRateSeed" (
@@ -975,76 +1736,6 @@ CREATE TABLE "GrowthRateMax" (
 );
 return
 
-def create_():
-CREATE TABLE "GlobalDiscountRate" (
-	"rate"	real
-);
-return
-
-def create_():
-CREATE TABLE "ExistingCapacity" (
-	"regions"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"exist_cap"	real,
-	"exist_cap_units"	text,
-	"exist_cap_notes"	text,
-	PRIMARY KEY("regions","tech","vintage"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
-);
-return
-
-def create_():
-CREATE TABLE "EmissionLimit" (
-	"regions"	text,
-	"periods"	integer,
-	"emis_comm"	text,
-	"emis_limit"	real,
-	"emis_limit_units"	text,
-	"emis_limit_notes"	text,
-	PRIMARY KEY("periods","emis_comm"),
-	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("emis_comm") REFERENCES "commodities"("comm_name")
-);
-return
-
-def create_():
-CREATE TABLE "EmissionActivity" (
-	"regions"	text,
-	"emis_comm"	text,
-	"input_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_comm"	text,
-	"emis_act"	real,
-	"emis_act_units"	text,
-	"emis_act_notes"	text,
-	PRIMARY KEY("regions","emis_comm","input_comm","tech","vintage","output_comm"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("emis_comm") REFERENCES "commodities"("comm_name")
-);
-return
-
-def create_():
-CREATE TABLE "Efficiency" (
-	"regions"	text,
-	"input_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_comm"	text,
-	"efficiency"	real CHECK("efficiency" > 0),
-	"eff_notes"	text,
-	PRIMARY KEY("regions","input_comm","tech","vintage","output_comm"),
-	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name")
-);
-return
 
 def create_():
 CREATE TABLE "DiscountRate" (
@@ -1059,80 +1750,6 @@ CREATE TABLE "DiscountRate" (
 );
 return
 
-
-
-
-def create_():
-CREATE TABLE "CostVariable" (
-	"regions"	text NOT NULL,
-	"periods"	integer NOT NULL,
-	"tech"	text NOT NULL,
-	"vintage"	integer NOT NULL,
-	"cost_variable"	real,
-	"cost_variable_units"	text,
-	"cost_variable_notes"	text,
-	PRIMARY KEY("regions","periods","tech","vintage"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
-);
-return
-
-def create_():
-CREATE TABLE "CostInvest" (
-	"regions"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"cost_invest"	real,
-	"cost_invest_units"	text,
-	"cost_invest_notes"	text,
-	PRIMARY KEY("regions","tech","vintage"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
-);
-return
-
-def create_():
-CREATE TABLE "CostFixed" (
-	"regions"	text NOT NULL,
-	"periods"	integer NOT NULL,
-	"tech"	text NOT NULL,
-	"vintage"	integer NOT NULL,
-	"cost_fixed"	real,
-	"cost_fixed_units"	text,
-	"cost_fixed_notes"	text,
-	PRIMARY KEY("regions","periods","tech","vintage"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
-);
-return
-
-def create_():
-CREATE TABLE "CapacityToActivity" (
-	"regions"	text,
-	"tech"	text,
-	"c2a"	real,
-	"c2a_notes"	TEXT,
-	PRIMARY KEY("regions","tech"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
-
-def create_():
-CREATE TABLE "CapacityFactorTech" (
-	"regions"	text,
-	"season_name"	text,
-	"time_of_day_name"	text,
-	"tech"	text,
-	"cf_tech"	real CHECK("cf_tech" >= 0 AND "cf_tech" <= 1),
-	"cf_tech_notes"	text,
-	PRIMARY KEY("regions","season_name","time_of_day_name","tech"),
-	FOREIGN KEY("season_name") REFERENCES "time_season"("t_season"),
-	FOREIGN KEY("time_of_day_name") REFERENCES "time_of_day"("t_day"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
 
 def create_():
 CREATE TABLE "CapacityFactorProcess" (

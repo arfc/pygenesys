@@ -8,12 +8,11 @@ from pygenesys.technology.technology import Technology
 from pygenesys.commodity.resource import ethos, natural_gas
 
 imp_natgas = Technology(tech_name='IMP_NATGAS',
-                        input_comm=ethos,
-                        output_comm=natural_gas,
                         units="MMBTU/hr",
                         tech_sector='supply',
-                        tech_lifetime=1000,
-                        loan_lifetime=None,
+                        description='natural gas pipeline',
+                        category='natural gas',
+                        capacity_to_activity=8760,
                         )
 
 
