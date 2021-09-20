@@ -130,7 +130,7 @@ def get_existing_capacity(df, region, technology):
     Parameters
     ----------
     df : pandas dataframe
-        The dataframe for eia form 860m
+        The dataframe for EIA form 860M
     region : string
         The region of interest. Region may be state or county. The state must
         be given as an abbreviation a county must be provided as a full name.

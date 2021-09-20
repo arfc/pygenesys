@@ -1,6 +1,6 @@
 """
 This file contains information for pre-made electricity production
-technologies.These technologies generate electricity as the primary energy
+technologies. These technologies generate electricity as the primary energy
 carrier.
 
 Possible confusion:
