@@ -1,6 +1,6 @@
 """
 This file contains information for pre-made energy storage technologies.
-These technologies store energy carrying commodities. For example a "batery"
+These technologies store energy carrying commodities. For example a "battery"
 would store and "produce" electricity.
 """
 

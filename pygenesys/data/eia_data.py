@@ -35,7 +35,7 @@ def get_date():
 def get_eia_generators(month=None, year=None):
     """
     This function returns a pandas dataframe containing information on
-    all electric generators in the United States. EIA form 860m
+    all electric generators in the United States. EIA form 860M
 
     Parameters
     ----------
@@ -47,7 +47,7 @@ def get_eia_generators(month=None, year=None):
     Returns
     -------
     df : pandas dataframe
-        Holds the data from EIA form 860m
+        Holds the data from EIA form 860M
     """
     columns = [
         'Entity ID',
@@ -130,7 +130,7 @@ def get_existing_capacity(df, region, technology):
     Parameters
     ----------
     df : pandas dataframe
-        The dataframe for eia form 860m
+        The dataframe for EIA form 860M
     region : string
         The region of interest. Region may be state or county. The state must
         be given as an abbreviation a county must be provided as a full name.
