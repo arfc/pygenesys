@@ -153,7 +153,9 @@ ABBOTT.add_regional_data(region='UIUC',
                          tech_lifetime=40,
                          loan_lifetime=25,
                          capacity_factor_tech=0.57,
-                         emissions={co2eq:5.7e-4})
+                         emissions={co2eq:5.7e-4},
+                         ramp_up=0.7,
+                         ramp_down=0.7,)
 NUCLEAR_THM.add_regional_data(region='UIUC',
                               input_comm=ethos,
                               output_comm=nuclear_steam,
@@ -161,7 +163,10 @@ NUCLEAR_THM.add_regional_data(region='UIUC',
                               tech_lifetime=60,
                               loan_lifetime=25,
                               capacity_factor_tech=0.93,
-                              emissions={co2eq:1.2e-5})
+                              emissions={co2eq:1.2e-5},
+                              ramp_up=0.25,
+                              ramp_down=0.25,
+                              )
 
 from pygenesys.data.library import cws_data, tes_data
 cws_cf = method(cws_data, N_seasons, N_hours, kind='cf')
@@ -175,6 +180,18 @@ CWS.add_regional_data(region='UIUC',
                       loan_lifetime=20,
                       capacity_factor_tech=cws_cf,
                       )
+
+# Import storage technology
+from pygenesys.technology.storage import CW_STORAGE
+CW_STORAGE.add_regional_data(region='UIUC',
+                             input_comm=chilled_water,
+                             output_comm=chilled_water,
+                             efficiency=0.82,
+                             capacity_factor_tech=0.5,
+                             tech_lifetime=100,
+                             loan_lifetime=10,
+                             )
+
 
 
 demands_list = [ELC_DEMAND, STM_DEMAND, CW_DEMAND]
@@ -190,6 +207,9 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     plt.style.use('ggplot')
 
+    print(SOLAR_FARM.capacity_factor_tech['UIUC'])
+    print(CWS.capacity_factor_tech['UIUC'])
+
     # plt.plot(ELC_DEMAND.demand['UIUC'], label='exponential')
     # plt.ylim(0,520)
     # plt.legend()
@@ -198,4 +218,5 @@ if __name__ == "__main__":
     # plt.plot(STM_DEMAND.distribution['UIUC'])
     # plt.plot(ELC_DEMAND.distribution['UIUC'])
     # plt.plot(CW_DEMAND.distribution['UIUC'])
+    # plt.plot(CW_STORAGE.capacity_factor_tech['UIUC'][0])
     # plt.show()
