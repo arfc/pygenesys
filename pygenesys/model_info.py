@@ -139,8 +139,11 @@ class ModelInfo(object):
         years = []
         for tech in self.technologies:
             for place in tech.regions:
-                ex_years = list(tech.existing_capacity[place].keys())
-                years += ex_years
+                try:
+                    ex_years = list(tech.existing_capacity[place].keys())
+                    years += ex_years
+                except:
+                    pass
 
         return np.unique(years)
 
@@ -150,7 +153,7 @@ class ModelInfo(object):
         """
 
         conn = establish_connection(self.output_db)
-
+        conn.execute("PRAGMA foreign_keys = 1")
         # create fundamental tables
         seasons = create_time_season(conn, self.N_seasons)
         create_time_period_labels(conn)

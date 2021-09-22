@@ -2,6 +2,9 @@
 import itertools
 import sqlite3
 import numpy as np
+from pygenesys.commodity.commodity import *
+
+comm_types = np.array([EmissionsCommodity, Commodity, DemandCommodity])
 
 
 def establish_connection(output_db):
@@ -602,54 +605,56 @@ def create_efficiency(connector, technology_list, future):
     for tech in technology_list:
         # loop through regions
         for place in tech.regions:
+
+            lifetime = tech.tech_lifetime[place]
+            in_comm = tech.input_comm[place]
+            out_comm = tech.output_comm[place]
+
             # check for existing capacity
-            # if len(tech.existing_capacity[place])>0:
             try:
-                existing_years = tech.existing_capacity[place].keys()
+                years = list(tech.existing_capacity[place].keys()) + list(future)
+                years = [y for y in years if (future[0] - y) < lifetime]
+            except:
+                years = future
+
+            # one input and one output
+            if (type(in_comm) in comm_types) and (type(out_comm) in comm_types):
                 data = [(place,
-                         str(tech.input_comm[place].comm_name),
+                         str(in_comm.comm_name),
                          str(tech.tech_name),
                          int(year),
-                         str(tech.output_comm[place].comm_name),
+                         str(out_comm.comm_name),
                          tech.efficiency[place],
                          'NULL'
-                         ) for year in existing_years]
+                         ) for year in years]
                 entries += data
-            except BaseException:
-                pass
-            # write future years
 
-            # if the technology only has one input and one output
-            data = [(place,
-                     str(tech.input_comm[place].comm_name),
-                     str(tech.tech_name),
-                     int(year),
-                     str(tech.output_comm[place].comm_name),
-                     tech.efficiency[place],
-                     'NULL'
-                     ) for year in future]
+            # if the technology has two or more inputs and one output
+            # and the two inputs have the SAME efficiency.
+            elif (type(in_comm) is list) and (type(out_comm) in comm_types):
+                for comm in in_comm:
+                    data = [(place,
+                             str(comm.comm_name),
+                             str(tech.tech_name),
+                             int(year),
+                             str(out_comm.comm_name),
+                             tech.efficiency[place],
+                             'NULL'
+                             ) for year in years]
+                    entries += data
+            # elif (isinstance(tech.output_comm[place], dict)):
+            #     pass
+            # elif (isinstance(tech.input_comm[place], list)):
+            #     pass
+            # # if the technology has two or more inputs
+            # elif (isinstance(tech.input_comm[place], dict)):
+            #     pass
+            #
+            # # if the technology has two or more inputs and outputs
+            # elif ((isinstance(tech.input_comm[place], 'list')) and
+            #       (isinstance(tech.output_comm[place], 'list'))):
+            #     pass
 
-            entries += data
-
-            # if the technology has one input and one output -- default
-            if True:
-                pass
-            # if the technology has two or more outputs
-            elif (isinstance(tech.output_comm[place], 'list')):
-                pass
-
-            # if the technology has two or more inputs
-            elif (isinstance(tech.input_comm[place], 'list')):
-                pass
-
-            # if the technology has two or more inputs and outputs
-            elif ((isinstance(tech.input_comm[place], 'list')) and
-                  (isinstance(tech.output_comm[place], 'list'))):
-                pass
-
-    print(future)
-    # for entry in entries:
-    #     print(entry)
     cursor = connector.cursor()
     cursor.execute(table_command)
     cursor.executemany(insert_command, entries)
@@ -684,7 +689,10 @@ def create_existing_capacity(connector, technology_list, time_horizon):
         first_year = time_horizon[0]
         for place in tech.regions:
             lifetime = tech.tech_lifetime[place]
-            years = np.array(list(tech.existing_capacity[place].keys()))
+            try:
+                years = np.array(list(tech.existing_capacity[place].keys()))
+            except:
+                continue
             # only keep the vintages that will exist in the first sim year
             years = years[(first_year - years) < lifetime]
             # caps = list(tech.existing_capacity[place].values())
@@ -785,10 +793,10 @@ def create_variable_cost(connector, technology_list, time_horizon):
         for place in tech.regions:
             lifetime = float(tech.tech_lifetime[place])
             # if there are existing vintages of the technology
-            if len(tech.existing_capacity[place]) > 0:
+            try:
                 years = list(tech.existing_capacity[place].keys()) + \
                     list(time_horizon)
-            else:
+            except:
                 years = time_horizon
             # generate future/vintage pairs
             year_pairs = itertools.product(time_horizon, years)
@@ -899,10 +907,10 @@ def create_fixed_cost(connector, technology_list, time_horizon):
         for place in tech.regions:
             lifetime = float(tech.tech_lifetime[place])
             # if there are existing vintages of the technology
-            if len(tech.existing_capacity[place]) > 0:
+            try:
                 years = list(tech.existing_capacity[place].keys()) + \
                     list(time_horizon)
-            else:
+            except:
                 years = time_horizon
             # generate future/vintage pairs
             year_pairs = itertools.product(time_horizon, years)
@@ -954,12 +962,11 @@ def create_capacity_factor_tech(connector, technology_list, seasons, hours):
         for place in cft_dict:
             data = cft_dict[place]
             if (isinstance(data, list)) or (isinstance(data, np.ndarray)):
-                print('data is list or np array')
-                pass
+                data = data.flatten()
             elif (isinstance(data, int)) or (isinstance(data, float)):
                 # for constant capacity factor, must be on the interval [0,1]
-                print('data is float or int')
                 data = np.ones(len(hours) * len(seasons)) * data
+            print(tech.tech_name)
             # breakpoint()
             db_entry = [(place,
                          ts[0][0],
@@ -1495,7 +1502,7 @@ def create_emissions_activity(connector, technology_list, time_horizon):
         regions = list(tech.emissions.keys())
         for place in regions:
             emissions_list = list(tech.emissions[place].keys())
-            if len(tech.existing_capacity[place]) > 0:
+            try:
                 years = list(tech.existing_capacity[place].keys()) + \
                     list(time_horizon)
                 years = np.array(years)
@@ -1503,7 +1510,7 @@ def create_emissions_activity(connector, technology_list, time_horizon):
                 # simulation
                 years = years[(time_horizon[0] - years) <
                               tech.tech_lifetime[place]]
-            else:
+            except:
                 years = time_horizon
             for emis in emissions_list:
                 db_entry = [(place,

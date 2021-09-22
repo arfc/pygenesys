@@ -72,10 +72,9 @@ def collect_technologies(module_name):
         except BaseException:
             string_attr = ''
 
-        if 'Technology' in string_attr:
-            print(f"{member} is Technology")
+        # if 'Technology' in string_attr:
+        if isinstance(attrib, Technology):
             technologies.append(getattr(module_name, member))
-            print(f"using isinstance: {isinstance(attrib, Technology)}")
 
     return technologies
 
@@ -83,48 +82,98 @@ def collect_technologies(module_name):
 def _collect_commodities(technology_list):
     """
     Collects the unique commodities from the PyGenesys input file.
+    Each list of commodities (demand, resource, emission) should be
+    a unique set. Numpy.unique cannot compare objects, so an empty
+    dictionary is initialized and populated with Commodity names
+    for keys and Commodity objects for values. Therefore only unique
+    commodities will be returned.
+
+    NOTE: This function fails to collect all commodities. Commodities must
+    be explicitly listed in the input file for now!
+
+
+    This function should be extended to account for cases where
+    the input and output commodities are lists (i.e. when there's
+    a ``techinputsplit``).
     """
 
     demand = {}
     resource = {}
-    emission = {}
+    emission_dict = {}
 
     for tech in technology_list:
         for region in tech.regions:
+            print(f'REGION: {region}')
             input_comm = tech.input_comm[region]
             output_comm = tech.output_comm[region]
-            emissions = tech.emissions[region]
 
+            print(f'Commodity types for {tech.tech_name}')
+            print(f"{type(input_comm)}")
+            print(f"{type(output_comm)}")
             # check the input commodity type
             if isinstance(input_comm, Commodity):
                 # resource
-                pass
-            elif isinstance(input_comm, DemandCommodity):
-                print(f"Warning: Input commodity of {tech.tech_name}" \
-                      f"is a Demand Commodity.")
-                # demand
-                pass
-            elif isinstance(input_comm, EmissionCommodity):
-                # emission
-                print(f"Warning: Input commodity of {tech.tech_name}" \
-                      f"is an Emission Commodity.")
-                pass
+                if input_comm.comm_name not in resource:
+                    resource[input_comm.comm_name] = input_comm
+                    continue
+                else:
+                    continue
+            elif isinstance(input_comm, list):
+                for comm in input_comm:
+                    if (isinstance(comm, Commodity)) and \
+                       (comm.comm_name not in resource):
+                       resource[comm.comm_name] = comm
+                    else:
+                       continue
+            else:
+                print(f'Input commodity for {tech.tech_name} in {region} ' \
+                       'is not a resource. Check input file.')
 
-            if isinstance(output_comm, Commodity):
-                # resource
-                pass
-            elif isinstance(output_comm, DemandCommodity):
+            if isinstance(output_comm, DemandCommodity):
                 # demand
-                pass
-            elif isinstance(output_comm, EmissionCommodity):
+                demand[output_comm.comm_name] = output_comm
+                # if output_comm.comm_name not in demand:
+                #     demand[output_comm.comm_name] = output_comm
+                #     continue
+                # else:
+                #     continue
+            elif isinstance(output_comm, Commodity):
+                # resource
+                if output_comm.comm_name not in resource:
+                    resource[output_comm.comm_name] = output_comm
+                    continue
+                else:
+                    continue
+
+            elif isinstance(output_comm, EmissionsCommodity):
                 # emission
                 print(f"Warning: Output commodity of {tech.tech_name}" \
-                      f"is an Emission Commodity. Skipped.")
+                      f"is an Emission Commodity. Check input file.")
+                continue
+            try:
+                emissions = tech.emissions[region]
+                print(f"{type(emissions)}")
+
+                # loop through emissions commodities
+                for emis in list(emissions.keys()):
+                    if (isinstance(emis, EmissionsCommodity)) and \
+                       (emis.comm_name not in emission_dict):
+                       emission_dict[emis.comm_name] = emis
+                    else:
+                       continue
+            except:
                 pass
 
+    resources = list(resource.values())
+    demands = list(demand.values())
+    emissions_list = list(emission_dict.values())
 
+    if len(demands) == 0:
+        print('Warning: Input file has no technologies that satisfy demands.')
+        print('No demands written to database. Consider adding a transmission' \
+              'technology.')
 
-    return commodities
+    return resources, demands, emissions_list
 
 
 def main():
@@ -144,6 +193,11 @@ def main():
 
     # get infile technologies
     technology_list = collect_technologies(infile)
+    # resources, demands, emissions = _collect_commodities(technology_list)
+    #
+    # print(f'resources: {[comm.comm_name for comm in resources]}')
+    # print(f'demands: {[comm.comm_name for comm in demands]}')
+    # print(f'emissions: {[comm.comm_name for comm in emissions]}')
 
     # create the model object
     model = model_info.ModelInfo(output_db=out_path,
@@ -166,7 +220,7 @@ def main():
     # print(f"{technology_list}")
     # print('=========================\n')
 
-    print(f"The years simulated by the model are \n {model.time_horizon} \n")
+    # print(f"The years simulated by the model are \n {model.time_horizon} \n")
 
     # Should check if the model is to be written to a sql or sqlite database
     model._write_sqlite_database()
