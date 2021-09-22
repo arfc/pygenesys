@@ -15,6 +15,14 @@ steam = Commodity(comm_name='STM',
                   units='GWh(th)',
                   description='Steam')
 
+nuclear_steam = Commodity(comm_name='NUC_STM',
+                          units='GWh(th)',
+                          description='Steam')
+
+chilled_water = Commodity(comm_name='CHW',
+                          units='million ton-hours',
+                          description='Chilled Water')
+
 natural_gas = Commodity(comm_name='NATGAS',
                         units='MMBTU',
                         description='natural gas')

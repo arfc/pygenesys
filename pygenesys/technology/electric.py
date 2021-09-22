@@ -18,8 +18,7 @@ NUCLEAR_ELC = Technology(tech_name='NUCLEAR_ELC',
                          description='nuclear power plant',
                          category='uranium',
                          capacity_to_activity=8.76,
-                         reserve_tech=True,
-                         ramping_tech=True,)
+                         )
 
 NUCLEAR_TB = Technology(tech_name='NUCLEAR_TB',
                          units="MWe",
@@ -37,9 +36,7 @@ ABBOTT_TB = Technology(tech_name='ABBOTT_TB',
                        tech_label='p',
                        description='abbott steam turbine, UIUC',
                        category='electric',
-                       capacity_to_activity=8.76,
-                       reserve_tech=True,
-                       ramping_tech=True,)
+                       capacity_to_activity=8.76,)
 
 
 SOLAR_FARM = Technology(tech_name='SOLAR_FARM',
