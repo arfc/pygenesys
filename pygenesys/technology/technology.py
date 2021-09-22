@@ -150,7 +150,7 @@ class Technology(object):
             else:
                 self.regions.append(region)
             for kw in kwargs:
-                print(kw, kwargs[kw])
+                # print(kw, kwargs[kw])
                 attribute = attr_dict[kw]
                 attribute[region] = kwargs[kw]
 
@@ -158,14 +158,14 @@ class Technology(object):
             self.regions += region
             self.regions = list(np.unique(self.regions))
             for kw in kwargs:
-                print(kw, kwargs[kw])
+                # print(kw, kwargs[kw])
                 attribute = attr_dict[kw]
                 for pl in region:
                     attribute[pl] = kwargs[kw]
 
-        print(self.input_comm)
-        print(self.output_comm)
-        print(self.efficiency)
+        # print(self.input_comm)
+        # print(self.output_comm)
+        # print(self.efficiency)
         return
 
 
