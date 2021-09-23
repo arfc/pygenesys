@@ -756,7 +756,15 @@ def create_lifetime_tech(connector, technology_list):
 
 def create_variable_cost(connector, technology_list, time_horizon):
     """
-    This function writes the variable cost table in Temoa.
+    This function writes the variable cost table in Temoa. The
+    ``cost_variable`` parameter in ``Technology`` can be either a constant
+    or a dictionary. If the parameter is constant, then the cost will
+    be applied to all vintages for all years. If the parameter is a dictionary
+    then the cost for each *year* will be applied to all vintages in that year.
+    Thus a dictionary should have keys for each *year* in the simulation.
+    Existing capacity will not be differentiated.
+    For example, a nuclear power plant built in 1988 will have the same variable
+    cost in 2020 as a nuclear plant built in 2015 and 2020.
 
     Parameters
     ----------
@@ -789,28 +797,47 @@ def create_variable_cost(connector, technology_list, time_horizon):
             pass
         else:
             continue
+
         # loop through regions
         for place in tech.regions:
+            # check if particular region has cost_data
+            try:
+                cost_variable = tech.cost_variable[place]
+                # print(f'Success. Cost variable is {cost_variable}')
+            except:
+                continue
             lifetime = float(tech.tech_lifetime[place])
             # if there are existing vintages of the technology
             try:
                 years = list(tech.existing_capacity[place].keys()) + \
-                    list(time_horizon)
+                        list(time_horizon)
+                years = [y for y in years if (time_horizon[0]-y) < lifetime]
             except:
                 years = time_horizon
             # generate future/vintage pairs
             year_pairs = itertools.product(time_horizon, years)
-            for year, vintage in year_pairs:
-                if (year - vintage) < lifetime:
-                    entries.append((place,
-                                    int(year),
-                                    tech.tech_name,
-                                    int(vintage),
-                                    tech.cost_variable[place][year],
-                                    "",
-                                    ""))
-                else:
-                    pass
+            if type(cost_variable) == dict:
+                db_entry = [(place,
+                             int(year),
+                             tech.tech_name,
+                             int(vintage),
+                             cost_variable[year],
+                             "",
+                             "") for year, vintage in year_pairs
+                             if (year-vintage) < lifetime
+                             and (year-vintage) >= 0]
+                entries += db_entry
+            elif (type(cost_variable) == float) or (type(cost_variable) == int):
+                db_entry = [(place,
+                             int(year),
+                             tech.tech_name,
+                             int(vintage),
+                             cost_variable,
+                             "",
+                             "") for year, vintage in year_pairs
+                             if (year-vintage) < lifetime
+                             and (year-vintage) >= 0]
+                entries += db_entry
     cursor = connector.cursor()
     cursor.execute(table_command)
     cursor.executemany(insert_command, entries)
@@ -853,13 +880,27 @@ def create_invest_cost(connector, technology_list, time_horizon):
         else:
             continue
         for place in tech.regions:
-            data = [(place,
-                     tech.tech_name,
-                     int(year),
-                     tech.cost_invest[place],
-                     "",
-                     "") for year in time_horizon]
-            entries += data
+            try:
+                cost_invest = tech.cost_invest[place]
+            except:
+                continue
+            if type(cost_invest) == dict:
+                data = [(place,
+                         tech.tech_name,
+                         int(year),
+                         cost_invest[year],
+                         "",
+                         "") for year in time_horizon]
+                entries += db_entry
+            elif (type(cost_invest) == float) or (type(cost_invest) == int):
+                data = [(place,
+                         tech.tech_name,
+                         int(year),
+                         cost_invest,
+                         "",
+                         "") for year in time_horizon]
+                entries += data
+
 
     cursor = connector.cursor()
     cursor.execute(table_command)
@@ -871,8 +912,15 @@ def create_invest_cost(connector, technology_list, time_horizon):
 
 def create_fixed_cost(connector, technology_list, time_horizon):
     """
-    This function writes the fixed cost table in Temoa.
-
+    This function writes the fixed cost table in Temoa. The
+    ``cost_fixed`` parameter in ``Technology`` can be either a constant
+    or a dictionary. If the parameter is constant, then the cost will
+    be applied to all vintages for all years. If the parameter is a dictionary
+    then the cost for each *year* will be applied to all vintages in that year.
+    Thus a dictionary should have keys for each *year* in the simulation.
+    Existing capacity will not be differentiated.
+    For example, a nuclear power plant built in 1988 will have the same variable
+    cost in 2020 as a nuclear plant built in 2015 and 2020.
     Parameters
     ----------
     connector : sqlite connector
@@ -899,32 +947,51 @@ def create_fixed_cost(connector, technology_list, time_horizon):
                      """
     entries = []
     for tech in technology_list:
+        # check that cost exists
         if len(tech.cost_fixed) > 0:
             pass
         else:
             continue
+
         # loop through regions
         for place in tech.regions:
+            # check if particular region has cost_data
+            try:
+                cost_fixed = tech.cost_fixed[place]
+            except:
+                continue
             lifetime = float(tech.tech_lifetime[place])
             # if there are existing vintages of the technology
             try:
                 years = list(tech.existing_capacity[place].keys()) + \
-                    list(time_horizon)
+                        list(time_horizon)
+                years = [y for y in years if (time_horizon[0]-y) < lifetime]
             except:
                 years = time_horizon
             # generate future/vintage pairs
             year_pairs = itertools.product(time_horizon, years)
-            for year, vintage in year_pairs:
-                if (year - vintage) < lifetime:
-                    entries.append((place,
-                                    int(year),
-                                    tech.tech_name,
-                                    int(vintage),
-                                    tech.cost_fixed[place][year],
-                                    "",
-                                    ""))
-                else:
-                    pass
+            if type(cost_fixed) == dict:
+                db_entry = [(place,
+                             int(year),
+                             tech.tech_name,
+                             int(vintage),
+                             cost_fixed[year],
+                             "",
+                             "") for year, vintage in year_pairs
+                             if (year-vintage) < lifetime
+                             and (year-vintage) >= 0]
+                entries += db_entry
+            elif (type(cost_fixed) == float) or (type(cost_fixed) == int):
+                db_entry = [(place,
+                             int(year),
+                             tech.tech_name,
+                             int(vintage),
+                             cost_fixed,
+                             "",
+                             "") for year, vintage in year_pairs
+                             if (year-vintage) < lifetime
+                             and (year-vintage) >= 0]
+                entries += db_entry
     cursor = connector.cursor()
     cursor.execute(table_command)
     cursor.executemany(insert_command, entries)
@@ -966,7 +1033,7 @@ def create_capacity_factor_tech(connector, technology_list, seasons, hours):
             elif (isinstance(data, int)) or (isinstance(data, float)):
                 # for constant capacity factor, must be on the interval [0,1]
                 data = np.ones(len(hours) * len(seasons)) * data
-            print(tech.tech_name)
+            # print(tech.tech_name)
             # breakpoint()
             db_entry = [(place,
                          ts[0][0],

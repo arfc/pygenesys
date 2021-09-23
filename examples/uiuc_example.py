@@ -106,6 +106,23 @@ method = choose_distribution_method(N_seasons, N_hours)
 solar_cf = method(solarfarm_data, N_seasons, N_hours, kind='cf')
 wind_cf = method(railsplitter_data, N_seasons, N_hours, kind='cf')
 
+
+import numpy as np
+# nuclear cost in M$/MW
+years = np.linspace(start_year, end_year, N_years).astype('int')
+
+nuclear_invest = 5.905853
+nuclear_fixed = 121.09221
+nuclear_variable = 0.009158
+nuclear_invest_annual = {}
+nuclear_fixed_annual = {}
+nuclear_variable_annual = {}
+
+for year in years:
+    nuclear_invest_annual[year] = nuclear_invest
+    nuclear_fixed_annual[year] = nuclear_fixed
+    nuclear_variable_annual[year] = nuclear_variable*(year%2+1)
+
 # Add regional data
 SOLAR_FARM.add_regional_data(region='UIUC',
                              input_comm=ethos,
@@ -115,7 +132,11 @@ SOLAR_FARM.add_regional_data(region='UIUC',
                              loan_lifetime=10,
                              capacity_factor_tech=solar_cf,
                              existing={2016:4.86},
-                             emissions={co2eq:4.8e-5})
+                             emissions={co2eq:4.8e-5},
+                             cost_fixed=72.51032,
+                             cost_invest=0.30502
+                             )
+
 WIND_FARM.add_regional_data(region='UIUC',
                             input_comm=ethos,
                             output_comm=electricity,
@@ -124,12 +145,17 @@ WIND_FARM.add_regional_data(region='UIUC',
                             loan_lifetime=10,
                             capacity_factor_tech=wind_cf,
                             existing={2016:8.7},
-                            emissions={co2eq:1.1e-5})
+                            emissions={co2eq:1.1e-5},
+                            cost_fixed=11.38972,
+                            cost_invest=0.001,
+                            )
 IMP_ELC.add_regional_data(region='UIUC',
                           input_comm=ethos,
                           output_comm=electricity,
                           efficiency=1.0,
                           tech_lifetime=1000,
+                          cost_variable=0.1161,
+                          cost_invest=0.489583
                           )
 NUCLEAR_TB.add_regional_data(region='UIUC',
                              input_comm=nuclear_steam,
@@ -155,7 +181,11 @@ ABBOTT.add_regional_data(region='UIUC',
                          capacity_factor_tech=0.57,
                          emissions={co2eq:5.7e-4},
                          ramp_up=0.7,
-                         ramp_down=0.7,)
+                         ramp_down=0.7,
+                         cost_fixed=79.878,
+                         cost_invest=0.613493,
+                         cost_variable=0.023009
+                         )
 NUCLEAR_THM.add_regional_data(region='UIUC',
                               input_comm=ethos,
                               output_comm=nuclear_steam,
@@ -166,6 +196,9 @@ NUCLEAR_THM.add_regional_data(region='UIUC',
                               emissions={co2eq:1.2e-5},
                               ramp_up=0.25,
                               ramp_down=0.25,
+                              cost_invest=5.905853,
+                              cost_fixed=121.09221,
+                              cost_variable=0.009158,
                               )
 
 from pygenesys.data.library import cws_data, tes_data
@@ -179,7 +212,11 @@ CWS.add_regional_data(region='UIUC',
                       tech_lifetime=40,
                       loan_lifetime=20,
                       capacity_factor_tech=cws_cf,
-                      )
+                      ramp_up=0.1978,
+                      ramp_down=0.1978,
+                      cost_variable=7.635,
+                      cost_fixed=0.40641,
+                      cost_invest=0.0018942)
 
 # Import storage technology
 from pygenesys.technology.storage import CW_STORAGE
@@ -190,6 +227,9 @@ CW_STORAGE.add_regional_data(region='UIUC',
                              capacity_factor_tech=0.5,
                              tech_lifetime=100,
                              loan_lifetime=10,
+                             ramp_up=0.5830,
+                             ramp_down=0.5830,
+                             cost_invest=0.0017856,
                              )
 
 

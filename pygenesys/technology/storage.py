@@ -21,4 +21,5 @@ CW_STORAGE = Technology(tech_name='CW_STORAGE',
                         tech_label='ps',
                         description='chilled water storage tanks',
                         capacity_to_activity=0.00876,
-                        storage_tech=True)
+                        storage_tech=True,
+                        ramping_tech=True)

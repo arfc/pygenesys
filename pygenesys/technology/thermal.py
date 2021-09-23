@@ -40,5 +40,4 @@ CWS = Technology(tech_name='CWS',
                     description='electric water chillers',
                     category='natural gas',
                     capacity_to_activity=0.00876,
-                    reserve_tech=True,
                     ramping_tech=True,)

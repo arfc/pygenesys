@@ -26,9 +26,7 @@ NUCLEAR_TB = Technology(tech_name='NUCLEAR_TB',
                          tech_label='p',
                          description='nuclear steam turbine',
                          category='electric',
-                         capacity_to_activity=8.76,
-                         reserve_tech=True,
-                         ramping_tech=True,)
+                         capacity_to_activity=8.76,)
 
 ABBOTT_TB = Technology(tech_name='ABBOTT_TB',
                        units="MWe",
