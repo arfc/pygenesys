@@ -142,8 +142,8 @@ class ModelInfo(object):
                 try:
                     ex_years = list(tech.existing_capacity[place].keys())
                     years += ex_years
-                except:
-                    pass
+                except BaseException:
+                    continue
 
         return np.unique(years)
 

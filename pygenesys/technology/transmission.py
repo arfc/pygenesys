@@ -5,8 +5,8 @@ pool to another.
 
 E.g. you might have several technologies that produce electricity and some
 other technologies that *use* electricity upstream while also having an
-electricity *demand.* In this case, a transmission technology is useful to carry
-energy from the source to the final demand.
+electricity *demand.* In this case, a transmission technology is useful to
+carry energy from the source to the final demand.
 
 Possible confusion:
     * NUCLEAR_ELC produces electricity and is written in this file.

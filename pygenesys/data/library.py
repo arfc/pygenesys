@@ -67,8 +67,8 @@ railsplitter_data = curr_dir + "/railsplitter_data.csv"
 columns : [time, kw]
     * ``time`` is a Pandas Datetime index
     * ``kw`` is the average power produced per hour. Units: kWh
-This dataset represents the hourly solar power generation at UIUC Solar Farm 1.0
-from 2016 to 2019.
+This dataset represents the hourly solar power generation at UIUC Solar Farm
+1.0 from 2016 to 2019.
 """
 solarfarm_data = curr_dir + "/solarfarm_data.csv"
 
