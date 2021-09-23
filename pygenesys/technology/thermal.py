@@ -34,10 +34,10 @@ ABBOTT = Technology(tech_name='ABBOTT',
                     ramping_tech=True,)
 
 CWS = Technology(tech_name='CWS',
-                    units="tons of refrigeration",
-                    tech_sector='chilled water',
-                    tech_label='p',
-                    description='electric water chillers',
-                    category='natural gas',
-                    capacity_to_activity=0.00876,
-                    ramping_tech=True,)
+                 units="tons of refrigeration",
+                 tech_sector='chilled water',
+                 tech_label='p',
+                 description='electric water chillers',
+                 category='natural gas',
+                 capacity_to_activity=0.00876,
+                 ramping_tech=True,)

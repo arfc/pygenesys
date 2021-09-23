@@ -13,6 +13,7 @@ from pygenesys import model_info
 from pygenesys.technology.technology import Technology
 from pygenesys.commodity.commodity import *
 
+
 def name_from_path(infile_path):
     """
     Returns just the base of the filename from the path.
@@ -122,12 +123,12 @@ def _collect_commodities(technology_list):
                 for comm in input_comm:
                     if (isinstance(comm, Commodity)) and \
                        (comm.comm_name not in resource):
-                       resource[comm.comm_name] = comm
+                        resource[comm.comm_name] = comm
                     else:
-                       continue
+                        continue
             else:
-                print(f'Input commodity for {tech.tech_name} in {region} ' \
-                       'is not a resource. Check input file.')
+                print(f'Input commodity for {tech.tech_name} in {region} '
+                      'is not a resource. Check input file.')
 
             if isinstance(output_comm, DemandCommodity):
                 # demand
@@ -147,7 +148,7 @@ def _collect_commodities(technology_list):
 
             elif isinstance(output_comm, EmissionsCommodity):
                 # emission
-                print(f"Warning: Output commodity of {tech.tech_name}" \
+                print(f"Warning: Output commodity of {tech.tech_name}"
                       f"is an Emission Commodity. Check input file.")
                 continue
             try:
@@ -158,10 +159,10 @@ def _collect_commodities(technology_list):
                 for emis in list(emissions.keys()):
                     if (isinstance(emis, EmissionsCommodity)) and \
                        (emis.comm_name not in emission_dict):
-                       emission_dict[emis.comm_name] = emis
+                        emission_dict[emis.comm_name] = emis
                     else:
-                       continue
-            except:
+                        continue
+            except BaseException:
                 pass
 
     resources = list(resource.values())
@@ -170,7 +171,7 @@ def _collect_commodities(technology_list):
 
     if len(demands) == 0:
         print('Warning: Input file has no technologies that satisfy demands.')
-        print('No demands written to database. Consider adding a transmission' \
+        print('No demands written to database. Consider adding a transmission'
               'technology.')
 
     return resources, demands, emissions_list

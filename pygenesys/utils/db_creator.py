@@ -612,13 +612,15 @@ def create_efficiency(connector, technology_list, future):
 
             # check for existing capacity
             try:
-                years = list(tech.existing_capacity[place].keys()) + list(future)
+                years = list(
+                    tech.existing_capacity[place].keys()) + list(future)
                 years = [y for y in years if (future[0] - y) < lifetime]
-            except:
+            except BaseException:
                 years = future
 
             # one input and one output
-            if (type(in_comm) in comm_types) and (type(out_comm) in comm_types):
+            if (type(in_comm) in comm_types) and (
+                    type(out_comm) in comm_types):
                 data = [(place,
                          str(in_comm.comm_name),
                          str(tech.tech_name),
@@ -631,7 +633,7 @@ def create_efficiency(connector, technology_list, future):
 
             # if the technology has two or more inputs and one output
             # and the two inputs have the SAME efficiency.
-            elif (type(in_comm) is list) and (type(out_comm) in comm_types):
+            elif (isinstance(in_comm, list)) and (type(out_comm) in comm_types):
                 for comm in in_comm:
                     data = [(place,
                              str(comm.comm_name),
@@ -691,7 +693,7 @@ def create_existing_capacity(connector, technology_list, time_horizon):
             lifetime = tech.tech_lifetime[place]
             try:
                 years = np.array(list(tech.existing_capacity[place].keys()))
-            except:
+            except BaseException:
                 continue
             # only keep the vintages that will exist in the first sim year
             years = years[(first_year - years) < lifetime]
@@ -804,19 +806,19 @@ def create_variable_cost(connector, technology_list, time_horizon):
             try:
                 cost_variable = tech.cost_variable[place]
                 # print(f'Success. Cost variable is {cost_variable}')
-            except:
+            except BaseException:
                 continue
             lifetime = float(tech.tech_lifetime[place])
             # if there are existing vintages of the technology
             try:
                 years = list(tech.existing_capacity[place].keys()) + \
-                        list(time_horizon)
-                years = [y for y in years if (time_horizon[0]-y) < lifetime]
-            except:
+                    list(time_horizon)
+                years = [y for y in years if (time_horizon[0] - y) < lifetime]
+            except BaseException:
                 years = time_horizon
             # generate future/vintage pairs
             year_pairs = itertools.product(time_horizon, years)
-            if type(cost_variable) == dict:
+            if isinstance(cost_variable, dict):
                 db_entry = [(place,
                              int(year),
                              tech.tech_name,
@@ -824,10 +826,10 @@ def create_variable_cost(connector, technology_list, time_horizon):
                              cost_variable[year],
                              "",
                              "") for year, vintage in year_pairs
-                             if (year-vintage) < lifetime
-                             and (year-vintage) >= 0]
+                            if (year - vintage) < lifetime
+                            and (year - vintage) >= 0]
                 entries += db_entry
-            elif (type(cost_variable) == float) or (type(cost_variable) == int):
+            elif (isinstance(cost_variable, float)) or (isinstance(cost_variable, int)):
                 db_entry = [(place,
                              int(year),
                              tech.tech_name,
@@ -835,8 +837,8 @@ def create_variable_cost(connector, technology_list, time_horizon):
                              cost_variable,
                              "",
                              "") for year, vintage in year_pairs
-                             if (year-vintage) < lifetime
-                             and (year-vintage) >= 0]
+                            if (year - vintage) < lifetime
+                            and (year - vintage) >= 0]
                 entries += db_entry
     cursor = connector.cursor()
     cursor.execute(table_command)
@@ -882,9 +884,9 @@ def create_invest_cost(connector, technology_list, time_horizon):
         for place in tech.regions:
             try:
                 cost_invest = tech.cost_invest[place]
-            except:
+            except BaseException:
                 continue
-            if type(cost_invest) == dict:
+            if isinstance(cost_invest, dict):
                 data = [(place,
                          tech.tech_name,
                          int(year),
@@ -892,7 +894,7 @@ def create_invest_cost(connector, technology_list, time_horizon):
                          "",
                          "") for year in time_horizon]
                 entries += db_entry
-            elif (type(cost_invest) == float) or (type(cost_invest) == int):
+            elif (isinstance(cost_invest, float)) or (isinstance(cost_invest, int)):
                 data = [(place,
                          tech.tech_name,
                          int(year),
@@ -900,7 +902,6 @@ def create_invest_cost(connector, technology_list, time_horizon):
                          "",
                          "") for year in time_horizon]
                 entries += data
-
 
     cursor = connector.cursor()
     cursor.execute(table_command)
@@ -958,19 +959,19 @@ def create_fixed_cost(connector, technology_list, time_horizon):
             # check if particular region has cost_data
             try:
                 cost_fixed = tech.cost_fixed[place]
-            except:
+            except BaseException:
                 continue
             lifetime = float(tech.tech_lifetime[place])
             # if there are existing vintages of the technology
             try:
                 years = list(tech.existing_capacity[place].keys()) + \
-                        list(time_horizon)
-                years = [y for y in years if (time_horizon[0]-y) < lifetime]
-            except:
+                    list(time_horizon)
+                years = [y for y in years if (time_horizon[0] - y) < lifetime]
+            except BaseException:
                 years = time_horizon
             # generate future/vintage pairs
             year_pairs = itertools.product(time_horizon, years)
-            if type(cost_fixed) == dict:
+            if isinstance(cost_fixed, dict):
                 db_entry = [(place,
                              int(year),
                              tech.tech_name,
@@ -978,10 +979,10 @@ def create_fixed_cost(connector, technology_list, time_horizon):
                              cost_fixed[year],
                              "",
                              "") for year, vintage in year_pairs
-                             if (year-vintage) < lifetime
-                             and (year-vintage) >= 0]
+                            if (year - vintage) < lifetime
+                            and (year - vintage) >= 0]
                 entries += db_entry
-            elif (type(cost_fixed) == float) or (type(cost_fixed) == int):
+            elif (isinstance(cost_fixed, float)) or (isinstance(cost_fixed, int)):
                 db_entry = [(place,
                              int(year),
                              tech.tech_name,
@@ -989,8 +990,8 @@ def create_fixed_cost(connector, technology_list, time_horizon):
                              cost_fixed,
                              "",
                              "") for year, vintage in year_pairs
-                             if (year-vintage) < lifetime
-                             and (year-vintage) >= 0]
+                            if (year - vintage) < lifetime
+                            and (year - vintage) >= 0]
                 entries += db_entry
     cursor = connector.cursor()
     cursor.execute(table_command)
@@ -1577,7 +1578,7 @@ def create_emissions_activity(connector, technology_list, time_horizon):
                 # simulation
                 years = years[(time_horizon[0] - years) <
                               tech.tech_lifetime[place]]
-            except:
+            except BaseException:
                 years = time_horizon
             for emis in emissions_list:
                 db_entry = [(place,
