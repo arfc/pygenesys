@@ -94,7 +94,7 @@ from pygenesys.technology.electric import SOLAR_FARM, WIND_FARM, IMP_ELC
 from pygenesys.technology.electric import NUCLEAR_TB, ABBOTT_TB
 
 # Import emissions
-from pygenesys.commodity.emissions import co2eq
+from pygenesys.commodity.emissions import co2eq, CO2
 
 
 # Import capacity factor data
@@ -155,7 +155,8 @@ IMP_ELC.add_regional_data(region='UIUC',
                           efficiency=1.0,
                           tech_lifetime=1000,
                           cost_variable=0.1161,
-                          cost_invest=0.489583
+                          cost_invest=0.489583,
+                          emissions={co2eq:1.213e-3, CO2:3.417e-4}
                           )
 NUCLEAR_TB.add_regional_data(region='UIUC',
                              input_comm=nuclear_steam,
@@ -179,7 +180,7 @@ ABBOTT.add_regional_data(region='UIUC',
                          tech_lifetime=40,
                          loan_lifetime=25,
                          capacity_factor_tech=0.57,
-                         emissions={co2eq:5.7e-4},
+                         emissions={co2eq:2.395e-4, CO2:1.96e-4},
                          ramp_up=0.7,
                          ramp_down=0.7,
                          cost_fixed=79.878,
@@ -232,11 +233,12 @@ CW_STORAGE.add_regional_data(region='UIUC',
                              cost_invest=0.0017856,
                              )
 
-
+CO2.add_regional_limit(region='UIUC',
+                         limits={2035:0.0})
 
 demands_list = [ELC_DEMAND, STM_DEMAND, CW_DEMAND]
 resources_list = [electricity, steam, ethos, nuclear_steam, chilled_water]
-emissions_list = [co2eq]
+emissions_list = [co2eq, CO2]
 
 if __name__ == "__main__":
     import numpy as np

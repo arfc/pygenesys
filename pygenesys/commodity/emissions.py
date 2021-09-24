@@ -9,6 +9,10 @@ co2eq = EmissionsCommodity(comm_name='co2eq',
                            comm_label='e',
                            units='Mtons',
                            description='gaseous emissions, CO2 equivalent')
+CO2 = EmissionsCommodity(comm_name='CO2',
+                         comm_label='e',
+                         units='Mtons',
+                         description='gaseous emissions, direct CO2')                           
 
 if __name__ == "__main__":
 
