@@ -24,7 +24,8 @@ class Technology(object):
                  category='',
                  reserve_tech=False,
                  ramping_tech=False,
-                 storage_tech=False
+                 storage_tech=False,
+                 curtailed_tech=False,
                  ):
         """
         This class contains information about a technology used
@@ -85,6 +86,7 @@ class Technology(object):
         self.reserve_tech = reserve_tech
         self.ramping_tech = ramping_tech
         self.storage_tech = storage_tech
+        self.curtailed_tech = curtailed_tech
         self.regions = []
         self.input_comm = {}
         self.output_comm = {}

@@ -1596,19 +1596,36 @@ def create_emissions_activity(connector, technology_list, time_horizon):
     return
 
 
+def create_tech_curtailment(connector, technology_list):
+    """
+    This function writes the curtailment tech table.
+    """
+    table_command = """CREATE TABLE "tech_curtailment" (
+                    	"tech"	text,
+                    	"notes"	TEXT,
+                    	PRIMARY KEY("tech"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+
+    insert_command = """INSERT INTO tech_curtailment VALUES (?,?)"""
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    entries = [(t.tech_name, '') for t in technology_list if t.curtailed_tech]
+
+    cursor.executemany(insert_command, entries)
+
+    connector.commit()
+    return
+
+
+
+
+
 """
 def create_():
 CREATE TABLE "tech_exchange" (
-	"tech"	text,
-	"notes"	TEXT,
-	PRIMARY KEY("tech"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
-
-
-def create_():
-CREATE TABLE "tech_curtailment" (
 	"tech"	text,
 	"notes"	TEXT,
 	PRIMARY KEY("tech"),
@@ -1675,16 +1692,6 @@ CREATE TABLE "TechInputSplit" (
 	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
 	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
 	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
-);
-return
-
-def create_():
-CREATE TABLE "StorageDuration" (
-	"regions"	text,
-	"tech"	text,
-	"duration"	real,
-	"duration_notes"	text,
-	PRIMARY KEY("regions","tech")
 );
 return
 

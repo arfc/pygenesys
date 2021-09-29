@@ -8,8 +8,8 @@ curr_dir = os.path.dirname(__file__)
 database_filename = 'uiuc_db.sqlite'  # where the database will be written
 scenario_name = 'test'
 start_year = 2021  # the first year optimized by the model
-end_year = 2035  # the last year optimized by the model
-N_years = 15  # the number of years optimized by the model
+end_year = 2050  # the last year optimized by the model
+N_years = 7  # the number of years optimized by the model
 N_seasons = 4  # the number of "seasons" in the model
 N_hours = 24  # the number of hours in a day
 
@@ -146,9 +146,13 @@ WIND_FARM.add_regional_data(region='UIUC',
                             capacity_factor_tech=wind_cf,
                             existing={2016:8.7},
                             emissions={co2eq:1.1e-5},
-                            cost_fixed=11.38972,
-                            cost_invest=0.001,
+                            cost_fixed=40.723,
+                            cost_invest=1.8784
                             )
+                            # the data below reflect a PPA, not a wind farm.
+                            # cost_fixed=11.38972,
+                            # cost_invest=0.001,
+                            # )
 IMP_ELC.add_regional_data(region='UIUC',
                           input_comm=ethos,
                           output_comm=electricity,
@@ -220,21 +224,39 @@ CWS.add_regional_data(region='UIUC',
                       cost_invest=0.0018942)
 
 # Import storage technology
-from pygenesys.technology.storage import CW_STORAGE
+from pygenesys.technology.storage import CW_STORAGE, LI_BATTERY
 CW_STORAGE.add_regional_data(region='UIUC',
                              input_comm=chilled_water,
                              output_comm=chilled_water,
-                             efficiency=0.82,
+                             efficiency=0.95,
                              capacity_factor_tech=0.5,
                              tech_lifetime=100,
                              loan_lifetime=10,
                              ramp_up=0.5830,
                              ramp_down=0.5830,
                              cost_invest=0.0017856,
+                             storage_duration=4,
                              )
 
+LI_BATTERY.add_regional_data(region='UIUC',
+                             input_comm=electricity,
+                             output_comm=electricity,
+                             efficiency=0.80,
+                             capacity_factor_tech=0.2,
+                             tech_lifetime=12,
+                             loan_lifetime=5,
+                             emissions={co2eq:2.32e-5},
+                             cost_invest=1.608,
+                             cost_fixed=25.102,
+                             storage_duration=8)
+
 CO2.add_regional_limit(region='UIUC',
-                         limits={2035:0.0})
+                       limits={2025:0.344,
+                               2030:0.30,
+                               2035:0.25,
+                               2040:0.2,
+                               2035:0.1,
+                               end_year:0.0})
 
 demands_list = [ELC_DEMAND, STM_DEMAND, CW_DEMAND]
 resources_list = [electricity, steam, ethos, nuclear_steam, chilled_water]
@@ -244,13 +266,13 @@ if __name__ == "__main__":
     import numpy as np
 
     horizon = np.linspace(start_year, end_year, N_years).astype('int')
-    # print(horizon)
+    print(horizon)
 
     import matplotlib.pyplot as plt
     plt.style.use('ggplot')
 
-    print(SOLAR_FARM.capacity_factor_tech['UIUC'])
-    print(CWS.capacity_factor_tech['UIUC'])
+    # print(SOLAR_FARM.capacity_factor_tech['UIUC'])
+    # print(CWS.capacity_factor_tech['UIUC'])
 
     # plt.plot(ELC_DEMAND.demand['UIUC'], label='exponential')
     # plt.ylim(0,520)
@@ -262,3 +284,12 @@ if __name__ == "__main__":
     # plt.plot(CW_DEMAND.distribution['UIUC'])
     # plt.plot(CW_STORAGE.capacity_factor_tech['UIUC'][0])
     # plt.show()
+
+    wind_cf = WIND_FARM.capacity_factor_tech['UIUC']
+    # print(wind_cf)
+    plt.plot(range(N_hours), wind_cf[0], label='S1')
+    plt.plot(range(N_hours), wind_cf[1], label='S2')
+    plt.plot(range(N_hours), wind_cf[2], label='S3')
+    plt.plot(range(N_hours), wind_cf[3], label='S4')
+    plt.legend()
+    plt.show()

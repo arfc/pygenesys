@@ -18,23 +18,23 @@ from pygenesys.technology.technology import Technology
 
 STM_TUNNEL = Technology(tech_name='STM_TUNNEL',
                         units='MW(th)',
-                        tech_sector='steam',
+                        tech_sector='transmission',
                         tech_label='p',
                         description='steam tunnels for district heating',
-                        category='transmission',
+                        category='steam',
                         capacity_to_activity=1.00,)
 TRANSMISSION = Technology(tech_name='TRANSMISSION',
                           units='MWe',
-                          tech_sector='electricity',
+                          tech_sector='transmission',
                           tech_label='p',
                           description='electric transmission lines',
-                          category='transmission',
+                          category='electricity',
                           capacity_to_activity=1.00,)
 CW_PIPES = Technology(tech_name='CW_PIPES',
                       units='million ton-hours',
-                      tech_sector='chilled water',
+                      tech_sector='transmission',
                       tech_label='p',
-                      description='chilled water transport',
+                      description='chilled water',
                       category='transmission',
                       capacity_to_activity=1.00,)
 
