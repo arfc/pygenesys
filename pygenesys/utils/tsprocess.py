@@ -26,6 +26,8 @@ def choose_distribution_method(N_seasons, N_hours):
 
     if (N_seasons == 4) and (N_hours == 24):
         distribution_func = four_seasons_hourly
+    elif (N_seasons==12) and (N_hours==24):
+        distribution_func = monthly_hourly
     elif (N_seasons == 365) and (N_hours == 24):
         distribution_func = daily_hourly
     return distribution_func
@@ -109,6 +111,70 @@ def four_seasons_hourly(data_path, N_seasons=4, N_hours=24, kind='demand'):
     return seasonal_hourly_profile
 
 
+def monthly_hourly(data_path, N_seasons=12, N_hours=24, kind='demand'):
+    """
+    This function calculates a seasonal trend based on the
+    input data. Answers the question: what fraction of the annual
+    demand is consumed at this time of the year?
+
+    Parameters
+    ----------
+    data_path : string
+        The path to the time series data
+            * must be a ``.csv`` file
+            * nust have a column ``time`` that is a pandas datetime column
+        Tips:
+            * Sometimes a dataset will have an index column that can
+              be read as an ``Unnamed Column: 0``. If a user supplies
+              their own data, this should be removed where applicable.
+    kind : string
+        The string representing the kind of profile we're interested in.
+        Accepts: 'CF', 'cf', 'demand', 'Demand', 'DEMAND'
+            'CF' : A capacity factor profile is returned (sum != 1).
+            'Demand': Returns a demand profile (sum = 1)
+    N_seasons : integer
+        The number of seasons in the energy system model.
+    N_hours : integer
+        The hourly resolution of the energy system model.
+
+    Returns
+    -------
+    distribution : numpy array
+        The time series data distributed over the specified time
+        slices.
+    """
+    time_series = pd.read_csv(data_path,
+                              usecols=[0, 1],
+                              index_col=['time'],
+                              parse_dates=True,
+                              )
+
+    # initialize dictionary
+
+    months_grouped = time_series.groupby(time_series.index.month)
+
+    monthly_hourly_profile = np.zeros((N_seasons, N_hours))
+    for i, month in enumerate(months_grouped.groups):
+        month_df = months_grouped.get_group(month)
+        hours_grouped = month_df.groupby(month_df.index.hour)
+
+        avg_hourly = np.zeros(len(hours_grouped))
+        std_hourly = np.zeros(len(hours_grouped))
+        for j, hour in enumerate(hours_grouped.groups):
+            hour_data = hours_grouped.get_group(hour)
+            avg_hourly[j] = hour_data.iloc[:, 0].mean()
+            std_hourly[j] = hour_data.iloc[:, 0].std()
+
+        if kind.lower() == "demand":
+            data = (avg_hourly / (N_seasons * avg_hourly.sum()))
+        elif kind.lower() == "cf":
+            data = (avg_hourly / (time_series.iloc[:, 0].max()))
+
+        monthly_hourly_profile[i] = data
+
+    return monthly_hourly_profile
+
+
 def daily_hourly(data_path, N_seasons=365, N_hours=24, kind='demand'):
     """
     This function calculates a seasonal trend based on the
@@ -187,15 +253,22 @@ if __name__ == '__main__':
                2: 'fall',
                3: 'winter'}
 
-    N_seasons = 4
+    months_list = ['January', 'February', 'March', 'April','May', 'June',
+                   'July', 'August', 'September','October','November','December']
+
+    months = dict(enumerate(months_list))
+    print(months)
+
+    N_seasons = 12
     N_hours = 24
     method = choose_distribution_method(N_seasons, N_hours)
-    profile = method(solarfarm_data, kind='cf')
+    # profile = method(railsplitter_data, kind='cf')
+    profile = method(campus_elc_demand, kind='demand')
     print(profile.sum())
     for i in range(N_seasons):
         plt.plot(range(N_hours),
                  profile[i],
-                 label=f'{seasons[i].capitalize()}',
+                 label=f'{months[i].capitalize()}',
                  marker='.')
     # plt.scatter(range(N_hours*N_seasons),
     #          profile,
