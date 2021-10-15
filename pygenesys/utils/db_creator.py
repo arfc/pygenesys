@@ -105,7 +105,7 @@ def create_time_periods(connector, future_years, existing_years):
     insert_command = """
                      INSERT INTO "time_periods" VALUES(?,?)
                      """
-
+    # breakpoint()
     if len(existing_years) == 0:
         past_horizon = [(int(future_years[0] - 1), 'e')]
     else:
@@ -462,11 +462,12 @@ def create_demand_specific_distribution(connector,
     cursor = connector.cursor()
     cursor.execute(table_command)
 
+    entries = []
     for demand_comm in demand_list:
-        time_slices = itertools.product(hours, seasons)
         demand_dict = demand_comm.distribution
         # loops over each region where the commodity is defined
         for region in demand_dict:
+            time_slices = itertools.product(hours, seasons)
             data = demand_dict[region]
             db_entry = [
                 (region,
@@ -476,7 +477,8 @@ def create_demand_specific_distribution(connector,
                  d,
                  demand_comm.units) for d,
                 ts in zip(data, time_slices)]
-            cursor.executemany(insert_command, db_entry)
+            entries += db_entry
+    cursor.executemany(insert_command, entries)
     connector.commit()
     return table_command
 
@@ -893,7 +895,7 @@ def create_invest_cost(connector, technology_list, time_horizon):
                          cost_invest[year],
                          "",
                          "") for year in time_horizon]
-                entries += db_entry
+                entries += data
             elif (isinstance(cost_invest, float)) or (isinstance(cost_invest, int)):
                 data = [(place,
                          tech.tech_name,
@@ -1024,10 +1026,10 @@ def create_capacity_factor_tech(connector, technology_list, seasons, hours):
     cursor.execute(table_command)
 
     for tech in technology_list:
-        time_slices = itertools.product(hours, seasons)
         cft_dict = tech.capacity_factor_tech
         # loops over each region where the commodity is defined
         for place in cft_dict:
+            time_slices = itertools.product(hours, seasons)
             data = cft_dict[place]
             if (isinstance(data, list)) or (isinstance(data, np.ndarray)):
                 data = data.flatten()
@@ -1620,18 +1622,79 @@ def create_tech_curtailment(connector, technology_list):
     return
 
 
+def create_max_capacity(connector, technology_list):
+    """
+    This function writes the MaxCapacity constraint in Temoa.
+    """
+    table_command = """CREATE TABLE "MaxCapacity" (
+                    	"regions"	text,
+                    	"periods"	integer,
+                    	"tech"	text,
+                    	"maxcap"	real,
+                    	"maxcap_units"	text,
+                    	"maxcap_notes"	text,
+                    	PRIMARY KEY("regions","periods","tech"),
+                    	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+    insert_command = """INSERT INTO MaxCapacity VALUES (?,?,?,?,?,?)"""
 
+    cursor=connector.cursor()
+
+    entries = []
+    for tech in technology_list:
+
+        # check constraint exists
+        if len(tech.max_capacity) > 0:
+            max_capacity = tech.max_capacity
+        else:
+            continue
+
+        for place in list(max_capacity.keys()):
+            periods = list(max_capacity[place].keys())
+            maxcap = list(max_capacity[place].values())
+
+            db_entry = [(place,
+                         period,
+                         tech.tech_name,
+                         cap,
+                         tech.units,
+                         '') for period, cap in zip(periods, maxcap)]
+
+            entries += db_entry
+
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    return
+
+def create_tech_exchange(connector, technology_list):
+    """
+    This function creates the tech exchange table.
+    """
+    table_command = """CREATE TABLE "tech_exchange" (
+                    	"tech"	text,
+                    	"notes"	TEXT,
+                    	PRIMARY KEY("tech"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+
+    insert_command = """INSERT INTO tech_exchange VALUES (?,?)"""
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    entries = [(t.tech_name, '') for t in technology_list if t.exchange_tech]
+
+    cursor.executemany(insert_command, entries)
+
+    connector.commit()
+    return
 
 
 """
-def create_():
-CREATE TABLE "tech_exchange" (
-	"tech"	text,
-	"notes"	TEXT,
-	PRIMARY KEY("tech"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
+
 
 
 def create_():
@@ -1753,19 +1816,6 @@ CREATE TABLE "MinActivity" (
 );
 return
 
-def create_():
-CREATE TABLE "MaxCapacity" (
-	"regions"	text,
-	"periods"	integer,
-	"tech"	text,
-	"maxcap"	real,
-	"maxcap_units"	text,
-	"maxcap_notes"	text,
-	PRIMARY KEY("regions","periods","tech"),
-	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
 
 def create_():
 CREATE TABLE "MaxActivity" (

@@ -28,6 +28,69 @@ NUCLEAR_TB = Technology(tech_name='NUCLEAR_TB',
                         category='electric',
                         capacity_to_activity=8.76,)
 
+NUCLEAR_CONV = Technology(tech_name='NUCLEAR_CONV',
+                         units="MWe",
+                         tech_sector='electricity',
+                         tech_label='pb',
+                         description='conventional nuclear plant',
+                         category='uranium',
+                         capacity_to_activity=8.76,
+                         ramping_tech=False,
+                         )
+
+NUCLEAR_ADV = Technology(tech_name='NUCLEAR_ADV',
+                         units="MWe",
+                         tech_sector='electricity',
+                         tech_label='p',
+                         description='advanced nuclear plant',
+                         category='uranium',
+                         capacity_to_activity=8.76,
+                         ramping_tech=True
+                         )
+
+COAL_CONV = Technology(tech_name='COAL_CONV',
+                      units="MWth",
+                      tech_sector='electricity',
+                      tech_label='p',
+                      description='conventional coal power plant',
+                      category='coal',
+                      capacity_to_activity=8.76,
+                      reserve_tech=True,
+                      ramping_tech=True,)
+
+
+NATGAS_CONV = Technology(tech_name='NATGAS_CONV',
+                        units="MWe",
+                        tech_sector='electricity',
+                        tech_label='p',
+                        description='conventional combined cycle natural gas',
+                        category='natural gas',
+                        capacity_to_activity=8.76,
+                        ramping_tech=True,
+                        reserve_tech=True)
+
+COAL_ADV = Technology(tech_name='COAL_ADV',
+                      units="MWth",
+                      tech_sector='electricity',
+                      tech_label='p',
+                      description='coal power plant with CCS',
+                      category='coal',
+                      capacity_to_activity=8.76,
+                      reserve_tech=True,
+                      ramping_tech=True,)
+
+
+NATGAS_ADV = Technology(tech_name='NATGAS_ADV',
+                        units="MWe",
+                        tech_sector='electricity',
+                        tech_label='p',
+                        description='combined cycle natural gas with CCS',
+                        category='natural gas',
+                        capacity_to_activity=8.76,
+                        ramping_tech=True,
+                        reserve_tech=True)
+
+
 ABBOTT_TB = Technology(tech_name='ABBOTT_TB',
                        units="MWe",
                        tech_sector='electricity',
@@ -44,7 +107,8 @@ SOLAR_FARM = Technology(tech_name='SOLAR_FARM',
                         description='utility scale solar',
                         category='renewable',
                         capacity_to_activity=8.76,
-                        )
+                        curtailed_tech=True)
+
 
 WIND_FARM = Technology(tech_name='WIND_FARM',
                        units="MWe",
@@ -53,6 +117,7 @@ WIND_FARM = Technology(tech_name='WIND_FARM',
                        description='utility scale wind',
                        category='renewable',
                        capacity_to_activity=8.76,
+                       curtailed_tech=True,
                        )
 
 IMP_ELC = Technology(tech_name='IMP_ELC',

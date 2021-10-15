@@ -28,6 +28,8 @@ def choose_distribution_method(N_seasons, N_hours):
         distribution_func = four_seasons_hourly
     elif (N_seasons==12) and (N_hours==24):
         distribution_func = monthly_hourly
+    elif (N_seasons==52) and (N_hours==24):
+        distribution_func = weekly_hourly
     elif (N_seasons == 365) and (N_hours == 24):
         distribution_func = daily_hourly
     return distribution_func
@@ -175,6 +177,72 @@ def monthly_hourly(data_path, N_seasons=12, N_hours=24, kind='demand'):
     return monthly_hourly_profile
 
 
+def weekly_hourly(data_path, N_seasons=52, N_hours=24, kind='demand'):
+    """
+    This function calculates a seasonal trend based on the
+    input data. Answers the question: what fraction of the annual
+    demand is consumed at this time of the year?
+
+    Parameters
+    ----------
+    data_path : string
+        The path to the time series data
+            * must be a ``.csv`` file
+            * nust have a column ``time`` that is a pandas datetime column
+        Tips:
+            * Sometimes a dataset will have an index column that can
+              be read as an ``Unnamed Column: 0``. If a user supplies
+              their own data, this should be removed where applicable.
+    kind : string
+        The string representing the kind of profile we're interested in.
+        Accepts: 'CF', 'cf', 'demand', 'Demand', 'DEMAND'
+            'CF' : A capacity factor profile is returned (sum != 1).
+            'Demand': Returns a demand profile (sum = 1)
+    N_seasons : integer
+        The number of seasons in the energy system model.
+    N_hours : integer
+        The hourly resolution of the energy system model.
+
+    Returns
+    -------
+    distribution : numpy array
+        The time series data distributed over the specified time
+        slices.
+    """
+    time_series = pd.read_csv(data_path,
+                              usecols=[0, 1],
+                              index_col=['time'],
+                              parse_dates=True,
+                              )
+
+    # initialize dictionary
+
+    weeks_grouped = time_series.groupby(time_series.index.isocalendar().week)
+
+    weekly_hourly_profile = np.zeros((N_seasons, N_hours))
+    for i, week in enumerate(weeks_grouped.groups):
+        if i >= 52:
+            continue
+        week_df = weeks_grouped.get_group(week)
+        hours_grouped = week_df.groupby(week_df.index.hour)
+
+        avg_hourly = np.zeros(len(hours_grouped))
+        std_hourly = np.zeros(len(hours_grouped))
+        for j, hour in enumerate(hours_grouped.groups):
+            hour_data = hours_grouped.get_group(hour)
+            avg_hourly[j] = hour_data.iloc[:, 0].mean()
+            std_hourly[j] = hour_data.iloc[:, 0].std()
+
+        if kind.lower() == "demand":
+            data = (avg_hourly / (N_seasons * avg_hourly.sum()))
+        elif kind.lower() == "cf":
+            data = (avg_hourly / (time_series.iloc[:, 0].max()))
+
+        weekly_hourly_profile[i] = data
+
+    return weekly_hourly_profile
+
+
 def daily_hourly(data_path, N_seasons=365, N_hours=24, kind='demand'):
     """
     This function calculates a seasonal trend based on the
@@ -259,16 +327,18 @@ if __name__ == '__main__':
     months = dict(enumerate(months_list))
     print(months)
 
-    N_seasons = 12
+    N_seasons = 52
     N_hours = 24
+    path = '~/research/2021-dotson-ms/data/pjm_hourly_demand.csv'
     method = choose_distribution_method(N_seasons, N_hours)
-    # profile = method(railsplitter_data, kind='cf')
-    profile = method(campus_elc_demand, kind='demand')
+    # profile = method(solarfarm_data, kind='cf')
+    # profile = method(campus_elc_demand, kind='demand')
+    profile = method(path, kind='demand')
     print(profile.sum())
     for i in range(N_seasons):
         plt.plot(range(N_hours),
                  profile[i],
-                 label=f'{months[i].capitalize()}',
+                 # label=f'{months[i].capitalize()}',
                  marker='.')
     # plt.scatter(range(N_hours*N_seasons),
     #          profile,

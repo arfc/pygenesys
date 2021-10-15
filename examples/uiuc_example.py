@@ -5,12 +5,12 @@ curr_dir = os.path.dirname(__file__)
 
 
 # Simulation metadata goes here
-database_filename = 'uiuc_db.sqlite'  # where the database will be written
+database_filename = 'uiuc_db_365.sqlite'  # where the database will be written
 scenario_name = 'test'
 start_year = 2021  # the first year optimized by the model
 end_year = 2050  # the last year optimized by the model
 N_years = 7  # the number of years optimized by the model
-N_seasons = 4  # the number of "seasons" in the model
+N_seasons = 365  # the number of "seasons" in the model
 N_hours = 24  # the number of hours in a day
 
 # Optional parameters
@@ -147,7 +147,13 @@ WIND_FARM.add_regional_data(region='UIUC',
                             existing={2016:8.7},
                             emissions={co2eq:1.1e-5},
                             cost_fixed=40.723,
-                            cost_invest=1.8784
+                            cost_invest=1.8784,
+                            max_capacity={2025:100.5,
+                                          2030:100.5,
+                                          2035:100.5,
+                                          2040:100.5,
+                                          2045:100.5,
+                                          2050:100.5}
                             )
                             # the data below reflect a PPA, not a wind farm.
                             # cost_fixed=11.38972,
@@ -160,7 +166,9 @@ IMP_ELC.add_regional_data(region='UIUC',
                           tech_lifetime=1000,
                           cost_variable=0.1161,
                           cost_invest=0.489583,
-                          emissions={co2eq:1.213e-3, CO2:3.417e-4}
+                          cost_fixed=0.1,
+                          emissions={co2eq:1.213e-3, CO2:3.417e-4},
+                          max_capacity={2025:60, 2030:60,2035:60,2040:65,2045:70}
                           )
 NUCLEAR_TB.add_regional_data(region='UIUC',
                              input_comm=nuclear_steam,
@@ -287,9 +295,10 @@ if __name__ == "__main__":
 
     wind_cf = WIND_FARM.capacity_factor_tech['UIUC']
     # print(wind_cf)
-    plt.plot(range(N_hours), wind_cf[0], label='S1')
-    plt.plot(range(N_hours), wind_cf[1], label='S2')
-    plt.plot(range(N_hours), wind_cf[2], label='S3')
-    plt.plot(range(N_hours), wind_cf[3], label='S4')
+    # plt.plot(range(N_hours), wind_cf[0], label='S1')
+    # plt.plot(range(N_hours), wind_cf[1], label='S2')
+    # plt.plot(range(N_hours), wind_cf[2], label='S3')
+    # plt.plot(range(N_hours), wind_cf[3], label='S4')
+    plt.plot(wind_cf)
     plt.legend()
     plt.show()

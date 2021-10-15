@@ -29,13 +29,31 @@ TRANSMISSION = Technology(tech_name='TRANSMISSION',
                           tech_label='p',
                           description='electric transmission lines',
                           category='electricity',
-                          capacity_to_activity=1.00,)
+                          capacity_to_activity=8.76,)
+ELC_EX = Technology(tech_name='ELC_EX',
+                    units='MWe',
+                    tech_sector='transmission',
+                    tech_label='p',
+                    description='electric transmission lines between regions',
+                    category='electricity',
+                    capacity_to_activity=8.76,
+                    exchange_tech=True)
+
+IMP_ELC = Technology(tech_name='IMP_ELC',
+                    units='MWe',
+                    tech_sector='transmission',
+                    tech_label='p',
+                    description='imported electricity',
+                    category='electricity',
+                    capacity_to_activity=8.76,
+                    exchange_tech=False)
+
 CW_PIPES = Technology(tech_name='CW_PIPES',
                       units='million ton-hours',
                       tech_sector='transmission',
                       tech_label='p',
                       description='chilled water',
-                      category='transmission',
+                      category='chilled water',
                       capacity_to_activity=1.00,)
 
 if __name__ == "__main__":

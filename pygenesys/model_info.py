@@ -184,6 +184,8 @@ class ModelInfo(object):
         create_tech_ramping(conn, self.technologies)
         create_tech_storage(conn, self.technologies)
         create_tech_curtailment(conn, self.technologies)
+        create_tech_exchange(conn, self.technologies)
+        create_max_capacity(conn, self.technologies)
         create_existing_capacity(conn, self.technologies, self.time_horizon)
         create_efficiency(conn, self.technologies, self.time_horizon)
         create_emissions_activity(conn, self.technologies, self.time_horizon)

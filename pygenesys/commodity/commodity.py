@@ -1,5 +1,6 @@
 from pygenesys.utils.growth_model import choose_growth_method
 from pygenesys.utils.tsprocess import choose_distribution_method
+import numpy as np
 
 # ==============================================================================
 # ==============================================================================
@@ -183,7 +184,6 @@ class DemandCommodity(Commodity):
         data_path : string
             The path to the data.
         """
-
         if normalize:
             distribution_calculator = choose_distribution_method(n_seasons,
                                                                  n_hours)
@@ -191,8 +191,9 @@ class DemandCommodity(Commodity):
                                                    n_seasons,
                                                    n_hours,
                                                    kind)
-        else:
-            pass
+        elif not normalize:
+            distribution = data
+
 
         self.distribution[region] = distribution.flatten()
 

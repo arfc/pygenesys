@@ -4,7 +4,7 @@
 # Defines Technology
 # =============================================================================
 # =============================================================================
-
+import numpy as np
 
 class Technology(object):
     """
@@ -26,6 +26,7 @@ class Technology(object):
                  ramping_tech=False,
                  storage_tech=False,
                  curtailed_tech=False,
+                 exchange_tech=False,
                  ):
         """
         This class contains information about a technology used
@@ -87,6 +88,7 @@ class Technology(object):
         self.ramping_tech = ramping_tech
         self.storage_tech = storage_tech
         self.curtailed_tech = curtailed_tech
+        self.exchange_tech = exchange_tech
         self.regions = []
         self.input_comm = {}
         self.output_comm = {}
@@ -102,6 +104,7 @@ class Technology(object):
         self.ramp_down = {}
         self.storage_duration = {}
         self.emissions = {}
+        self.max_capacity = {}
 
         return
 
@@ -142,7 +145,8 @@ class Technology(object):
             "ramp_up": self.ramp_up,
             "ramp_down": self.ramp_down,
             "storage_duration": self.storage_duration,
-            "emissions": self.emissions
+            "emissions": self.emissions,
+            "max_capacity":self.max_capacity,
         }
 
         # check if region is a list or a string
