@@ -32,7 +32,7 @@
 # Spreadsheet Output (Optional)
 # Direct model output to a spreadsheet
 # Scenario name specified above is used to name the spreadsheet
---saveEXCEL
+# --saveEXCEL
 
 # Save the log file output (Optional)
 # This is the same output provided to the shell

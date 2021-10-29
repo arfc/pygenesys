@@ -12,6 +12,7 @@ import sqlite3
 from pygenesys import model_info
 from pygenesys.technology.technology import Technology
 from pygenesys.commodity.commodity import *
+from pygenesys.make_config import *
 
 
 def name_from_path(infile_path):
@@ -194,11 +195,8 @@ def main():
 
     # get infile technologies
     technology_list = collect_technologies(infile)
-    # resources, demands, emissions = _collect_commodities(technology_list)
-    #
-    # print(f'resources: {[comm.comm_name for comm in resources]}')
-    # print(f'demands: {[comm.comm_name for comm in demands]}')
-    # print(f'emissions: {[comm.comm_name for comm in emissions]}')
+
+
 
     # create the model object
     model = model_info.ModelInfo(output_db=out_path,
@@ -217,15 +215,32 @@ def main():
                                  )
     print(f"Database will be exported to {model.output_db} \n")
 
-    # print('=========================\n')
-    # print(f"{technology_list}")
-    # print('=========================\n')
 
-    # print(f"The years simulated by the model are \n {model.time_horizon} \n")
-
-    # Should check if the model is to be written to a sql or sqlite database
     model._write_sqlite_database()
 
     print("Input file written successfully.\n")
+
+    # create the config file
+    print("Writing Temoa config file.\n")
+
+    config_template = 'config_template.txt'
+    fname = name_from_path(out_db)
+    print(f'File name: {fname}\n')
+    conf_name = f'run_{fname}.txt'
+    vars = {'target_dir':infile.folder,
+            'file_name':fname+'.sqlite',
+            'scenario':infile.scenario_name}
+
+    # outpath should be one folder up.
+    path = infile.curr_dir
+    # split_path = infile.curr_dir.split('/')
+    # path = "/".join(split_path[:-1])
+    print(f'{infile.curr_dir}\n')
+    print(f'{path}\n')
+    rendered = render_input(input_path='default',
+                            input_fname='default',
+                            variable_dict=vars,
+                            output_path=path,
+                            output_fname=conf_name)
 
     return
