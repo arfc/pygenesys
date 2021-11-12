@@ -64,7 +64,8 @@ beginning should look something like this:
 import os
 curr_dir = os.path.dirname(__file__)
 
-database_filename = 'my_temoadb.sqlite'  # where the database will be written
+folder = 'data_files'
+database_filename = f'{folder}/my_temoadb.sqlite'  # where the database will be written
 scenario_name = 'test'
 start_year = 2025
 end_year = 2050
@@ -191,7 +192,7 @@ hydrogen = Commodity(comm_name='hydrogen',
 ```
 
 Users must also specify unique regional data for each technology by calling
-``Techology.add_regional_data()``.
+``Technology.add_regional_data()``.
 
 ```py
 TRANSMISSION.add_regional_data(region='region',
