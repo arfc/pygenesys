@@ -139,8 +139,11 @@ class ModelInfo(object):
         years = []
         for tech in self.technologies:
             for place in tech.regions:
-                ex_years = list(tech.existing_capacity[place].keys())
-                years += ex_years
+                try:
+                    ex_years = list(tech.existing_capacity[place].keys())
+                    years += ex_years
+                except BaseException:
+                    continue
 
         return np.unique(years)
 
@@ -150,7 +153,7 @@ class ModelInfo(object):
         """
 
         conn = establish_connection(self.output_db)
-
+        conn.execute("PRAGMA foreign_keys = 1")
         # create fundamental tables
         seasons = create_time_season(conn, self.N_seasons)
         create_time_period_labels(conn)
@@ -180,6 +183,10 @@ class ModelInfo(object):
         create_tech_reserve(conn, self.technologies)
         create_tech_ramping(conn, self.technologies)
         create_tech_storage(conn, self.technologies)
+        create_tech_curtailment(conn, self.technologies)
+        create_tech_exchange(conn, self.technologies)
+        create_max_capacity(conn, self.technologies)
+        create_min_capacity(conn, self.technologies)
         create_existing_capacity(conn, self.technologies, self.time_horizon)
         create_efficiency(conn, self.technologies, self.time_horizon)
         create_emissions_activity(conn, self.technologies, self.time_horizon)
@@ -190,6 +197,7 @@ class ModelInfo(object):
                                     self.technologies,
                                     time_slices,
                                     seasons)
+        create_MyopicBaseYear(conn)
 
         # output tables
         create_output_vcapacity(conn)

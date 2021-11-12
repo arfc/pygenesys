@@ -12,6 +12,8 @@ import sqlite3
 from pygenesys import model_info
 from pygenesys.technology.technology import Technology
 from pygenesys.commodity.commodity import *
+from pygenesys.make_config import *
+
 
 def name_from_path(infile_path):
     """
@@ -72,12 +74,108 @@ def collect_technologies(module_name):
         except BaseException:
             string_attr = ''
 
-        if 'Technology' in string_attr:
-            print(f"{member} is Technology")
+        # if 'Technology' in string_attr:
+        if isinstance(attrib, Technology):
             technologies.append(getattr(module_name, member))
-            print(f"using isinstance: {isinstance(attrib, Technology)}")
 
     return technologies
+
+
+def _collect_commodities(technology_list):
+    """
+    Collects the unique commodities from the PyGenesys input file.
+    Each list of commodities (demand, resource, emission) should be
+    a unique set. Numpy.unique cannot compare objects, so an empty
+    dictionary is initialized and populated with Commodity names
+    for keys and Commodity objects for values. Therefore only unique
+    commodities will be returned.
+
+    NOTE: This function fails to collect all commodities. Commodities must
+    be explicitly listed in the input file for now!
+
+
+    This function should be extended to account for cases where
+    the input and output commodities are lists (i.e. when there's
+    a ``techinputsplit``).
+    """
+
+    demand = {}
+    resource = {}
+    emission_dict = {}
+
+    for tech in technology_list:
+        for region in tech.regions:
+            print(f'REGION: {region}')
+            input_comm = tech.input_comm[region]
+            output_comm = tech.output_comm[region]
+
+            print(f'Commodity types for {tech.tech_name}')
+            print(f"{type(input_comm)}")
+            print(f"{type(output_comm)}")
+            # check the input commodity type
+            if isinstance(input_comm, Commodity):
+                # resource
+                if input_comm.comm_name not in resource:
+                    resource[input_comm.comm_name] = input_comm
+                    continue
+                else:
+                    continue
+            elif isinstance(input_comm, list):
+                for comm in input_comm:
+                    if (isinstance(comm, Commodity)) and \
+                       (comm.comm_name not in resource):
+                        resource[comm.comm_name] = comm
+                    else:
+                        continue
+            else:
+                print(f'Input commodity for {tech.tech_name} in {region} '
+                      'is not a resource. Check input file.')
+
+            if isinstance(output_comm, DemandCommodity):
+                # demand
+                demand[output_comm.comm_name] = output_comm
+                # if output_comm.comm_name not in demand:
+                #     demand[output_comm.comm_name] = output_comm
+                #     continue
+                # else:
+                #     continue
+            elif isinstance(output_comm, Commodity):
+                # resource
+                if output_comm.comm_name not in resource:
+                    resource[output_comm.comm_name] = output_comm
+                    continue
+                else:
+                    continue
+
+            elif isinstance(output_comm, EmissionsCommodity):
+                # emission
+                print(f"Warning: Output commodity of {tech.tech_name}"
+                      f"is an Emission Commodity. Check input file.")
+                continue
+            try:
+                emissions = tech.emissions[region]
+                print(f"{type(emissions)}")
+
+                # loop through emissions commodities
+                for emis in list(emissions.keys()):
+                    if (isinstance(emis, EmissionsCommodity)) and \
+                       (emis.comm_name not in emission_dict):
+                        emission_dict[emis.comm_name] = emis
+                    else:
+                        continue
+            except BaseException:
+                pass
+
+    resources = list(resource.values())
+    demands = list(demand.values())
+    emissions_list = list(emission_dict.values())
+
+    if len(demands) == 0:
+        print('Warning: Input file has no technologies that satisfy demands.')
+        print('No demands written to database. Consider adding a transmission'
+              'technology.')
+
+    return resources, demands, emissions_list
 
 
 def main():
@@ -98,6 +196,8 @@ def main():
     # get infile technologies
     technology_list = collect_technologies(infile)
 
+
+
     # create the model object
     model = model_info.ModelInfo(output_db=out_path,
                                  scenario_name=infile.scenario_name,
@@ -115,15 +215,32 @@ def main():
                                  )
     print(f"Database will be exported to {model.output_db} \n")
 
-    # print('=========================\n')
-    # print(f"{technology_list}")
-    # print('=========================\n')
 
-    print(f"The years simulated by the model are \n {model.time_horizon} \n")
-
-    # Should check if the model is to be written to a sql or sqlite database
     model._write_sqlite_database()
 
     print("Input file written successfully.\n")
+
+    # create the config file
+    print("Writing Temoa config file.\n")
+
+    config_template = 'config_template.txt'
+    fname = name_from_path(out_db)
+    print(f'File name: {fname}\n')
+    conf_name = f'run_{fname}.txt'
+    vars = {'target_dir':infile.folder,
+            'file_name':fname+'.sqlite',
+            'scenario':infile.scenario_name}
+
+    # outpath should be one folder up.
+    path = infile.curr_dir
+    # split_path = infile.curr_dir.split('/')
+    # path = "/".join(split_path[:-1])
+    print(f'{infile.curr_dir}\n')
+    print(f'{path}\n')
+    rendered = render_input(input_path='default',
+                            input_fname='default',
+                            variable_dict=vars,
+                            output_path=path,
+                            output_fname=conf_name)
 
     return

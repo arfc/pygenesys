@@ -4,7 +4,7 @@
 # Defines Technology
 # =============================================================================
 # =============================================================================
-
+import numpy as np
 
 class Technology(object):
     """
@@ -24,7 +24,9 @@ class Technology(object):
                  category='',
                  reserve_tech=False,
                  ramping_tech=False,
-                 storage_tech=False
+                 storage_tech=False,
+                 curtailed_tech=False,
+                 exchange_tech=False,
                  ):
         """
         This class contains information about a technology used
@@ -85,6 +87,8 @@ class Technology(object):
         self.reserve_tech = reserve_tech
         self.ramping_tech = ramping_tech
         self.storage_tech = storage_tech
+        self.curtailed_tech = curtailed_tech
+        self.exchange_tech = exchange_tech
         self.regions = []
         self.input_comm = {}
         self.output_comm = {}
@@ -100,6 +104,8 @@ class Technology(object):
         self.ramp_down = {}
         self.storage_duration = {}
         self.emissions = {}
+        self.max_capacity = {}
+        self.min_capacity = {}
 
         return
 
@@ -140,7 +146,9 @@ class Technology(object):
             "ramp_up": self.ramp_up,
             "ramp_down": self.ramp_down,
             "storage_duration": self.storage_duration,
-            "emissions": self.emissions
+            "emissions": self.emissions,
+            "max_capacity":self.max_capacity,
+            "min_capacity":self.min_capacity,
         }
 
         # check if region is a list or a string
@@ -150,7 +158,7 @@ class Technology(object):
             else:
                 self.regions.append(region)
             for kw in kwargs:
-                print(kw, kwargs[kw])
+                # print(kw, kwargs[kw])
                 attribute = attr_dict[kw]
                 attribute[region] = kwargs[kw]
 
@@ -158,14 +166,14 @@ class Technology(object):
             self.regions += region
             self.regions = list(np.unique(self.regions))
             for kw in kwargs:
-                print(kw, kwargs[kw])
+                # print(kw, kwargs[kw])
                 attribute = attr_dict[kw]
                 for pl in region:
                     attribute[pl] = kwargs[kw]
 
-        print(self.input_comm)
-        print(self.output_comm)
-        print(self.efficiency)
+        # print(self.input_comm)
+        # print(self.output_comm)
+        # print(self.efficiency)
         return
 
 

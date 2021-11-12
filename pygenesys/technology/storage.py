@@ -14,3 +14,13 @@ LI_BATTERY = Technology(tech_name='LI_BATTERY',
                         category='storage',
                         capacity_to_activity=8.76,
                         storage_tech=True)
+
+CW_STORAGE = Technology(tech_name='CW_STORAGE',
+                        units='million ton-hours refrigeration',
+                        tech_sector='chilled water',
+                        tech_label='ps',
+                        description='chilled water storage tanks',
+                        category='storage',
+                        capacity_to_activity=0.00876,
+                        storage_tech=True,
+                        ramping_tech=True)

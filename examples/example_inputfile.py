@@ -40,6 +40,7 @@ discount_rate = 0.05  # The discount rate applied globally.
 
 # Import commodities here
 from pygenesys.commodity.resource import electricity, steam, ethos, uranium_leu
+from pygenesys.commodity.resource import nuclear_steam
 from pygenesys.commodity.demand import ELC_DEMAND, STM_DEMAND
 from pygenesys.commodity.emissions import co2eq
 ELC_DEMAND.add_demand(region='IL',
@@ -79,6 +80,7 @@ STM_DEMAND.set_distribution(region='UIUC',
 from pygenesys.technology.supply import imp_natgas
 from pygenesys.technology.electric import NUCLEAR_ELC, SOLAR_FARM
 from pygenesys.technology.storage import LI_BATTERY
+from pygenesys.technology.transmission import STM_TUNNEL, TRANSMISSION
 
 # import technology data from EIA
 from pygenesys.data.eia_data import get_eia_generators, get_existing_capacity
@@ -151,13 +153,23 @@ LI_BATTERY.add_regional_data(region='IL',
                              storage_duration=8,
                              loan_lifetime=10)
 
+STM_TUNNEL.add_regional_data(region='UIUC',
+                             input_comm=[steam, nuclear_steam],
+                             output_comm=STM_DEMAND,
+                             efficiency=1.00,
+                             tech_lifetime=1000,)
+TRANSMISSION.add_regional_data(region='IL',
+                               input_comm=electricity,
+                               output_comm=ELC_DEMAND,
+                               efficiency=0.81,
+                               tech_lifetime=1000)
 
 co2eq.add_regional_limit(region='IL',
                          limits={2030:100, 2050:0.0})
 
 # Collect the commodities here
 demands_list = [ELC_DEMAND, STM_DEMAND]
-resources_list = [electricity, steam, ethos]
+resources_list = [electricity, steam, ethos, nuclear_steam]
 emissions_list = [co2eq]
 
 
