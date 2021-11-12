@@ -68,7 +68,7 @@ database_filename = 'my_temoadb.sqlite'  # where the database will be written
 scenario_name = 'test'
 start_year = 2025
 end_year = 2050
-year_step = 5
+N_years = 5
 N_seasons = 4 # the number of seasons in the model
 N_hours = 24 # the number of hours in a day
 ```
