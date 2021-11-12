@@ -105,6 +105,7 @@ class Technology(object):
         self.storage_duration = {}
         self.emissions = {}
         self.max_capacity = {}
+        self.min_capacity = {}
 
         return
 
@@ -147,6 +148,7 @@ class Technology(object):
             "storage_duration": self.storage_duration,
             "emissions": self.emissions,
             "max_capacity":self.max_capacity,
+            "min_capacity":self.min_capacity,
         }
 
         # check if region is a list or a string

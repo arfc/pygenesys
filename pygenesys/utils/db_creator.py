@@ -1583,15 +1583,29 @@ def create_emissions_activity(connector, technology_list, time_horizon):
             except BaseException:
                 years = time_horizon
             for emis in emissions_list:
-                db_entry = [(place,
-                             emis.comm_name,
-                             tech.input_comm[place].comm_name,
-                             tech.tech_name,
-                             int(vintage),
-                             tech.output_comm[place].comm_name,
-                             tech.emissions[place][emis],
-                             f"{emis.units}/{tech.output_comm[place].units}",
-                             '') for vintage in years]
+                # check if dictionary
+                emis_data = tech.emissions[place][emis]
+                if (isinstance(emis_data, float)) or (isinstance(emis_data, int)):
+                    db_entry = [(place,
+                                 emis.comm_name,
+                                 tech.input_comm[place].comm_name,
+                                 tech.tech_name,
+                                 int(vintage),
+                                 tech.output_comm[place].comm_name,
+                                 emis_data,
+                                 f"{emis.units}/{tech.output_comm[place].units}",
+                                 '') for vintage in years]
+                elif isinstance(emis_data, dict):
+                    vintages = list(emis_data.keys())
+                    db_entry = [(place,
+                                 emis.comm_name,
+                                 tech.input_comm[place].comm_name,
+                                 tech.tech_name,
+                                 int(vintage),
+                                 tech.output_comm[place].comm_name,
+                                 emis_data[vintage],
+                                 f"{emis.units}/{tech.output_comm[place].units}",
+                                 '') for vintage in vintages]
                 entries += db_entry
     cursor.executemany(insert_command, entries)
     connector.commit()
@@ -1669,6 +1683,54 @@ def create_max_capacity(connector, technology_list):
 
     return
 
+def create_min_capacity(connector, technology_list):
+    """
+    This function writes the MinCapacity constraint in Temoa.
+    """
+    table_command = """CREATE TABLE "MinCapacity" (
+                    	"regions"	text,
+                    	"periods"	integer,
+                    	"tech"	text,
+                    	"maxcap"	real,
+                    	"maxcap_units"	text,
+                    	"maxcap_notes"	text,
+                    	PRIMARY KEY("regions","periods","tech"),
+                    	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+    insert_command = """INSERT INTO MinCapacity VALUES (?,?,?,?,?,?)"""
+
+    cursor=connector.cursor()
+
+    entries = []
+    for tech in technology_list:
+
+        # check constraint exists
+        if len(tech.min_capacity) > 0:
+            max_capacity = tech.min_capacity
+        else:
+            continue
+
+        for place in list(min_capacity.keys()):
+            periods = list(min_capacity[place].keys())
+            mincap = list(min_capacity[place].values())
+
+            db_entry = [(place,
+                         period,
+                         tech.tech_name,
+                         cap,
+                         tech.units,
+                         '') for period, cap in zip(periods, mincap)]
+
+            entries += db_entry
+
+    cursor.execute(table_command)
+    cursor.executemany(insert_command, entries)
+    connector.commit()
+
+    return
+
+
 def create_tech_exchange(connector, technology_list):
     """
     This function creates the tech exchange table.
@@ -1692,6 +1754,19 @@ def create_tech_exchange(connector, technology_list):
     connector.commit()
     return
 
+
+
+def create_MyopicBaseYear(connector):
+    table_command = """CREATE TABLE "MyopicBaseyear" (
+                	"year"	real
+                	"notes"	text
+                    );
+                 """
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return
 
 """
 
@@ -1760,13 +1835,6 @@ return
 
 
 def create_():
-CREATE TABLE "MyopicBaseyear" (
-	"year"	real
-	"notes"	text
-);
-return
-
-def create_():
 CREATE TABLE "MinGenGroupWeight" (
 	"regions"	text,
 	"tech"	text,
@@ -1788,19 +1856,6 @@ CREATE TABLE "MinGenGroupTarget" (
 );
 return
 
-def create_():
-CREATE TABLE "MinCapacity" (
-	"regions"	text,
-	"periods"	integer,
-	"tech"	text,
-	"mincap"	real,
-	"mincap_units"	text,
-	"mincap_notes"	text,
-	PRIMARY KEY("regions","periods","tech"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
-);
-return
 
 def create_():
 CREATE TABLE "MinActivity" (

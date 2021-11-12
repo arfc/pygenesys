@@ -186,6 +186,7 @@ class ModelInfo(object):
         create_tech_curtailment(conn, self.technologies)
         create_tech_exchange(conn, self.technologies)
         create_max_capacity(conn, self.technologies)
+        create_min_capacity(conn, self.technologies)
         create_existing_capacity(conn, self.technologies, self.time_horizon)
         create_efficiency(conn, self.technologies, self.time_horizon)
         create_emissions_activity(conn, self.technologies, self.time_horizon)
@@ -196,6 +197,7 @@ class ModelInfo(object):
                                     self.technologies,
                                     time_slices,
                                     seasons)
+        create_MyopicBaseYear(conn)
 
         # output tables
         create_output_vcapacity(conn)

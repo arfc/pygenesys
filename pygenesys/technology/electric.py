@@ -69,6 +69,16 @@ NATGAS_CONV = Technology(tech_name='NATGAS_CONV',
                         ramping_tech=True,
                         reserve_tech=True)
 
+BIOMASS = Technology(tech_name='BIOMASS',
+                     units="MWe",
+                     tech_sector='electricity',
+                     tech_label='pb',
+                     description='dedicated biomass plant',
+                     category='natural gas',
+                     capacity_to_activity=8.76,
+                     ramping_tech=False,
+                     reserve_tech=True)
+
 COAL_ADV = Technology(tech_name='COAL_ADV',
                       units="MWth",
                       tech_sector='electricity',
