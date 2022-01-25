@@ -29,7 +29,7 @@ def get_date():
     day = today[1]
     year = today[2]
 
-    return month, day, year
+    return month, day, int(year)
 
 
 def get_eia_generators(month=None, year=None):
