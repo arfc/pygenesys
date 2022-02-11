@@ -634,15 +634,26 @@ def create_efficiency(connector, technology_list, future):
                 entries += data
 
             # if the technology has two or more inputs and one output
-            # and the two inputs have the SAME efficiency.
             elif (isinstance(in_comm, list)) and (type(out_comm) in comm_types):
-                for comm in in_comm:
+                N_inputs = len(in_comm)
+                assert N_inputs == len(tech.efficiency[place]), "Mismatched number of inputs and efficiencies"
+                # pass to tech_input_split
+                eff_list = tech.efficiency[place]
+                create_tech_input_split(connector,
+                                        place,
+                                        tech,
+                                        future,
+                                        in_comm,
+                                        eff_list)
+                tot_eff=np.array(eff_list).sum()
+                for comm, eff in zip(in_comm, eff_list):
                     data = [(place,
                              str(comm.comm_name),
                              str(tech.tech_name),
                              int(year),
                              str(out_comm.comm_name),
-                             tech.efficiency[place],
+                             # 1.0/N_inputs,
+                             1.0/tot_eff,
                              'NULL'
                              ) for year in years]
                     entries += data
@@ -1707,7 +1718,7 @@ def create_min_capacity(connector, technology_list):
 
         # check constraint exists
         if len(tech.min_capacity) > 0:
-            max_capacity = tech.min_capacity
+            min_capacity = tech.min_capacity
         else:
             continue
 
@@ -1768,6 +1779,52 @@ def create_MyopicBaseYear(connector):
     connector.commit()
     return
 
+
+def create_tech_input_split(connector, region, tech, time_periods, comm_list, eff_list):
+    """
+    Creates the tech input split table
+    """
+
+    table_command = """
+                    CREATE TABLE "TechInputSplit" (
+                    	"regions"	TEXT,
+                    	"periods"	integer,
+                    	"input_comm"	text,
+                    	"tech"	text,
+                    	"ti_split"	real,
+                    	"ti_split_notes"	text,
+                    	PRIMARY KEY("regions","periods","input_comm","tech"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+                    	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
+                    	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
+                    );"""
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+
+    # I think this is the correct way to do an input split... not sure how
+    # else to break it down.
+    # ti_split = round(1/len(eff_list),3)
+
+    entries = []
+    tot_units = np.array(eff_list).sum()
+    for comm, eff in zip(comm_list, eff_list):
+        ti_split = np.round(eff/tot_units,3)
+        # ti_split = eff/len(comm_list)
+        entry = [(region,
+                 int(year),
+                 comm.comm_name,
+                 tech.tech_name,
+                 ti_split,
+                 '') for year in time_periods]
+        entries += entry
+
+    insert_command = "INSERT INTO TechInputSplit VALUES (?,?,?,?,?,?)"
+    cursor.executemany(insert_command, entries)
+
+    connector.commit()
+    return
+
 """
 
 
@@ -1819,19 +1876,7 @@ CREATE TABLE "TechOutputSplit" (
 return
 
 def create_():
-CREATE TABLE "TechInputSplit" (
-	"regions"	TEXT,
-	"periods"	integer,
-	"input_comm"	text,
-	"tech"	text,
-	"ti_split"	real,
-	"ti_split_notes"	text,
-	PRIMARY KEY("regions","periods","input_comm","tech"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
-);
-return
+
 
 
 def create_():
