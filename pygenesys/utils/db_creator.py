@@ -557,6 +557,8 @@ def create_technologies(connector, technology_list):
         All of the technologies initialized in the input file
     """
 
+
+
     table_command = """
                     CREATE TABLE "technologies" (
                     "tech"	text,
@@ -1825,6 +1827,31 @@ def create_tech_input_split(connector, region, tech, time_periods, comm_list, ef
     connector.commit()
     return
 
+def create_lifetime_process(connector):
+    """
+    Creates the table LifetimeProcess.
+
+    ****************************
+    This function is INCOMPLETE.
+    ****************************
+    """
+
+    table_command = """CREATE TABLE "LifetimeProcess" (
+                    	"regions"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"life_process"	real,
+                    	"life_process_notes"	text,
+                    	PRIMARY KEY("regions","tech","vintage"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return
+
 """
 
 
@@ -1932,17 +1959,6 @@ CREATE TABLE "MaxActivity" (
 return
 
 def create_():
-CREATE TABLE "LifetimeProcess" (
-	"regions"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"life_process"	real,
-	"life_process_notes"	text,
-	PRIMARY KEY("regions","tech","vintage"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
 
 
 def create_():
