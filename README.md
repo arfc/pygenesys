@@ -1,9 +1,9 @@
-# Python for Generating Energy Systems (PyGenESys)
+# Python for Generating Energy Systems (PyGenesys)
 
-This package can be used to generate input files for the [Temoa](https://github.com/temoaproject/temoa) modelling tool. Transparency and repeatability are integral to the design motivations for Temoa. PyGenESys takes this concept
+This package can be used to generate input files for the [Temoa](https://github.com/temoaproject/temoa) modelling tool. Transparency and repeatability are integral to the design motivations for Temoa. PyGenesys takes this concept
 even further by reducing the lead time and programming background required to
 run Temoa.
-PyGenESys offers technology models with cost and production time series data.
+PyGenesys offers technology models with cost and production time series data.
 The basic model is based on the state of Illinois and its flagship university, the University of Illinois at Urbana-Champaign.
 
 ## Install Temoa (TODO: add details)
@@ -41,7 +41,7 @@ $ pip install .
 
 #### Option 2: Editable Installation
 This option is for people that want to develop PyGenesys. By doing
-this method, any changes you make to the PyGenESys source code will
+this method, any changes you make to the PyGenesys source code will
 take immediate effect on your local machine.
 
 ```bash
@@ -50,7 +50,7 @@ $ pip install -e .
 
 and you're done!
 
-## Running PyGenESys
+## Running PyGenesys
 
 ``pygenesys`` is a package that is intended to be a simple and intuitive interface to run Temoa.
 
@@ -154,11 +154,11 @@ The Demand distribution specifies load profiles. For example, electricity demand
 might peak in the summer at noon and natural gas demand might peak in the
 winter at night. This method specifies those differences.
 
-** PyGenESys currently only handles demand distributions with 24 hour slices and
+** PyGenesys currently only handles demand distributions with 24 hour slices and
 four annual seasons. Distributions for time slices with fewer or more time slices
 should be generated manually and passed as a list or numpy array.**
 
-PyGenESys has a small library of built in data in ``pygenesys.data.library``.
+PyGenesys has a small library of built in data in ``pygenesys.data.library``.
 
 ```py
 from pygenesys.data.library import campus_elc_demand
