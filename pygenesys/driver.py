@@ -134,7 +134,6 @@ def _collect_commodities(technology_list):
             if isinstance(output_comm, DemandCommodity):
                 # demand
                 demand[output_comm.comm_name] = output_comm
-                
             elif isinstance(output_comm, Commodity):
                 # resource
                 if output_comm.comm_name not in resource:
