@@ -181,9 +181,9 @@ def _collect_commodities(technology_list):
 def main():
 
     # Read commandline arguments
-    ap = argparse.ArgumentParser(description='PyGenesys Parameters')
-    ap.add_argument('--infile', help='the name of the input file')
-    args = ap.parse_args()
+    parser = argparse.ArgumentParser(description='PyGenesys Parameters')
+    parser.add_argument('--infile', help='the name of the input file')
+    args = parser.parse_args()
     print(f"Reading input from {args.infile} \n")
 
     infile = load_infile(args.infile)
