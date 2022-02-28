@@ -24,8 +24,7 @@ class ModelInfo(object):
                  reserve_margin,
                  global_discount):
         """
-        This class holds information about the PyGenesys and
-        Temoa model.
+        Initalize the ModelInfo object
 
         Parameters
         ----------
