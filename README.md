@@ -1,9 +1,9 @@
 # Python for Generating Energy Systems (PyGenESys)
 
-This package can be used to generate input files for the [Temoa](https://github.com/temoaproject/temoa) modelling tool. Transparency and repeatability are integral to the design motivations for Temoa. PyGenesys takes this concept
+This package can be used to generate input files for the [Temoa](https://github.com/temoaproject/temoa) modelling tool. Transparency and repeatability are integral to the design motivations for Temoa. PyGenESys takes this concept
 even further by reducing the lead time and programming background required to
 run Temoa.
-PyGenesys offers technology models with cost and production time series data.
+PyGenESys offers technology models with cost and production time series data.
 The basic model is based on the state of Illinois and its flagship university, the University of Illinois at Urbana-Champaign.
 
 ## Install Temoa (TODO: add details)
