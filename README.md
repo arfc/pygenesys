@@ -41,7 +41,7 @@ $ pip install .
 
 #### Option 2: Editable Installation
 This option is for people that want to develop PyGenesys. By doing
-this method, any changes you make to the PyGenesys source code will
+this method, any changes you make to the PyGenESys source code will
 take immediate effect on your local machine.
 
 ```bash
@@ -50,14 +50,14 @@ $ pip install -e .
 
 and you're done!
 
-## Running PyGenesys
+## Running PyGenESys
 
-``PyGenesys`` is a package that is intended to be a simple and intuitive interface to run Temoa.
+``pygenesys`` is a package that is intended to be a simple and intuitive interface to run Temoa.
 
 ### Step 1: Create your input file.
 
 #### Step 1.1: Simulation Metadata
-A ``PyGenesys`` input file is written in Python with clear and verbose variable names. The
+A ``pygenesys`` input file is written in Python with clear and verbose variable names. The
 beginning should look something like this:
 
 ```py
@@ -80,7 +80,7 @@ The first two lines
 import os
 curr_dir = os.path.dirname(__file__)
 ```
-are recommended, but not required. These lines tell ``PyGenesys`` to save the
+are recommended, but not required. These lines tell ``pygenesys`` to save the
 database in the same directory as your input file. Otherwise, the database will
 be saved in the ``pygenesys/pygenesys`` folder.
 
@@ -154,11 +154,11 @@ The Demand distribution specifies load profiles. For example, electricity demand
 might peak in the summer at noon and natural gas demand might peak in the
 winter at night. This method specifies those differences.
 
-** PyGenesys currently only handles demand distributions with 24 hour slices and
+** PyGenESys currently only handles demand distributions with 24 hour slices and
 four annual seasons. Distributions for time slices with fewer or more time slices
 should be generated manually and passed as a list or numpy array.**
 
-PyGenesys has a small library of built in data in ``pygenesys.data.library``.
+PyGenESys has a small library of built in data in ``pygenesys.data.library``.
 
 ```py
 from pygenesys.data.library import campus_elc_demand
