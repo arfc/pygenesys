@@ -188,6 +188,7 @@ class ModelInfo(object):
         create_max_capacity(conn, self.technologies)
         create_min_capacity(conn, self.technologies)
         create_existing_capacity(conn, self.technologies, self.time_horizon)
+        create_tech_input_split(conn)
         create_efficiency(conn, self.technologies, self.time_horizon)
         create_emissions_activity(conn, self.technologies, self.time_horizon)
         create_invest_cost(conn, self.technologies, self.time_horizon)
