@@ -161,7 +161,12 @@ class DemandCommodity(Commodity):
                          n_seasons=4,
                          n_hours=24,
                          normalize=True,
-                         kind='demand'):
+                         kind='demand',
+                         with='pygenesys',
+                         groupby='season',
+                         add_peak=False,
+                         add_weekend=False,
+                         how=None):
         """
         This function generates a distribution time series. The sum
         of this distribution must be equal to unity. If users
@@ -185,12 +190,15 @@ class DemandCommodity(Commodity):
             The path to the data.
         """
         if normalize:
-            distribution_calculator = choose_distribution_method(n_seasons,
-                                                                 n_hours)
-            distribution = distribution_calculator(data,
-                                                   n_seasons,
-                                                   n_hours,
-                                                   kind)
+            distribution = aggregate(data,
+                                     n_seasons,
+                                     n_hours,
+                                     kind,
+                                     groupby
+                                     add_peak,
+                                     add_weekend,
+                                     how
+                                     )
         elif not normalize:
             distribution = data
 

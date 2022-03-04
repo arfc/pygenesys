@@ -1,119 +1,175 @@
 import numpy as np
 import pandas as pd
+import datetime as dt
 
 
-def choose_distribution_method(N_seasons, N_hours):
+
+def timeseries_preprocess(ts):
     """
-    This function returns a function that appropriately calculates
-    the distribution based on the specified time slices. In the
-    future, there may be a way to make this more generic.
-
-    Parameters
-    ----------
-    data_path : string
-        The path to the data. It should be a .csv file.
-    N_seasons : integer
-        The number of seasons in the energy system model.
-    N_hours : integer
-        The hourly resolution of the energy system model.
-
-    Returns
-    -------
-    distribution_func : function
-        The function to generate a specific distribution of data.
+    This function preprocesses data ensuring there
+    are no NaN values and no missing hours.
     """
-    distribution_func = None
 
-    if (N_seasons == 4) and (N_hours == 24):
-        distribution_func = four_seasons_hourly
-    elif (N_seasons==12) and (N_hours==24):
-        distribution_func = monthly_hourly
-    elif (N_seasons==52) and (N_hours==24):
-        distribution_func = weekly_hourly
-    elif (N_seasons == 365) and (N_hours == 24):
-        distribution_func = daily_hourly
-    return distribution_func
+    time_series = ts.copy()
+    time_series = time_series.resample('H').mean()
+    time_series.interpolate('linear', inplace=True)
+
+    start = time_series.index.date[0]
+    end = time_series.tail(1).index[0]
+
+    idx_name = time_series.index.name
+
+    indx_df = pd.DataFrame({idx_name:pd.date_range(start, end, freq='H')})
+    indx_df.set_index(idx_name, inplace=True)
+    time_series = pd.concat([indx_df,
+                             time_series],
+                             axis=1).interpolate('linear').backfill()
+
+    return time_series
 
 
-def four_seasons_hourly(data_path, N_seasons=4, N_hours=24, kind='demand'):
+
+def load_duration_curve(df):
     """
-    This function calculates a seasonal trend based on the
-    input data. Answers the question: what fraction of the annual
-    demand is consumed at this time of the year?
-
-    Parameters
-    ----------
-    data_path : string
-        The path to the time series data
-            * must be a ``.csv`` file
-            * nust have a column ``time`` that is a pandas datetime column
-        Tips:
-            * Sometimes a dataset will have an index column that can
-              be read as an ``Unnamed Column: 0``. If a user supplies
-              their own data, this should be removed where applicable.
-    kind : string
-        The string representing the kind of profile we're interested in.
-        Accepts: 'CF', 'cf', 'demand', 'Demand', 'DEMAND'
-            'CF' : A capacity factor profile is returned (sum != 1).
-            'Demand': Returns a demand profile (sum = 1)
-    N_seasons : integer
-        The number of seasons in the energy system model.
-    N_hours : integer
-        The hourly resolution of the energy system model.
-
-    Returns
-    -------
-    distribution : numpy array
-        The time series data distributed over the specified time
-        slices.
+    Returns the load duration curve data
     """
-    time_series = pd.read_csv(data_path,
-                              usecols=[0, 1],
-                              index_col=['time'],
-                              parse_dates=True,
-                              )
 
-    # assumes northern latitudes
-    spring_mask = ((time_series.index.month >= 3) &
-                   (time_series.index.month <= 5))
-    summer_mask = ((time_series.index.month >= 6) &
-                   (time_series.index.month <= 8))
-    fall_mask = ((time_series.index.month >= 9) &
-                 (time_series.index.month <= 11))
-    winter_mask = ((time_series.index.month == 12) |
-                   (time_series.index.month == 1) |
-                   (time_series.index.month == 2))
+    data = np.array(df.iloc[:,0])
+    sorted_data = np.sort(data)[::-1]
+    pct = np.linspace(0,100, len(sorted_data))
+
+    return pct, sorted_data
+
+
+def get_peak_day(dataframe):
+    """
+    This function retrieves the peak day for a given timeseries.
+    """
+
+    time_series = dataframe.copy()
+    idx = time_series.where(time_series == time_series.max()).dropna().index.date[0]
+    idx_delta = idx + dt.timedelta(days=1)
+    peak_day = time_series[idx:idx_delta][:24]
+
+    return peak_day
+
+
+def get_weekends(dataframe):
+    """
+    This function retrieves the peak day for a given timeseries.
+    """
+
+    time_series = dataframe.copy()
+    weekend_mask = (time_series.index.weekday==5) | (time_series.index.weekday==6)
+    weekends = time_series[weekend_mask]
+    weekend_hourly = weekends.groupby(weekends.index.hour).mean()[:24]
+
+    return weekend_hourly
+
+
+def get_season_masks(df):
+    """
+    Returns seasonal masks for given timeseries.
+    """
+    spring_mask = ((df.index.month >= 3) & (df.index.month <= 5))
+    summer_mask = ((df.index.month >= 6) & (df.index.month <= 8))
+    fall_mask = ((df.index.month >= 9) & (df.index.month <= 11))
+    winter_mask = ((df.index.month == 12) | (df.index.month == 1) |
+                   (df.index.month == 2))
 
     seasons = {'spring': spring_mask,
                'summer': summer_mask,
                'fall': fall_mask,
                'winter': winter_mask}
 
-    # initialize dictionary
-    seasonal_hourly_profile = np.zeros((N_seasons, N_hours))
-    for i, season in enumerate(seasons):
-        mask = seasons[season]
-        season_df = time_series[mask]
-        hours_grouped = season_df.groupby(season_df.index.hour)
+    return seasons
 
-        avg_hourly = np.zeros(len(hours_grouped))
-        std_hourly = np.zeros(len(hours_grouped))
-        for j, hour in enumerate(hours_grouped.groups):
-            hour_data = hours_grouped.get_group(hour)
-            avg_hourly[j] = hour_data.iloc[:, 0].mean()
-            std_hourly[j] = hour_data.iloc[:, 0].std()
 
-        if kind.lower() == "demand":
-            data = (avg_hourly / (N_seasons * avg_hourly.sum()))
-        elif kind.lower() == "cf":
-            data = (avg_hourly / (time_series.iloc[:, 0].max()))
+def four_seasons_hourly(dataframe,
+                        N_seasons=4,
+                        N_hours=24,
+                        kind='demand',
+                        add_peak=False,
+                        add_weekend=False,
+                        how=None, N_segments=1):
+    """
+    This function calculates a seasonal trend based on the
+    input data. Answers the question: what fraction of the annual
+    demand is consumed at this time of the year?
 
-        seasonal_hourly_profile[i] = data
+    Parameters
+    ----------
+    dataframe : string, or pandas dataframe
+        The path to the time series data or a pandas dataframe
+            * must be a ``.csv`` file
+            * nust have a column ``time`` that is a pandas datetime column
+        Tips:
+            * Sometimes a dataset will have an index column that can
+              be read as an ``Unnamed Column: 0``. If a user supplies
+              their own data, this should be removed where applicable.
+    kind : string
+        The string representing the kind of profile we're interested in.
+        Accepts: 'CF', 'cf', 'demand', 'Demand', 'DEMAND'
+            'CF' : A capacity factor profile is returned (sum != 1).
+            'Demand': Returns a demand profile (sum = 1)
+    N_seasons : integer
+        The number of seasons in the energy system model.
+    N_hours : integer
+        The hourly resolution of the energy system model.
+    how : string
+        The time series aggregation method. Only used in ``tsprocess.create_timeslices``
+        which depends on the ``tsam`` package.
+
+    Returns
+    -------
+    distribution : numpy array
+        The time series data distributed over the specified time
+        slices.
+    """
+    if isinstance(dataframe, str):
+        time_series = pd.read_csv(dataframe,
+                                  usecols=[0, 1],
+                                  index_col=['time'],
+                                  parse_dates=True,
+                                  )
+    elif isinstance(dataframe, pd.DataFrame):
+        time_series = dataframe
+
+    # assumes northern latitudes
+    seasons = get_season_masks(time_series)
+
+    seasonal_hourly_profile = np.zeros((N_seasons,N_hours))
+    for i, season in enumerate(list(seasons.values())):
+        season_df = time_series[season]
+        idx = int(N_segments*i)
+        seasonal_hourly_profile[idx] = season_df.groupby(season_df.index.hour).mean().values.reshape((24,))
+
+        if add_peak:
+            idx += 1
+            peak_day = get_peak_day(season_df).values.reshape((24,))
+            seasonal_hourly_profile[idx] = peak_day
+
+        if add_weekend:
+            idx += 1
+            weekend = get_weekends(season_df).values.reshape((24,))
+            seasonal_hourly_profile[idx] = weekend
+
+    if kind.lower() == "demand":
+        seasonal_hourly_profile = (seasonal_hourly_profile / (seasonal_hourly_profile.sum()))
+    elif kind.lower() == "cf":
+        seasonal_hourly_profile = (seasonal_hourly_profile / (time_series.iloc[:, 0].max()))
 
     return seasonal_hourly_profile
 
 
-def monthly_hourly(data_path, N_seasons=12, N_hours=24, kind='demand'):
+def aggregate(dataframe,
+              N_seasons=4,
+              N_hours=24,
+              kind='demand',
+              groupby='season',
+              add_peak=False,
+              add_weekend=False,
+              how=None):
     """
     This function calculates a seasonal trend based on the
     input data. Answers the question: what fraction of the annual
@@ -121,8 +177,8 @@ def monthly_hourly(data_path, N_seasons=12, N_hours=24, kind='demand'):
 
     Parameters
     ----------
-    data_path : string
-        The path to the time series data
+    dataframe : string, or pandas dataframe
+        The path to the time series data or a pandas dataframe
             * must be a ``.csv`` file
             * nust have a column ``time`` that is a pandas datetime column
         Tips:
@@ -134,10 +190,24 @@ def monthly_hourly(data_path, N_seasons=12, N_hours=24, kind='demand'):
         Accepts: 'CF', 'cf', 'demand', 'Demand', 'DEMAND'
             'CF' : A capacity factor profile is returned (sum != 1).
             'Demand': Returns a demand profile (sum = 1)
+    groupby : string
+        Indicates how the time series should be grouped.
+        Accepts:
+            * season : data will be grouped by seasons.
+            * month : data will be grouped by months.
+            * week : data will be grouped by week of year.
+            * day : data will be grouped by day of year.
     N_seasons : integer
         The number of seasons in the energy system model.
     N_hours : integer
         The hourly resolution of the energy system model.
+    how : string
+        The time series aggregation method. Only used in ``tsprocess.create_timeslices``
+        which depends on the ``tsam`` package.
+    add_peak : boolean
+        Indicates whether desired time slices include peak days.
+    add_weekend : boolean
+        Indicates whether desired time slices include weekends.
 
     Returns
     -------
@@ -145,113 +215,90 @@ def monthly_hourly(data_path, N_seasons=12, N_hours=24, kind='demand'):
         The time series data distributed over the specified time
         slices.
     """
-    time_series = pd.read_csv(data_path,
-                              usecols=[0, 1],
-                              index_col=['time'],
-                              parse_dates=True,
-                              )
+    # read in the data
+    if isinstance(dataframe, str):
+        time_series = pd.read_csv(dataframe,
+                                  usecols=[0, 1],
+                                  index_col=['time'],
+                                  parse_dates=True,
+                                  )
+    elif isinstance(dataframe, pd.DataFrame):
+        time_series = dataframe
 
+    time_series = timeseries_preprocess(time_series)
+
+    # how many period segments to calculate
+    N_segments = 1 + int(add_peak) + int(add_weekend)
+
+
+    N_per_year = {'season':4,
+                  'month':12,
+                  'week':52,
+                  'day':365}
+    #
+    # if int(N_seasons/N_segments) < N_per_year[groupby]:
+    #     raise Exception(f"Not enough seasons in model. Change N_seasons to {N_per_year[groupby]*N_segments}")
+
+    hourly_profiles = np.zeros((N_seasons, N_hours))
+
+    # group the time series
+    if groupby == 'season':
+        hourly_profiles = four_seasons_hourly(dataframe,
+                                              N_seasons=N_seasons,
+                                              N_hours=N_hours,
+                                              kind=kind,
+                                              add_peak=add_peak,
+                                              add_weekend=add_weekend,
+                                              N_segments=N_segments)
+        return hourly_profiles
+
+    # all other cases
+    elif groupby == 'month':
+        grouped = time_series.groupby(time_series.index.month)
+    elif groupby == 'week':
+        grouped = time_series.groupby(time_series.index.isocalendar().week)
+    elif groupby == 'day':
+        grouped = time_series.groupby(time_series.index.dayofyear)
     # initialize dictionary
-
-    months_grouped = time_series.groupby(time_series.index.month)
-
-    monthly_hourly_profile = np.zeros((N_seasons, N_hours))
-    for i, month in enumerate(months_grouped.groups):
-        month_df = months_grouped.get_group(month)
-        hours_grouped = month_df.groupby(month_df.index.hour)
-
-        avg_hourly = np.zeros(len(hours_grouped))
-        std_hourly = np.zeros(len(hours_grouped))
-        for j, hour in enumerate(hours_grouped.groups):
-            hour_data = hours_grouped.get_group(hour)
-            avg_hourly[j] = hour_data.iloc[:, 0].mean()
-            std_hourly[j] = hour_data.iloc[:, 0].std()
-
-        if kind.lower() == "demand":
-            data = (avg_hourly / (N_seasons * avg_hourly.sum()))
-        elif kind.lower() == "cf":
-            data = (avg_hourly / (time_series.iloc[:, 0].max()))
-
-        monthly_hourly_profile[i] = data
-
-    return monthly_hourly_profile
-
-
-def weekly_hourly(data_path, N_seasons=52, N_hours=24, kind='demand'):
-    """
-    This function calculates a seasonal trend based on the
-    input data. Answers the question: what fraction of the annual
-    demand is consumed at this time of the year?
-
-    Parameters
-    ----------
-    data_path : string
-        The path to the time series data
-            * must be a ``.csv`` file
-            * nust have a column ``time`` that is a pandas datetime column
-        Tips:
-            * Sometimes a dataset will have an index column that can
-              be read as an ``Unnamed Column: 0``. If a user supplies
-              their own data, this should be removed where applicable.
-    kind : string
-        The string representing the kind of profile we're interested in.
-        Accepts: 'CF', 'cf', 'demand', 'Demand', 'DEMAND'
-            'CF' : A capacity factor profile is returned (sum != 1).
-            'Demand': Returns a demand profile (sum = 1)
-    N_seasons : integer
-        The number of seasons in the energy system model.
-    N_hours : integer
-        The hourly resolution of the energy system model.
-
-    Returns
-    -------
-    distribution : numpy array
-        The time series data distributed over the specified time
-        slices.
-    """
-    time_series = pd.read_csv(data_path,
-                              usecols=[0, 1],
-                              index_col=['time'],
-                              parse_dates=True,
-                              )
-
-    # initialize dictionary
-
-    weeks_grouped = time_series.groupby(time_series.index.isocalendar().week)
-
-    weekly_hourly_profile = np.zeros((N_seasons, N_hours))
-    for i, week in enumerate(weeks_grouped.groups):
-        if i >= 52:
+    for i, group in enumerate(grouped.groups):
+        if (group > 52) and (groupby=='week'):
             continue
-        week_df = weeks_grouped.get_group(week)
-        hours_grouped = week_df.groupby(week_df.index.hour)
+        elif (group > 365) and (groupby=='day'):
+            continue
+        group_df = grouped.get_group(group)
 
-        avg_hourly = np.zeros(len(hours_grouped))
-        std_hourly = np.zeros(len(hours_grouped))
-        for j, hour in enumerate(hours_grouped.groups):
-            hour_data = hours_grouped.get_group(hour)
-            avg_hourly[j] = hour_data.iloc[:, 0].mean()
-            std_hourly[j] = hour_data.iloc[:, 0].std()
+        idx = int(N_segments*i)
+        hourly_profiles[idx] = group_df.groupby(group_df.index.hour).mean().values.reshape((24,))
 
-        if kind.lower() == "demand":
-            data = (avg_hourly / (N_seasons * avg_hourly.sum()))
-        elif kind.lower() == "cf":
-            data = (avg_hourly / (time_series.iloc[:, 0].max()))
+        if add_peak:
+            idx += 1
+            peak_day = get_peak_day(group_df).values.reshape((24,))
+            hourly_profiles[idx] = peak_day
 
-        weekly_hourly_profile[i] = data
-
-    return weekly_hourly_profile
+        if add_weekend:
+            idx += 1
+            weekend = get_weekends(group_df).values.reshape((24,))
+            hourly_profiles[idx] = weekend
 
 
-def daily_hourly(data_path, N_seasons=365, N_hours=24, kind='demand'):
+    if kind.lower() == "demand":
+        hourly_profiles = (hourly_profiles / (hourly_profiles.sum()))
+    elif kind.lower() == "cf":
+        hourly_profiles = (hourly_profiles / (time_series.iloc[:, 0].max()))
+
+
+    return hourly_profiles
+
+
+def create_timeslices(dataframe, normalize=None, n_seasons=4, n_hours=24, how='averaging'):
     """
-    This function calculates a seasonal trend based on the
+    This function calculates representative time slices based on the
     input data. Answers the question: what fraction of the annual
     demand is consumed at this time of the year?
 
     Parameters
     ----------
-    data_path : string
+    dataframe : string or pandas.DataFrame
         The path to the time series data
             * must be a ``.csv`` file
             * must have a column ``time`` that is a pandas datetime column
@@ -259,11 +306,19 @@ def daily_hourly(data_path, N_seasons=365, N_hours=24, kind='demand'):
             * Sometimes a dataset will have an index column that can
               be read as an ``Unnamed Column: 0``. If a user supplies
               their own data, this should be removed where applicable.
-
+    normalize : string
+        Indicates the type of normalization. Accepts "demand" and "cf."
+            * "demand" normalizes by the sum of the aggregated data. The resultant
+            sum is unity (i.e. the l-1 norm).
+            * "cf" normalizes by the maximum value of the aggregated data (i.e.
+            the infinity norm)
     N_seasons : integer
         The number of seasons in the energy system model.
     N_hours : integer
         The hourly resolution of the energy system model.
+    how : string
+        The time series aggregation method. Only used in ``tsprocess.create_timeslices``
+        which depends on the ``tsam`` package.
 
     Returns
     -------
@@ -271,42 +326,34 @@ def daily_hourly(data_path, N_seasons=365, N_hours=24, kind='demand'):
         The time series data distributed over the specified time
         slices.
     """
-    try:
-        time_series = pd.read_csv(data_path,
+
+    if isinstance(dataframe, str):
+        time_series = pd.read_csv(dataframe,
                                   usecols=[0, 1],
                                   index_col=['time'],
                                   parse_dates=True,
                                   )
-    except BaseException:
-        except_string = """
-                        Could not import time series data. Check the following:
+    elif isinstance(dataframe, pd.DataFrame):
+        time_series = dataframe
 
-                        1. That the path to the file is correct.
-                        2. The dataset has two columns: "time" and a column
-                           with your data.
-                        3. The "time" column has a pandas datetime index.
-                        """
-        print(except_string)
+    aggregation = tsam.TimeSeriesAggregation(time_series,
+                                             noTypicalPeriods=n_seasons,
+                                             hoursPerPeriod=24,
+                                             clusterMethod=how)
 
-    time_series = time_series.resample('H').mean()
-    time_series.interpolate('linear', inplace=True)
-    years_grouped = time_series.groupby(time_series.index.year)
-    data_list = []
-    for year in years_grouped.groups:
-        data = years_grouped.get_group(year)
-        if len(data) >= 8760:
-            data_list.append(np.array(data.iloc[:, 0])[:8760])
-        else:
-            pass
-            # data_list.append(np.array(data.iloc[:, 0]))
-    data_list = np.array(data_list)
-    average_profile = data_list.mean(axis=0)
-    if kind.lower() == "demand":
-        daily_hourly_profile = average_profile / average_profile.sum()
-    elif kind.lower() == "cf":
-        daily_hourly_profile = (
-            average_profile / (time_series.iloc[:, 0].max()))
-    return daily_hourly_profile
+    typPeriods = aggregation.createTypicalPeriods()
+
+    if normalize == 'demand':
+        sum_val = typPeriods.iloc[:,0].sum()
+        typPeriods.iloc[:,0] = typPeriods.iloc[:,0]/sum_val
+
+    elif normalize == 'cf':
+        max_val = typPeriods.iloc[:,0].max()
+        typPeriods.iloc[:,0] = typPeriods.iloc[:,0]/max_val
+
+    profile = typPeriods.iloc[:,0].values
+
+    return profile
 
 
 if __name__ == '__main__':
@@ -314,36 +361,3 @@ if __name__ == '__main__':
     from pygenesys.data.library import campus_stm_demand, campus_elc_demand
     from pygenesys.data.library import railsplitter_data, solarfarm_data
     import matplotlib.pyplot as plt
-    plt.style.use('ggplot')
-
-    seasons = {0: 'spring',
-               1: 'summer',
-               2: 'fall',
-               3: 'winter'}
-
-    months_list = ['January', 'February', 'March', 'April','May', 'June',
-                   'July', 'August', 'September','October','November','December']
-
-    months = dict(enumerate(months_list))
-    print(months)
-
-    N_seasons = 52
-    N_hours = 24
-    path = '~/research/2021-dotson-ms/data/pjm_hourly_demand.csv'
-    method = choose_distribution_method(N_seasons, N_hours)
-    # profile = method(solarfarm_data, kind='cf')
-    # profile = method(campus_elc_demand, kind='demand')
-    profile = method(path, kind='demand')
-    print(profile.sum())
-    for i in range(N_seasons):
-        plt.plot(range(N_hours),
-                 profile[i],
-                 # label=f'{months[i].capitalize()}',
-                 marker='.')
-    # plt.scatter(range(N_hours*N_seasons),
-    #          profile,
-    #          marker='.')
-    # plt.plot(profile)
-    plt.legend()
-    plt.show()
-    # print(len(profile))
