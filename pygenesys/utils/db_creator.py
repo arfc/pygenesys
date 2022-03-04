@@ -641,7 +641,7 @@ def create_efficiency(connector, technology_list, future):
                 assert N_inputs == len(tech.efficiency[place]), "Mismatched number of inputs and efficiencies"
                 # pass to tech_input_split
                 eff_list = tech.efficiency[place]
-                create_tech_input_split(connector,
+                add_tech_input_split(connector,
                                         place,
                                         tech,
                                         future,
@@ -1782,7 +1782,7 @@ def create_MyopicBaseYear(connector):
     return
 
 
-def create_tech_input_split(connector, region, tech, time_periods, comm_list, eff_list):
+def create_tech_input_split(connector):
     """
     Creates the tech input split table
     """
@@ -1803,6 +1803,16 @@ def create_tech_input_split(connector, region, tech, time_periods, comm_list, ef
 
     cursor = connector.cursor()
     cursor.execute(table_command)
+
+    connector.commit()
+    return
+
+
+def add_tech_input_split(connector, region, tech, time_periods, comm_list, eff_list):
+    """
+    Adds data to the tech input split table
+    """
+    cursor = connector.cursor()
 
     # I think this is the correct way to do an input split... not sure how
     # else to break it down.
@@ -1826,6 +1836,7 @@ def create_tech_input_split(connector, region, tech, time_periods, comm_list, ef
 
     connector.commit()
     return
+
 
 def create_lifetime_process(connector):
     """
