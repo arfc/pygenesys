@@ -1,5 +1,5 @@
 from pygenesys.utils.growth_model import choose_growth_method
-from pygenesys.utils.tsprocess import choose_distribution_method
+from pygenesys.utils.tsprocess import aggregate
 import numpy as np
 
 # ==============================================================================

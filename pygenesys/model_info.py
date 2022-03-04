@@ -199,7 +199,7 @@ class ModelInfo(object):
                                     seasons)
         create_MyopicBaseYear(conn)
         create_lifetime_process(conn)
-        
+
         # output tables
         create_output_vcapacity(conn)
         create_output_vflow_out(conn)

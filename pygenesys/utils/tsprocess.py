@@ -3,7 +3,6 @@ import pandas as pd
 import datetime as dt
 
 
-
 def timeseries_preprocess(ts):
     """
     This function preprocesses data ensuring there
@@ -19,14 +18,13 @@ def timeseries_preprocess(ts):
 
     idx_name = time_series.index.name
 
-    indx_df = pd.DataFrame({idx_name:pd.date_range(start, end, freq='H')})
+    indx_df = pd.DataFrame({idx_name: pd.date_range(start, end, freq='H')})
     indx_df.set_index(idx_name, inplace=True)
     time_series = pd.concat([indx_df,
                              time_series],
-                             axis=1).interpolate('linear').backfill()
+                            axis=1).interpolate('linear').backfill()
 
     return time_series
-
 
 
 def load_duration_curve(df):
@@ -34,9 +32,9 @@ def load_duration_curve(df):
     Returns the load duration curve data
     """
 
-    data = np.array(df.iloc[:,0])
+    data = np.array(df.iloc[:, 0])
     sorted_data = np.sort(data)[::-1]
-    pct = np.linspace(0,100, len(sorted_data))
+    pct = np.linspace(0, 100, len(sorted_data))
 
     return pct, sorted_data
 
@@ -47,7 +45,8 @@ def get_peak_day(dataframe):
     """
 
     time_series = dataframe.copy()
-    idx = time_series.where(time_series == time_series.max()).dropna().index.date[0]
+    idx = time_series.where(
+        time_series == time_series.max()).dropna().index.date[0]
     idx_delta = idx + dt.timedelta(days=1)
     peak_day = time_series[idx:idx_delta][:24]
 
@@ -60,7 +59,9 @@ def get_weekends(dataframe):
     """
 
     time_series = dataframe.copy()
-    weekend_mask = (time_series.index.weekday==5) | (time_series.index.weekday==6)
+    weekend_mask = (
+        time_series.index.weekday == 5) | (
+        time_series.index.weekday == 6)
     weekends = time_series[weekend_mask]
     weekend_hourly = weekends.groupby(weekends.index.hour).mean()[:24]
 
@@ -138,11 +139,12 @@ def four_seasons_hourly(dataframe,
     # assumes northern latitudes
     seasons = get_season_masks(time_series)
 
-    seasonal_hourly_profile = np.zeros((N_seasons,N_hours))
+    seasonal_hourly_profile = np.zeros((N_seasons, N_hours))
     for i, season in enumerate(list(seasons.values())):
         season_df = time_series[season]
-        idx = int(N_segments*i)
-        seasonal_hourly_profile[idx] = season_df.groupby(season_df.index.hour).mean().values.reshape((24,))
+        idx = int(N_segments * i)
+        seasonal_hourly_profile[idx] = season_df.groupby(
+            season_df.index.hour).mean().values.reshape((24,))
 
         if add_peak:
             idx += 1
@@ -155,9 +157,11 @@ def four_seasons_hourly(dataframe,
             seasonal_hourly_profile[idx] = weekend
 
     if kind.lower() == "demand":
-        seasonal_hourly_profile = (seasonal_hourly_profile / (seasonal_hourly_profile.sum()))
+        seasonal_hourly_profile = (
+            seasonal_hourly_profile / (seasonal_hourly_profile.sum()))
     elif kind.lower() == "cf":
-        seasonal_hourly_profile = (seasonal_hourly_profile / (time_series.iloc[:, 0].max()))
+        seasonal_hourly_profile = (
+            seasonal_hourly_profile / (time_series.iloc[:, 0].max()))
 
     return seasonal_hourly_profile
 
@@ -230,11 +234,10 @@ def aggregate(dataframe,
     # how many period segments to calculate
     N_segments = 1 + int(add_peak) + int(add_weekend)
 
-
-    N_per_year = {'season':4,
-                  'month':12,
-                  'week':52,
-                  'day':365}
+    N_per_year = {'season': 4,
+                  'month': 12,
+                  'week': 52,
+                  'day': 365}
     #
     # if int(N_seasons/N_segments) < N_per_year[groupby]:
     #     raise Exception(f"Not enough seasons in model. Change N_seasons to {N_per_year[groupby]*N_segments}")
@@ -261,14 +264,16 @@ def aggregate(dataframe,
         grouped = time_series.groupby(time_series.index.dayofyear)
     # initialize dictionary
     for i, group in enumerate(grouped.groups):
-        if (group > 52) and (groupby=='week'):
+        if (group > 52) and (groupby == 'week'):
             continue
-        elif (group > 365) and (groupby=='day'):
+        elif (group > 365) and (groupby == 'day'):
             continue
         group_df = grouped.get_group(group)
 
-        idx = int(N_segments*i)
-        hourly_profiles[idx] = group_df.groupby(group_df.index.hour).mean().values.reshape((24,))
+        idx = int(N_segments * i)
+        hourly_profiles[idx] = group_df.groupby(
+            group_df.index.hour).mean().values.reshape(
+            (24,))
 
         if add_peak:
             idx += 1
@@ -280,17 +285,20 @@ def aggregate(dataframe,
             weekend = get_weekends(group_df).values.reshape((24,))
             hourly_profiles[idx] = weekend
 
-
     if kind.lower() == "demand":
         hourly_profiles = (hourly_profiles / (hourly_profiles.sum()))
     elif kind.lower() == "cf":
         hourly_profiles = (hourly_profiles / (time_series.iloc[:, 0].max()))
 
-
     return hourly_profiles
 
 
-def create_timeslices(dataframe, normalize=None, n_seasons=4, n_hours=24, how='averaging'):
+def create_timeslices(
+        dataframe,
+        normalize=None,
+        n_seasons=4,
+        n_hours=24,
+        how='averaging'):
     """
     This function calculates representative time slices based on the
     input data. Answers the question: what fraction of the annual
@@ -344,14 +352,14 @@ def create_timeslices(dataframe, normalize=None, n_seasons=4, n_hours=24, how='a
     typPeriods = aggregation.createTypicalPeriods()
 
     if normalize == 'demand':
-        sum_val = typPeriods.iloc[:,0].sum()
-        typPeriods.iloc[:,0] = typPeriods.iloc[:,0]/sum_val
+        sum_val = typPeriods.iloc[:, 0].sum()
+        typPeriods.iloc[:, 0] = typPeriods.iloc[:, 0] / sum_val
 
     elif normalize == 'cf':
-        max_val = typPeriods.iloc[:,0].max()
-        typPeriods.iloc[:,0] = typPeriods.iloc[:,0]/max_val
+        max_val = typPeriods.iloc[:, 0].max()
+        typPeriods.iloc[:, 0] = typPeriods.iloc[:, 0] / max_val
 
-    profile = typPeriods.iloc[:,0].values
+    profile = typPeriods.iloc[:, 0].values
 
     return profile
 
