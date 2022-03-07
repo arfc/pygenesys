@@ -162,7 +162,6 @@ class DemandCommodity(Commodity):
                          n_hours=24,
                          normalize=True,
                          kind='demand',
-                         with='pygenesys',
                          groupby='season',
                          add_peak=False,
                          add_weekend=False,
@@ -194,7 +193,7 @@ class DemandCommodity(Commodity):
                                      n_seasons,
                                      n_hours,
                                      kind,
-                                     groupby
+                                     groupby,
                                      add_peak,
                                      add_weekend,
                                      how
