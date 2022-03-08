@@ -1772,6 +1772,9 @@ def create_tech_exchange(connector, technology_list):
 
 
 def create_MyopicBaseYear(connector):
+    """
+    Creates the MyopicBaseYear table.
+    """
     table_command = """CREATE TABLE "MyopicBaseyear" (
                 	"year"	real
                 	"notes"	text

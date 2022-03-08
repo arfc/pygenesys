@@ -204,8 +204,6 @@ def main():
     # get infile technologies
     technology_list = collect_technologies(infile)
 
-    # technology_list
-
     # create the model object
     model = model_info.ModelInfo(output_db=out_path,
                                  scenario_name=infile.scenario_name,

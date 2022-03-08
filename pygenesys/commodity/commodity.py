@@ -187,6 +187,18 @@ class DemandCommodity(Commodity):
             The region identifier.
         data_path : string
             The path to the data.
+        kind : string
+            Indicates the kind of normalization. Default is "demand."
+        groupby : string
+            Indicates how the timeseries will be grouped. Default is "season."
+        add_peak : boolean
+            Adds peak day to the set of representative time slices for each
+            period.
+        add_weekend : boolean
+            Adds average weekend to the set of representative time slices for
+            each period.
+        how : string
+            The aggregation method. Only for use with the `tsam` package.
         """
         if normalize:
             distribution = aggregate(data,

@@ -30,6 +30,18 @@ def timeseries_preprocess(ts):
 def load_duration_curve(df):
     """
     Returns the load duration curve data
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The pandas dataframe with load data.
+
+    Returns
+    -------
+    pct : numpy.array
+        A numpy array containing the time percent, (0,100)
+    sorted_data : numpy.array
+        The sorted data, highest to lowest.
     """
 
     data = np.array(df.iloc[:, 0])

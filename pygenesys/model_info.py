@@ -116,7 +116,9 @@ class ModelInfo(object):
         return seg_frac
 
     def _collect_regions(self):
-
+        """
+        Collects the unique list of regions in the simulation.
+        """
         regions = []
         for demand_comm in self.commodities['demand']:
             comm_regions = list(demand_comm.demand.keys())
@@ -126,6 +128,9 @@ class ModelInfo(object):
         return np.unique(regions)
 
     def _collect_tech_sectors(self):
+        """
+        Collects the unique tech sectors in the simulation.
+        """
 
         sectors = np.unique([t.tech_sector for t in self.technologies])
 
