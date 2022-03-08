@@ -5,3 +5,4 @@ pandas
 sphinx
 sphinxcontrib-napoleon
 m2r
+jinja2

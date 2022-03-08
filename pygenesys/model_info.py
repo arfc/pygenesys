@@ -1,6 +1,6 @@
 import numpy as np
 import sqlite3
-from pygenesys.db_creator import *
+from pygenesys.utils.db_creator import *
 
 
 class ModelInfo(object):
@@ -14,9 +14,15 @@ class ModelInfo(object):
                  scenario_name,
                  start_year,
                  end_year,
-                 year_step,
+                 N_years,
                  N_seasons,
-                 N_hours):
+                 N_hours,
+                 technologies,
+                 demands,
+                 resources,
+                 emissions,
+                 reserve_margin,
+                 global_discount):
         """
         This class holds information about the PyGenesys and
         Temoa model.
@@ -38,28 +44,49 @@ class ModelInfo(object):
         N_seasons : int
             The number of seasons in the simulation. Several values
             are acceptable. E.g.
-                * 1; there are no seasonal differences
+                * 1; there are no seasonal differences (not implemented)
                 * 4; spring,summer,fall,winter
                 * 365; full year, daily resolution
         N_hours : int
             The number of hours in the simulation. Several values
             are acceptable. E.g.
-                * 1; there is no daily variation
-                * 2; diurnal variation, step function
+                * 1; there is no daily variation  (not implemented)
+                * 2; diurnal variation, step function (not implemented)
                 * 24; full day, hourly resolution
+        commodities : dictionary
+            A dictionary of the demand, resource, and emissions commodities.
+        technologies : list
+            A list of ``Technology`` objects
+        reserve_margin : float
+            The value of the "planning reserve margin." This value forces
+            Temoa to include enough excess capacity above peak demand to
+            ensure reliability. E.g. reserve_margin = 0.3 corresponds to
+            a Planning Reserve Margin of 30 percent, or total generating
+            capacity that is 30 percent greater than the annual peak demand.
         """
 
         self.output_db = output_db
         self.scenario_name = scenario_name
         self.start_year = start_year
         self.end_year = end_year
-        self.year_step = year_step
+        self.N_years = N_years
         self.N_seasons = N_seasons
         self.N_hours = N_hours
+        self.commodities = {
+            'demand': demands,
+            'resources': resources,
+            'emissions': emissions
+        }
+        self.technologies = technologies
+        self.reserve_margin = reserve_margin
+        self.global_discount = global_discount
 
         # derived quantities
         self.time_horizon = self._calculate_time_horizon()
+        self.existing_years = self._collect_existing_years()
         self.seg_frac = self._calculate_seg_frac()
+        self.regions = self._collect_regions()
+        self.tech_sectors = self._collect_tech_sectors()
 
         return
 
@@ -70,11 +97,11 @@ class ModelInfo(object):
         database.
         """
 
-        time_horizon = [(year, 'f') for year in range(self.start_year,
-                                                      (self.end_year +
-                                                       self.year_step + 1),
-                                                      self.year_step)]
-        return time_horizon
+        years = np.linspace(self.start_year,
+                            self.end_year,
+                            self.N_years).astype('int')
+
+        return years
 
     def _calculate_seg_frac(self):
         """
@@ -88,19 +115,100 @@ class ModelInfo(object):
 
         return seg_frac
 
+    def _collect_regions(self):
+
+        regions = []
+        for demand_comm in self.commodities['demand']:
+            comm_regions = list(demand_comm.demand.keys())
+            for r in comm_regions:
+                regions.append(r)
+
+        return np.unique(regions)
+
+    def _collect_tech_sectors(self):
+
+        sectors = np.unique([t.tech_sector for t in self.technologies])
+
+        return sectors
+
+    def _collect_existing_years(self):
+        """
+        Collects a unique list of existing years from the technologies
+        in the model.
+        """
+        years = []
+        for tech in self.technologies:
+            for place in tech.regions:
+                try:
+                    ex_years = list(tech.existing_capacity[place].keys())
+                    years += ex_years
+                except BaseException:
+                    continue
+
+        return np.unique(years)
+
     def _write_sqlite_database(self):
         """
-        Writes model info directly to a sqlite database.
+        Writes model info directly to an sqlite database.
         """
 
         conn = establish_connection(self.output_db)
-
+        conn.execute("PRAGMA foreign_keys = 1")
         # create fundamental tables
         seasons = create_time_season(conn, self.N_seasons)
         create_time_period_labels(conn)
-        create_time_periods(conn, self.time_horizon)
+        create_time_periods(conn, self.time_horizon, self.existing_years)
+        # create_existing_periods(conn, self.technology_list)
         time_slices = create_time_of_day(conn, self.N_hours)
         create_segfrac(conn, self.seg_frac, seasons, time_slices)
+        create_regions(conn, self.regions)
+        create_commodity_labels(conn)
+        create_commodities(conn, self.commodities)
+        create_emissions_limit(conn, self.commodities['emissions'])
+        create_global_discount(conn, self.global_discount)
+        create_reserve_margin(conn, self.reserve_margin)
+        create_demand_table(conn,
+                            self.commodities['demand'],
+                            self.time_horizon)
+        create_demand_specific_distribution(conn,
+                                            self.commodities['demand'],
+                                            time_slices,
+                                            seasons)
+        create_technology_labels(conn)
+        create_sectors(conn, self.tech_sectors)
+        create_technologies(conn, self.technologies)
+        create_capacity_to_activity(conn, self.technologies)
+        create_lifetime_tech(conn, self.technologies)
+        create_loan_lifetime(conn, self.technologies)
+        create_tech_reserve(conn, self.technologies)
+        create_tech_ramping(conn, self.technologies)
+        create_tech_storage(conn, self.technologies)
+        create_tech_curtailment(conn, self.technologies)
+        create_tech_exchange(conn, self.technologies)
+        create_max_capacity(conn, self.technologies)
+        create_min_capacity(conn, self.technologies)
+        create_existing_capacity(conn, self.technologies, self.time_horizon)
+        create_tech_input_split(conn)
+        create_efficiency(conn, self.technologies, self.time_horizon)
+        create_emissions_activity(conn, self.technologies, self.time_horizon)
+        create_invest_cost(conn, self.technologies, self.time_horizon)
+        create_variable_cost(conn, self.technologies, self.time_horizon)
+        create_fixed_cost(conn, self.technologies, self.time_horizon)
+        create_capacity_factor_tech(conn,
+                                    self.technologies,
+                                    time_slices,
+                                    seasons)
+        create_MyopicBaseYear(conn)
 
+        # output tables
+        create_output_vcapacity(conn)
+        create_output_vflow_out(conn)
+        create_output_vflow_in(conn)
+        create_output_objective(conn)
+        create_output_curtailment(conn)
+        create_output_emissions(conn)
+        create_output_costs(conn)
+        create_output_duals(conn)
+        create_output_capacitybyperiodtech(conn)
         conn.close()
         return
