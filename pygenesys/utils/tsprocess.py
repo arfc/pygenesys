@@ -250,10 +250,7 @@ def aggregate(dataframe,
                   'month': 12,
                   'week': 52,
                   'day': 365}
-    #
-    # if int(N_seasons/N_segments) < N_per_year[groupby]:
-    #     raise Exception(f"Not enough seasons in model. Change N_seasons to {N_per_year[groupby]*N_segments}")
-
+                  
     hourly_profiles = np.zeros((N_seasons, N_hours))
 
     # group the time series
