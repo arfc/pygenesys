@@ -84,7 +84,6 @@ def collect_technologies(module_name):
         if isinstance(attrib, Technology):
             technologies.append(getattr(module_name, member))
 
-    # print(technologies)
 
     return technologies
 
@@ -204,7 +203,6 @@ def main():
     # get infile technologies
     technology_list = collect_technologies(infile)
 
-    # technology_list
 
     # create the model object
     model = model_info.ModelInfo(output_db=out_path,
