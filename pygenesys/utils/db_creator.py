@@ -636,7 +636,8 @@ def create_efficiency(connector, technology_list, future):
             # if the technology has two or more inputs and one output
             elif (isinstance(in_comm, list)) and (type(out_comm) in comm_types):
                 N_inputs = len(in_comm)
-                assert N_inputs == len(tech.efficiency[place]), "Mismatched number of inputs and efficiencies"
+                assert N_inputs == len(
+                    tech.efficiency[place]), "Mismatched number of inputs and efficiencies"
                 # pass to tech_input_split
                 eff_list = tech.efficiency[place]
                 add_tech_input_split(connector,
@@ -645,7 +646,7 @@ def create_efficiency(connector, technology_list, future):
                                         future,
                                         in_comm,
                                         eff_list)
-                tot_eff=np.array(eff_list).sum()
+                tot_eff = np.array(eff_list).sum()
                 for comm, eff in zip(in_comm, eff_list):
                     data = [(place,
                              str(comm.comm_name),
@@ -653,7 +654,7 @@ def create_efficiency(connector, technology_list, future):
                              int(year),
                              str(out_comm.comm_name),
                              # 1.0/N_inputs,
-                             1.0/tot_eff,
+                             1.0 / tot_eff,
                              'NULL'
                              ) for year in years]
                     entries += data
@@ -1596,27 +1597,30 @@ def create_emissions_activity(connector, technology_list, time_horizon):
             for emis in emissions_list:
                 # check if dictionary
                 emis_data = tech.emissions[place][emis]
-                if (isinstance(emis_data, float)) or (isinstance(emis_data, int)):
-                    db_entry = [(place,
-                                 emis.comm_name,
-                                 tech.input_comm[place].comm_name,
-                                 tech.tech_name,
-                                 int(vintage),
-                                 tech.output_comm[place].comm_name,
-                                 emis_data,
-                                 f"{emis.units}/{tech.output_comm[place].units}",
-                                 '') for vintage in years]
+                if (isinstance(emis_data, float)) or (
+                        isinstance(emis_data, int)):
+                    db_entry = [
+                        (place,
+                         emis.comm_name,
+                         tech.input_comm[place].comm_name,
+                            tech.tech_name,
+                            int(vintage),
+                            tech.output_comm[place].comm_name,
+                            emis_data,
+                            f"{emis.units}/{tech.output_comm[place].units}",
+                            '') for vintage in years]
                 elif isinstance(emis_data, dict):
                     vintages = list(emis_data.keys())
-                    db_entry = [(place,
-                                 emis.comm_name,
-                                 tech.input_comm[place].comm_name,
-                                 tech.tech_name,
-                                 int(vintage),
-                                 tech.output_comm[place].comm_name,
-                                 emis_data[vintage],
-                                 f"{emis.units}/{tech.output_comm[place].units}",
-                                 '') for vintage in vintages]
+                    db_entry = [
+                        (place,
+                         emis.comm_name,
+                         tech.input_comm[place].comm_name,
+                            tech.tech_name,
+                            int(vintage),
+                            tech.output_comm[place].comm_name,
+                            emis_data[vintage],
+                            f"{emis.units}/{tech.output_comm[place].units}",
+                            '') for vintage in vintages]
                 entries += db_entry
     cursor.executemany(insert_command, entries)
     connector.commit()
@@ -1664,7 +1668,7 @@ def create_max_capacity(connector, technology_list):
                     );"""
     insert_command = """INSERT INTO MaxCapacity VALUES (?,?,?,?,?,?)"""
 
-    cursor=connector.cursor()
+    cursor = connector.cursor()
 
     entries = []
     for tech in technology_list:
@@ -1694,6 +1698,7 @@ def create_max_capacity(connector, technology_list):
 
     return
 
+
 def create_min_capacity(connector, technology_list):
     """
     This function writes the MinCapacity constraint in Temoa.
@@ -1711,7 +1716,7 @@ def create_min_capacity(connector, technology_list):
                     );"""
     insert_command = """INSERT INTO MinCapacity VALUES (?,?,?,?,?,?)"""
 
-    cursor=connector.cursor()
+    cursor = connector.cursor()
 
     entries = []
     for tech in technology_list:
@@ -1766,8 +1771,10 @@ def create_tech_exchange(connector, technology_list):
     return
 
 
-
 def create_MyopicBaseYear(connector):
+    """
+    Creates the MyopicBaseYear table.
+    """
     table_command = """CREATE TABLE "MyopicBaseyear" (
                 	"year"	real
                 	"notes"	text
@@ -1819,14 +1826,14 @@ def add_tech_input_split(connector, region, tech, time_periods, comm_list, eff_l
     entries = []
     tot_units = np.array(eff_list).sum()
     for comm, eff in zip(comm_list, eff_list):
-        ti_split = np.round(eff/tot_units,3)
+        ti_split = np.round(eff / tot_units, 3)
         # ti_split = eff/len(comm_list)
         entry = [(region,
-                 int(year),
-                 comm.comm_name,
-                 tech.tech_name,
-                 ti_split,
-                 '') for year in time_periods]
+                  int(year),
+                  comm.comm_name,
+                  tech.tech_name,
+                  ti_split,
+                  '') for year in time_periods]
         entries += entry
 
     insert_command = "INSERT INTO TechInputSplit VALUES (?,?,?,?,?,?)"
@@ -1834,6 +1841,34 @@ def add_tech_input_split(connector, region, tech, time_periods, comm_list, eff_l
 
     connector.commit()
     return
+
+
+def create_lifetime_process(connector):
+    """
+    Creates the table LifetimeProcess.
+
+    ****************************
+    This function is INCOMPLETE.
+    ****************************
+    """
+
+    table_command = """CREATE TABLE "LifetimeProcess" (
+                    	"regions"	text,
+                    	"tech"	text,
+                    	"vintage"	integer,
+                    	"life_process"	real,
+                    	"life_process_notes"	text,
+                    	PRIMARY KEY("regions","tech","vintage"),
+                    	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+                    	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+                    );"""
+
+    cursor = connector.cursor()
+    cursor.execute(table_command)
+    connector.commit()
+    return
+
+
 """
 
 
@@ -1941,17 +1976,6 @@ CREATE TABLE "MaxActivity" (
 return
 
 def create_():
-CREATE TABLE "LifetimeProcess" (
-	"regions"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"life_process"	real,
-	"life_process_notes"	text,
-	PRIMARY KEY("regions","tech","vintage"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
-);
-return
 
 
 def create_():

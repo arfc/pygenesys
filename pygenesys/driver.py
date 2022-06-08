@@ -66,8 +66,14 @@ def collect_technologies(module_name):
     module_name : python module
         The PyGenesys input file once imported. Should be "infile."
     """
-    technologies = []
+    try:
+        technologies = module_name.tech_list
+        print(("Warning: Importing from technology list -- duplicate technologies\n"
+               " may result in compilation errors."))
+    except:
+        technologies = []
 
+    print("Collecting technologies from input file... \n")
     for member, attrib in inspect.getmembers(module_name):
         try:
             string_attr = str(attrib)
@@ -77,6 +83,8 @@ def collect_technologies(module_name):
         # if 'Technology' in string_attr:
         if isinstance(attrib, Technology):
             technologies.append(getattr(module_name, member))
+
+    # print(technologies)
 
     return technologies
 
@@ -195,8 +203,6 @@ def main():
 
     # get infile technologies
     technology_list = collect_technologies(infile)
-
-
 
     # create the model object
     model = model_info.ModelInfo(output_db=out_path,
