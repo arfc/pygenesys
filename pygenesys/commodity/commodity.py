@@ -1,5 +1,5 @@
 from pygenesys.utils.growth_model import choose_growth_method
-from pygenesys.utils.tsprocess import choose_distribution_method
+from pygenesys.utils.tsprocess import aggregate
 import numpy as np
 
 # ==============================================================================
@@ -161,7 +161,11 @@ class DemandCommodity(Commodity):
                          n_seasons=4,
                          n_hours=24,
                          normalize=True,
-                         kind='demand'):
+                         kind='demand',
+                         groupby='season',
+                         add_peak=False,
+                         add_weekend=False,
+                         how=None):
         """
         This function generates a distribution time series. The sum
         of this distribution must be equal to unity. If users
@@ -183,14 +187,29 @@ class DemandCommodity(Commodity):
             The region identifier.
         data_path : string
             The path to the data.
+        kind : string
+            Indicates the kind of normalization. Default is "demand."
+        groupby : string
+            Indicates how the timeseries will be grouped. Default is "season."
+        add_peak : boolean
+            Adds peak day to the set of representative time slices for each
+            period.
+        add_weekend : boolean
+            Adds average weekend to the set of representative time slices for
+            each period.
+        how : string
+            The aggregation method. Only for use with the `tsam` package.
         """
         if normalize:
-            distribution_calculator = choose_distribution_method(n_seasons,
-                                                                 n_hours)
-            distribution = distribution_calculator(data,
-                                                   n_seasons,
-                                                   n_hours,
-                                                   kind)
+            distribution = aggregate(data,
+                                     n_seasons,
+                                     n_hours,
+                                     kind,
+                                     groupby,
+                                     add_peak,
+                                     add_weekend,
+                                     how
+                                     )
         elif not normalize:
             distribution = data
 
