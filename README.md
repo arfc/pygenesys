@@ -1,4 +1,4 @@
-# Python for Generating Energy Systems (PyGenESys)
+# Python for Generating Energy Systems (PyGenesys)
 
 This package can be used to generate input files for the [Temoa](https://github.com/temoaproject/temoa) modelling tool. Transparency and repeatability are integral to the design motivations for Temoa. PyGenesys takes this concept
 even further by reducing the lead time and programming background required to
@@ -52,12 +52,12 @@ and you're done!
 
 ## Running PyGenesys
 
-``PyGenesys`` is a package that is intended to be a simple and intuitive interface to run Temoa.
+``pygenesys`` is a package that is intended to be a simple and intuitive interface to run Temoa.
 
 ### Step 1: Create your input file.
 
 #### Step 1.1: Simulation Metadata
-A ``PyGenesys`` input file is written in Python with clear and verbose variable names. The
+A ``pygenesys`` input file is written in Python with clear and verbose variable names. The
 beginning should look something like this:
 
 ```py
@@ -80,7 +80,7 @@ The first two lines
 import os
 curr_dir = os.path.dirname(__file__)
 ```
-are recommended, but not required. These lines tell ``PyGenesys`` to save the
+are recommended, but not required. These lines tell ``pygenesys`` to save the
 database in the same directory as your input file. Otherwise, the database will
 be saved in the ``pygenesys/pygenesys`` folder.
 

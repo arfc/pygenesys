@@ -142,11 +142,6 @@ def _collect_commodities(technology_list):
             if isinstance(output_comm, DemandCommodity):
                 # demand
                 demand[output_comm.comm_name] = output_comm
-                # if output_comm.comm_name not in demand:
-                #     demand[output_comm.comm_name] = output_comm
-                #     continue
-                # else:
-                #     continue
             elif isinstance(output_comm, Commodity):
                 # resource
                 if output_comm.comm_name not in resource:
@@ -189,9 +184,9 @@ def _collect_commodities(technology_list):
 def main():
 
     # Read commandline arguments
-    ap = argparse.ArgumentParser(description='PyGenesys Parameters')
-    ap.add_argument('--infile', help='the name of the input file')
-    args = ap.parse_args()
+    parser = argparse.ArgumentParser(description='PyGenesys Parameters')
+    parser.add_argument('--infile', help='the name of the input file')
+    args = parser.parse_args()
     print(f"Reading input from {args.infile} \n")
 
     infile = load_infile(args.infile)
@@ -239,8 +234,6 @@ def main():
 
     # outpath should be one folder up.
     path = infile.curr_dir
-    # split_path = infile.curr_dir.split('/')
-    # path = "/".join(split_path[:-1])
     print(f'{infile.curr_dir}\n')
     print(f'{path}\n')
     rendered = render_input(input_path='default',
