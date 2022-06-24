@@ -1,7 +1,7 @@
 Database Creator
 ----------------
 
-.. automodule:: pygenesys.db_creator
+.. automodule:: pygenesys.utils.db_creator
    :members:
    :undoc-members:
    :show-inheritance:

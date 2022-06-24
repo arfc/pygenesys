@@ -1,7 +1,7 @@
 Technology
 ----------
 
-.. automodule:: pygenesys.technology
+.. automodule:: pygenesys.technology.technology
    :members:
    :undoc-members:
    :show-inheritance:
