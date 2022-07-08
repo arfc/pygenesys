@@ -35,7 +35,10 @@ def get_date():
 def get_eia_generators(month=None, year=None):
     """
     This function returns a pandas dataframe containing information on
-    all electric generators in the United States. EIA form 860M
+    all electric generators in the United States from a recent EIA form 
+    860M. Note: EIA forms are often delayed therefore this function
+    subtracts four months from the current month to guarantee the file
+    exists to be downloaded.
 
     Parameters
     ----------
@@ -63,6 +66,10 @@ def get_eia_generators(month=None, year=None):
         'County'
     ]
 
+    # initialize 
+    m = 'thermidor'
+    y = 2
+
     if (month is None) and (year is None):
         m, d, y = get_date()
         month_idx = months.index(m.lower())
@@ -71,31 +78,31 @@ def get_eia_generators(month=None, year=None):
             y -= 1
         m = months[month_idx]
 
-    elif (month is None) and (year is not None):
-        print("no month given, year given")
-        pass
-
     elif (month is not None) and (year is not None):
-        print("date given")
+        print(f"Retrieving EIA Form 860m for {month.capitalize()} {year}")
         m = month
         y = year
-        pass
 
-    elif (month is not None) and (year is None):
-        print("month given, no year")
-        pass
+    elif ((month is None) or (year is None)):
+        
+        print(f"Month {month} / Year {year}")
+        raise ValueError(("Please specify a month and a year."))
+
 
     url = (f"https://www.eia.gov/electricity/data/eia860m/archive/xls/" +
            f"{m}_generator{y}.xlsx")
 
     try:
+        print(f'Downloading from {url}\n')
         df = pd.read_excel(url,
                            sheet_name='Operating',
                            skipfooter=2,
                            skiprows=2,
                            usecols=columns,
                            index_col='Entity ID')
+        print('Download successful.')
     except BaseException:
+        print('Download failed. Trying different sheet format.')
         try:
             df = pd.read_excel(url,
                                sheet_name='Operating',
@@ -103,14 +110,11 @@ def get_eia_generators(month=None, year=None):
                                skiprows=1,
                                usecols=columns,
                                index_col='Entity ID')
-        except BaseException:
-            from pygenesys.data.library import eia_electric_generators
-            df = pd.read_excel(eia_electric_generators,
-                               sheet_name='Operating',
-                               skipfooter=2,
-                               skiprows=2,
-                               usecols=columns,
-                               index_col='Entity ID')
+            print('Download successful.')
+        except ValueError:
+            fail_str = (f'Download failed. File not found' +
+                       f' for Month: {month} and Year: {year}')
+            raise ValueError(fail_str)
 
     return df
 
