@@ -313,6 +313,15 @@ directory of ``pygenesys``.
 $ pytest
 ```
 
+## Rendering the docs
+
+The documentation is generated using sphinx with numpy style docstrings,
+to render them locally run:
+
+```bash
+$ cd docs
+$ make html
+```
 
 ### Credits and Acknowledgments
 
