@@ -557,6 +557,8 @@ def create_technologies(connector, technology_list):
         All of the technologies initialized in the input file
     """
 
+
+
     table_command = """
                     CREATE TABLE "technologies" (
                     "tech"	text,
@@ -1867,7 +1869,6 @@ def create_lifetime_process(connector):
     cursor.execute(table_command)
     connector.commit()
     return
-
 
 """
 
