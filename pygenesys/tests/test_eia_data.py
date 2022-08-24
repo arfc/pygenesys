@@ -47,7 +47,6 @@ def test_get_eia_generators_month_passed():
     return
 
 
-
 def test_get_eia_generators_year_passed():
     """
     Tests the data download function where
@@ -106,7 +105,7 @@ def test_get_region_techs_bad_state():
 
 def test_get_region_techs_county():
     """
-    Tests the regional filter function using a 
+    Tests the regional filter function using a
     county name.
     """
 
@@ -117,9 +116,10 @@ def test_get_region_techs_county():
 
     return
 
+
 def test_get_region_techs_bad_county():
     """
-    Tests the regional filter function using a 
+    Tests the regional filter function using a
     non-existent county name.
     """
 
