@@ -184,7 +184,8 @@ def get_region_techs(df, region):
             region_mask = df['Plant State'] == region.upper()
         else:
             raise ValueError(
-                f'Detected state abbreviation. Abbreviation {region} not found.')
+                f'Detected state abbreviation.'+
+                f' Abbreviation {region} not found.')
     else:
         valid_county = (region.capitalize() in df['County'].values)
         if valid_county:
