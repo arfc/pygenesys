@@ -64,12 +64,12 @@ MINOR = _version_minor
 MICRO = _version_micro
 VERSION = __version__
 PACKAGE_DATA = {'pygenesys': [pjoin('data', '*')]}
-REQUIRES = ['numpy', 
-            'pandas', 
-            'matplotlib', 
-            'pytest', 
-            'openpyxl', 
-            'sphinx', 
+REQUIRES = ['numpy',
+            'pandas',
+            'matplotlib',
+            'pytest',
+            'openpyxl',
+            'sphinx',
             'sphinxcontrib-napoleon',
             'm2r2']
 PYTHON_REQUIRES = ">= 3.6"
