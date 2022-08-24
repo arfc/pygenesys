@@ -17,18 +17,18 @@ months = ['january',
           'december']
 
 eia_techs = ['Petroleum Liquids', 'Onshore Wind Turbine',
-            'Conventional Hydroelectric', 'Natural Gas Steam Turbine',
-            'Conventional Steam Coal', 'Natural Gas Fired Combined Cycle',
-            'Natural Gas Fired Combustion Turbine', 'Nuclear',
-            'Hydroelectric Pumped Storage',
-            'Natural Gas Internal Combustion Engine', 'Batteries',
-            'Solar Photovoltaic', 'Geothermal', 'Wood/Wood Waste Biomass',
-            'Coal Integrated Gasification Combined Cycle', 'Other Gases',
-            'Petroleum Coke', 'Municipal Solid Waste', 'Landfill Gas',
-            'Natural Gas with Compressed Air Storage', 'All Other',
-            'Other Waste Biomass', 'Solar Thermal without Energy Storage',
-            'Other Natural Gas', 'Solar Thermal with Energy Storage',
-            'Flywheels', 'Offshore Wind Turbine']
+             'Conventional Hydroelectric', 'Natural Gas Steam Turbine',
+             'Conventional Steam Coal', 'Natural Gas Fired Combined Cycle',
+             'Natural Gas Fired Combustion Turbine', 'Nuclear',
+             'Hydroelectric Pumped Storage',
+             'Natural Gas Internal Combustion Engine', 'Batteries',
+             'Solar Photovoltaic', 'Geothermal', 'Wood/Wood Waste Biomass',
+             'Coal Integrated Gasification Combined Cycle', 'Other Gases',
+             'Petroleum Coke', 'Municipal Solid Waste', 'Landfill Gas',
+             'Natural Gas with Compressed Air Storage', 'All Other',
+             'Other Waste Biomass', 'Solar Thermal without Energy Storage',
+             'Other Natural Gas', 'Solar Thermal with Energy Storage',
+             'Flywheels', 'Offshore Wind Turbine']
 
 
 def get_date():
@@ -55,7 +55,7 @@ def capitalize_string(name_string):
     >>> my_string = "lake county"
     >>> cap_string = capitalize_string(my_string)
     'Lake County'
-    
+
     Parameters
     ----------
     name_string : string
@@ -229,8 +229,8 @@ def get_tech(df, technology):
         tech_mask = df['Technology'] == technology
         tech_df = df[tech_mask]
     else:
-        raise ValueError(f"Technology {technology} does not exist within specified region.\n"+
-                         f"The following technologies are accepted:\n"+
+        raise ValueError(f"Technology {technology} does not exist within specified region.\n" +
+                         f"The following technologies are accepted:\n" +
                          f"{eia_techs}")
 
     return tech_df
@@ -271,9 +271,10 @@ def get_existing_capacity(df, region, technology):
     sorted_tech_df.index = pd.to_datetime(sorted_tech_df.index, format='%Y')
     sorted_tech_df = sorted_tech_df.resample('Y').sum()
 
-    year_filter_df = sorted_tech_df[sorted_tech_df['Nameplate Capacity (MW)'] > 0.0]
+    year_filter_df = sorted_tech_df[sorted_tech_df['Nameplate Capacity (MW)']
+                                    > 0.0]
 
     existing_capacity = dict(zip(year_filter_df.index.year.values,
-                                year_filter_df['Nameplate Capacity (MW)'].values))
+                                 year_filter_df['Nameplate Capacity (MW)'].values))
 
     return existing_capacity

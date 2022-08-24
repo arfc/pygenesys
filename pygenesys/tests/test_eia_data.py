@@ -192,16 +192,13 @@ def test_get_existing_capacity_good_tech():
     tech = 'Nuclear'
     state = 'IL'
     expected_result = {1970: 1009.3,
-                        1971: 1009.3,
-                        1972: 2018.6,
-                        1984: 2340.0,
-                        1985: 1224.9,
-                        1987: 2363.2,
-                        1988: 2449.8}
+                       1971: 1009.3,
+                       1972: 2018.6,
+                       1984: 2340.0,
+                       1985: 1224.9,
+                       1987: 2363.2,
+                       1988: 2449.8}
 
     assert(get_existing_capacity(df,
-                                region=state, 
-                                technology=tech)==expected_result)
-
-
-
+                                 region=state,
+                                 technology=tech) == expected_result)
