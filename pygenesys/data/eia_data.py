@@ -1,3 +1,42 @@
+"""
+BSD 3-Clause License
+
+Copyright (c) 2021, Advanced Reactors and Fuel Cycles
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+=================================================================================
+
+This code is borrowed from `pygenesys` 
+https://github.com/arfc/pygenesys/blob/main/pygenesys/data/eia_data.py
+
+author: Sam Dotson
+"""
+
+
 import pandas as pd
 import numpy as np
 import os
@@ -66,7 +105,7 @@ def get_eia_generators(month=None, year=None):
         'County'
     ]
 
-    # initialize 
+    # initialize with invalid options
     m = 'thermidor'
     y = 2
 
@@ -119,14 +158,13 @@ def get_eia_generators(month=None, year=None):
     return df
 
 
-def get_existing_capacity(df, region, technology):
+def get_region_techs(df, region):
     """
     Gets the existing capacity for a particular technology and region.
     Currently, only electric capacity is considered.
 
-    If the user has an internet connection, PyGenesys will attempt to collect
-    the most up-to-date electric generator data. Otherwise, PyGenesys will
-    default to the data stored in ``pygenesys.data.library``.
+    If the user has an internet connection, get_region_techs will collect
+    the most up-to-date electric generator data. 
 
     Users can also specify a month and year to obtain a specific historical
     dataset from EIA.
@@ -137,61 +175,23 @@ def get_existing_capacity(df, region, technology):
         The dataframe for EIA form 860M
     region : string
         The region of interest. Region may be state or county. The state must
-        be given as an abbreviation a county must be provided as a full name.
-    technology : string
-        The electric generating technology of interest. E.g. "Nuclear"
-
-    Returns
-    -------
-    existing_capacity : dictionary
-        A dictionary containing existing capacity with years
-        as keys and capacity, in MW, as values.
-
+        be given as a two letter abbreviation and a county must be provided as 
+        a full name.
     """
-
-    # verify the technology string is well formed
-    technology = technology.split(' ')
-    technology = [i.capitalize() for i in technology]
-    technology = ' '.join(technology)
-
-    # filter by region
+        # filter by region
     if len(region) == 2:
-        region_mask = df['Plant State'] == region.upper()
+        valid_state = (region.upper() in df['Plant State'].values)
+        if valid_state:
+            region_mask = df['Plant State'] == region.upper()
+        else:
+            raise ValueError(f'Detected state abbreviation. Abbreviation {region} not found.')
     else:
-        region_mask = df['County'] == region.upper()
+        valid_county = (region.capitalize() in df['County'].values)
+        if valid_county:
+            region_mask = df['County'] == region.capitalize()
+        else:
+            raise ValueError(f'Detected county name. County name {region} not found.')
 
     df = df[region_mask]
-
-    # filter by technology
-    tech_mask = df['Technology'] == technology
-    try:
-        tech_df = df[tech_mask]
-    except BaseException:
-        print("Technology does not exist within specified region")
-        return {}
-    # columns = ['Nameplate Capactiy (MW)', 'Operating Year', 'Technology', '']
-    # breakpoint()
-    sorted_tech_df = tech_df.sort_values(by=['Operating Year'])
-    sorted_tech_df.set_index('Operating Year', inplace=True)
-    sorted_tech_df.index = pd.to_datetime(sorted_tech_df.index, format='%Y')
-    sorted_tech_df = sorted_tech_df.resample('Y').sum()
-
-    existing_years = np.array(sorted_tech_df.index.year).astype('int')
-    existing_cap = np.array(sorted_tech_df['Nameplate Capacity (MW)'])
-
-    existing_capacity = {}
-    years = []
-    caps = []
-    for y, c in zip(existing_years, existing_cap):
-        if c > 0.0:
-            years.append(y)
-            caps.append(c)
-
-    return dict(zip(years, caps))
-
-
-if __name__ == '__main__':
-    eia_data = get_eia_generators()
-    my_dict = get_existing_capacity(
-        eia_data, region='IL', technology='Nuclear')
-    print(my_dict)
+    
+    return df
