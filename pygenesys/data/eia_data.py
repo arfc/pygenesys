@@ -229,7 +229,8 @@ def get_tech(df, technology):
         tech_mask = df['Technology'] == technology
         tech_df = df[tech_mask]
     else:
-        raise ValueError(f"Technology {technology} does not exist within specified region.\n" +
+        raise ValueError(f"Technology {technology} does not exist " +
+                         f"within specified region.\n" +
                          f"The following technologies are accepted:\n" +
                          f"{eia_techs}")
 

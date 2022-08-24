@@ -161,7 +161,7 @@ def test_get_region_techs_bad_county():
 
 def test_get_tech_good_tech():
     """
-    Tests `get_tech`. 
+    Tests `get_tech`.
     """
     tech = 'Nuclear'
     tech_df = get_tech(df, technology=tech)
