@@ -1,4 +1,4 @@
-from eia_data import *
+from pygenesys.data.eia_data import *
 import pytest
 from datetime import date
 import pandas as pd
