@@ -215,4 +215,7 @@ def test_get_existing_capacity_good_tech():
         1988: 2449.8,
     }
 
-    assert get_existing_capacity(df, region=state, technology=tech) == expected_result
+    assert (
+        get_existing_capacity(df, region=state, technology=tech)
+        == expected_result
+    )

@@ -207,14 +207,17 @@ def get_region_techs(df, region):
             region_mask = df["Plant State"] == region.upper()
         else:
             raise ValueError(
-                f"Detected state abbreviation." + f" Abbreviation {region} not found."
+                f"Detected state abbreviation."
+                + f" Abbreviation {region} not found."
             )
     else:
         valid_county = capitalize_string(region) in df["County"].values
         if valid_county:
             region_mask = df["County"] == capitalize_string(region)
         else:
-            raise ValueError(f"Detected county name. County name {region} not found.")
+            raise ValueError(
+                f"Detected county name." + f"County name {region} not found."
+            )
 
     region_df = df[region_mask]
 
@@ -299,7 +302,9 @@ def get_existing_capacity(df, region, technology):
     sorted_tech_df.index = pd.to_datetime(sorted_tech_df.index, format="%Y")
     sorted_tech_df = sorted_tech_df.resample("Y").sum()
 
-    year_filter_df = sorted_tech_df[sorted_tech_df["Nameplate Capacity (MW)"] > 0.0]
+    year_filter_df = sorted_tech_df[
+        sorted_tech_df["Nameplate Capacity (MW)"] > 0.0
+    ]
 
     existing_capacity = dict(
         zip(
