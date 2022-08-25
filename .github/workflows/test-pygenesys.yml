@@ -1,0 +1,66 @@
+# Preamble
+name: Test Pygenesys
+
+on:
+  push:
+    paths:
+      - 'pygenesys/**'
+      - 'pygenesys/tests/**'
+  pull_request:
+  # enable worflow to be run manually
+  workflow_dispatch:
+
+env:
+  CACHE_NUMBER: 0 #change to manually reset cache
+
+jobs:
+  test-saltproc:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download Temoa
+        if: steps.dependencies-cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with: 
+          repository: temoaproject/temoa
+          path: temoa
+
+# Setup conda 
+      - name: Set up conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniforge-variant: Mambaforge # mamba is faster than base conda
+          miniforge-version: latest
+          activate-environment: temoa-py3
+          use-mamba: true
+          use-only-tar-bz2: true
+      - run: |
+          conda config --env --set pip_interop_enabled True
+
+      # check for existing cache
+      - name: Set cache date
+        run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        id: dependencies-cache
+        with:
+          path: |
+            /usr/share/miniconda3/envs/temoa-py3
+            ~/.cache/pip
+          key: depcache-${{ hashFiles('requirements.txt') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+
+# Install dependencies
+      - name: Update environment
+        run: mamba env update -n temoa-py3 -f temoa/environment.yml
+        if: steps.dependencies-cache.outputs.cache-hit != 'true'
+
+      - name: Install Pygenesys
+        run:  pip install .
+
+      - name: Test Pygenesys
+        run: pytest pygenesys/tests/
