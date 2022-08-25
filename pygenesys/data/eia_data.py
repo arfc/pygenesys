@@ -3,32 +3,50 @@ import numpy as np
 import os
 from datetime import date
 
-months = ['january',
-          'february',
-          'march',
-          'april',
-          'may',
-          'june',
-          'july',
-          'august',
-          'september',
-          'october',
-          'november',
-          'december']
+months = [
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
+]
 
-eia_techs = ['Petroleum Liquids', 'Onshore Wind Turbine',
-             'Conventional Hydroelectric', 'Natural Gas Steam Turbine',
-             'Conventional Steam Coal', 'Natural Gas Fired Combined Cycle',
-             'Natural Gas Fired Combustion Turbine', 'Nuclear',
-             'Hydroelectric Pumped Storage',
-             'Natural Gas Internal Combustion Engine', 'Batteries',
-             'Solar Photovoltaic', 'Geothermal', 'Wood/Wood Waste Biomass',
-             'Coal Integrated Gasification Combined Cycle', 'Other Gases',
-             'Petroleum Coke', 'Municipal Solid Waste', 'Landfill Gas',
-             'Natural Gas with Compressed Air Storage', 'All Other',
-             'Other Waste Biomass', 'Solar Thermal without Energy Storage',
-             'Other Natural Gas', 'Solar Thermal with Energy Storage',
-             'Flywheels', 'Offshore Wind Turbine']
+eia_techs = [
+    "Petroleum Liquids",
+    "Onshore Wind Turbine",
+    "Conventional Hydroelectric",
+    "Natural Gas Steam Turbine",
+    "Conventional Steam Coal",
+    "Natural Gas Fired Combined Cycle",
+    "Natural Gas Fired Combustion Turbine",
+    "Nuclear",
+    "Hydroelectric Pumped Storage",
+    "Natural Gas Internal Combustion Engine",
+    "Batteries",
+    "Solar Photovoltaic",
+    "Geothermal",
+    "Wood/Wood Waste Biomass",
+    "Coal Integrated Gasification Combined Cycle",
+    "Other Gases",
+    "Petroleum Coke",
+    "Municipal Solid Waste",
+    "Landfill Gas",
+    "Natural Gas with Compressed Air Storage",
+    "All Other",
+    "Other Waste Biomass",
+    "Solar Thermal without Energy Storage",
+    "Other Natural Gas",
+    "Solar Thermal with Energy Storage",
+    "Flywheels",
+    "Offshore Wind Turbine",
+]
 
 
 def get_date():
@@ -37,7 +55,7 @@ def get_date():
     """
     today = date.today().strftime("%B %d, %Y")
 
-    today = today.split(' ')
+    today = today.split(" ")
 
     month = today[0]
     day = today[1]
@@ -67,9 +85,9 @@ def capitalize_string(name_string):
         Capitalized string.
     """
     cap_string = name_string
-    cap_string = cap_string.split(' ')
+    cap_string = cap_string.split(" ")
     cap_string = [i.capitalize() for i in cap_string]
-    cap_string = ' '.join(cap_string)
+    cap_string = " ".join(cap_string)
 
     return cap_string
 
@@ -95,21 +113,21 @@ def get_eia_generators(month=None, year=None):
         Holds the data from EIA form 860M
     """
     columns = [
-        'Entity ID',
-        'Entity Name',
-        'Plant Name',
-        'Sector',
-        'Plant State',
-        'Nameplate Capacity (MW)',
-        'Technology',
-        'Operating Year',
-        'Status',
-        'Balancing Authority Code',
-        'County'
+        "Entity ID",
+        "Entity Name",
+        "Plant Name",
+        "Sector",
+        "Plant State",
+        "Nameplate Capacity (MW)",
+        "Technology",
+        "Operating Year",
+        "Status",
+        "Balancing Authority Code",
+        "County",
     ]
 
     # initialize with invalid options
-    m = 'thermidor'
+    m = "thermidor"
     y = 2
 
     if (month is None) and (year is None):
@@ -125,36 +143,44 @@ def get_eia_generators(month=None, year=None):
         m = month
         y = year
 
-    elif ((month is None) or (year is None)):
+    elif (month is None) or (year is None):
 
         print(f"Month {month} / Year {year}")
         raise ValueError(("Please specify a month and a year."))
 
-    url = (f"https://www.eia.gov/electricity/data/eia860m/archive/xls/" +
-           f"{m}_generator{y}.xlsx")
+    url = (
+        f"https://www.eia.gov/electricity/data/eia860m/archive/xls/"
+        + f"{m}_generator{y}.xlsx"
+    )
 
     try:
-        print(f'Downloading from {url}\n')
-        df = pd.read_excel(url,
-                           sheet_name='Operating',
-                           skipfooter=2,
-                           skiprows=2,
-                           usecols=columns,
-                           index_col='Entity ID')
-        print('Download successful.')
+        print(f"Downloading from {url}\n")
+        df = pd.read_excel(
+            url,
+            sheet_name="Operating",
+            skipfooter=2,
+            skiprows=2,
+            usecols=columns,
+            index_col="Entity ID",
+        )
+        print("Download successful.")
     except BaseException:
-        print('Download failed. Trying different sheet format.')
+        print("Download failed. Trying different sheet format.")
         try:
-            df = pd.read_excel(url,
-                               sheet_name='Operating',
-                               skipfooter=2,
-                               skiprows=1,
-                               usecols=columns,
-                               index_col='Entity ID')
-            print('Download successful.')
+            df = pd.read_excel(
+                url,
+                sheet_name="Operating",
+                skipfooter=2,
+                skiprows=1,
+                usecols=columns,
+                index_col="Entity ID",
+            )
+            print("Download successful.")
         except ValueError:
-            fail_str = (f'Download failed. File not found' +
-                        f' for Month: {month} and Year: {year}')
+            fail_str = (
+                f"Download failed. File not found"
+                + f" for Month: {month} and Year: {year}"
+            )
             raise ValueError(fail_str)
 
     return df
@@ -176,20 +202,19 @@ def get_region_techs(df, region):
     """
 
     if len(region) == 2:
-        valid_state = (region.upper() in df['Plant State'].values)
+        valid_state = region.upper() in df["Plant State"].values
         if valid_state:
-            region_mask = df['Plant State'] == region.upper()
+            region_mask = df["Plant State"] == region.upper()
         else:
             raise ValueError(
-                f'Detected state abbreviation.' +
-                f' Abbreviation {region} not found.')
+                f"Detected state abbreviation." + f" Abbreviation {region} not found."
+            )
     else:
-        valid_county = (capitalize_string(region) in df['County'].values)
+        valid_county = capitalize_string(region) in df["County"].values
         if valid_county:
-            region_mask = df['County'] == capitalize_string(region)
+            region_mask = df["County"] == capitalize_string(region)
         else:
-            raise ValueError(
-                f'Detected county name. County name {region} not found.')
+            raise ValueError(f"Detected county name. County name {region} not found.")
 
     region_df = df[region_mask]
 
@@ -224,15 +249,17 @@ def get_tech(df, technology):
 
     technology = capitalize_string(technology)
 
-    valid_technology = (technology in df['Technology'].values)
+    valid_technology = technology in df["Technology"].values
     if valid_technology:
-        tech_mask = df['Technology'] == technology
+        tech_mask = df["Technology"] == technology
         tech_df = df[tech_mask]
     else:
-        raise ValueError(f"Technology {technology} does not exist " +
-                         f"within specified region.\n" +
-                         f"The following technologies are accepted:\n" +
-                         f"{eia_techs}")
+        raise ValueError(
+            f"Technology {technology} does not exist "
+            + f"within specified region.\n"
+            + f"The following technologies are accepted:\n"
+            + f"{eia_techs}"
+        )
 
     return tech_df
 
@@ -267,15 +294,18 @@ def get_existing_capacity(df, region, technology):
     # filter by technology
     tech_df = get_tech(df, technology)
 
-    sorted_tech_df = tech_df.sort_values(by=['Operating Year'])
-    sorted_tech_df.set_index('Operating Year', inplace=True)
-    sorted_tech_df.index = pd.to_datetime(sorted_tech_df.index, format='%Y')
-    sorted_tech_df = sorted_tech_df.resample('Y').sum()
+    sorted_tech_df = tech_df.sort_values(by=["Operating Year"])
+    sorted_tech_df.set_index("Operating Year", inplace=True)
+    sorted_tech_df.index = pd.to_datetime(sorted_tech_df.index, format="%Y")
+    sorted_tech_df = sorted_tech_df.resample("Y").sum()
 
-    year_filter_df = sorted_tech_df[sorted_tech_df['Nameplate Capacity (MW)']
-                                    > 0.0]
+    year_filter_df = sorted_tech_df[sorted_tech_df["Nameplate Capacity (MW)"] > 0.0]
 
-    existing_capacity = dict(zip(year_filter_df.index.year.values,
-                                 year_filter_df['Nameplate Capacity (MW)'].values))
+    existing_capacity = dict(
+        zip(
+            year_filter_df.index.year.values,
+            year_filter_df["Nameplate Capacity (MW)"].values,
+        )
+    )
 
     return existing_capacity

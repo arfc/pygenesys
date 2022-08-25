@@ -11,7 +11,7 @@ def test_get_date():
 
     today = date.today().strftime("%B %d, %Y")
 
-    today = today.split(' ')
+    today = today.split(" ")
 
     m, d, y = get_date()
 
@@ -29,10 +29,10 @@ def test_capitalize_string_case1():
 
     expected_string = "Natural Gas"
 
-    assert capitalize_string('natural gas') == expected_string
-    assert capitalize_string('Natural gas') == expected_string
-    assert capitalize_string('natural Gas') == expected_string
-    assert capitalize_string('NATURAL GAS') == expected_string
+    assert capitalize_string("natural gas") == expected_string
+    assert capitalize_string("Natural gas") == expected_string
+    assert capitalize_string("natural Gas") == expected_string
+    assert capitalize_string("NATURAL GAS") == expected_string
 
     return
 
@@ -44,9 +44,9 @@ def test_capitalize_string_case2():
 
     expected_string = "Nuclear"
 
-    assert capitalize_string('nuclear') == expected_string
-    assert capitalize_string('Nuclear') == expected_string
-    assert capitalize_string('NUCLEAR') == expected_string
+    assert capitalize_string("nuclear") == expected_string
+    assert capitalize_string("Nuclear") == expected_string
+    assert capitalize_string("NUCLEAR") == expected_string
 
     return
 
@@ -71,7 +71,7 @@ def test_get_eia_generators_month_passed():
     """
 
     with pytest.raises(ValueError):
-        df = get_eia_generators(month='January')
+        df = get_eia_generators(month="January")
 
     return
 
@@ -93,7 +93,7 @@ def test_get_eia_generators_bad_year_month():
     Tests the data download function where
     only the year is passed.
     """
-    month = 'thermidor'
+    month = "thermidor"
     year = 2
 
     with pytest.raises(ValueError):
@@ -111,7 +111,7 @@ def test_get_region_techs_state():
     state abbreviation.
     """
 
-    state = 'IL'
+    state = "IL"
     region_techs = get_region_techs(df, region=state)
 
     assert len(region_techs) > 0
@@ -125,7 +125,7 @@ def test_get_region_techs_bad_state():
     non-existent state abbreviation.
     """
 
-    state = 'QU'
+    state = "QU"
     with pytest.raises(ValueError):
         region_techs = get_region_techs(df, region=state)
 
@@ -138,7 +138,7 @@ def test_get_region_techs_county():
     county name.
     """
 
-    county = 'Champaign'
+    county = "Champaign"
     region_techs = get_region_techs(df, region=county)
 
     assert len(region_techs) > 0
@@ -152,7 +152,7 @@ def test_get_region_techs_bad_county():
     non-existent county name.
     """
 
-    county = 'France'
+    county = "France"
     with pytest.raises(ValueError):
         region_techs = get_region_techs(df, region=county)
 
@@ -163,7 +163,7 @@ def test_get_tech_good_tech():
     """
     Tests `get_tech`.
     """
-    tech = 'Nuclear'
+    tech = "Nuclear"
     tech_df = get_tech(df, technology=tech)
 
     assert len(tech_df) > 0
@@ -177,7 +177,7 @@ def test_get_tech_bad_tech():
     non-existent state abbreviation.
     """
 
-    tech = 'Dark Matter Combustion Engine'
+    tech = "Dark Matter Combustion Engine"
     with pytest.raises(ValueError):
         tech_df = get_tech(df, technology=tech)
 
@@ -189,16 +189,16 @@ def test_get_existing_capacity_good_tech():
     Tests `get_existing_capacity` with a valid technology.
     """
 
-    tech = 'Nuclear'
-    state = 'IL'
-    expected_result = {1970: 1009.3,
-                       1971: 1009.3,
-                       1972: 2018.6,
-                       1984: 2340.0,
-                       1985: 1224.9,
-                       1987: 2363.2,
-                       1988: 2449.8}
+    tech = "Nuclear"
+    state = "IL"
+    expected_result = {
+        1970: 1009.3,
+        1971: 1009.3,
+        1972: 2018.6,
+        1984: 2340.0,
+        1985: 1224.9,
+        1987: 2363.2,
+        1988: 2449.8,
+    }
 
-    assert(get_existing_capacity(df,
-                                 region=state,
-                                 technology=tech) == expected_result)
+    assert get_existing_capacity(df, region=state, technology=tech) == expected_result
