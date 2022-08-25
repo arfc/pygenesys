@@ -105,13 +105,27 @@ def test_get_eia_generators_bad_year_month():
 df = get_eia_generators()
 
 
-def test_get_region_techs_state():
+def test_get_region_techs_upper_state():
     """
-    Tests the regional filter function using a
-    state abbreviation.
+    Tests the regional filter function using an upper
+    case state abbreviation.
     """
 
     state = "IL"
+    region_techs = get_region_techs(df, region=state)
+
+    assert len(region_techs) > 0
+
+    return
+
+
+def test_get_region_techs_lower_state():
+    """
+    Tests the regional filter function using a lower
+    case state abbreviation.
+    """
+
+    state = "il"
     region_techs = get_region_techs(df, region=state)
 
     assert len(region_techs) > 0
