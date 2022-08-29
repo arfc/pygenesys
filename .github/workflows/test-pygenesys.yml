@@ -26,20 +26,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Download Temoa
-        if: steps.dependencies-cache.outputs.cache-hit != 'true'
-        uses: actions/checkout@v3
-        with: 
-          repository: temoaproject/temoa
-          path: temoa
-
-# Setup conda 
+     # Setup conda 
       - name: Set up conda
         uses: conda-incubator/setup-miniconda@v2
         with:
           miniforge-variant: Mambaforge # mamba is faster than base conda
           miniforge-version: latest
-          activate-environment: temoa-py3
+          activate-environment: pygenesys-env
           use-mamba: true
           use-only-tar-bz2: true
       - run: |
@@ -53,14 +46,9 @@ jobs:
         id: dependencies-cache
         with:
           path: |
-            /usr/share/miniconda3/envs/temoa-py3
+            /usr/share/miniconda3/envs/pygenesys-env
             ~/.cache/pip
           key: depcache-${{ hashFiles('requirements.txt') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-
-# Install dependencies
-      - name: Update environment
-        run: mamba env update -n temoa-py3 -f temoa/environment.yml
-        if: steps.dependencies-cache.outputs.cache-hit != 'true'
 
       - name: Install Pygenesys
         run:  pip install .
