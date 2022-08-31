@@ -6,3 +6,4 @@ sphinx
 sphinxcontrib-napoleon
 m2r2
 jinja2
+openpyxl
