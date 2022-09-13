@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'PyGenesys'
-copyright = '2021, Samuel Dotson'
+copyright = '2022, Samuel Dotson'
 author = 'Samuel Dotson'
 
 

@@ -336,5 +336,5 @@ auto-generated from python docstrings in the
 
 ### Credits and Acknowledgments
 
-Some of the code in ``driver.py`` was borrowed and modified from another open
-source project [``PyRK``](https://github.com/pyrk/pyrk).
+Some of the code in `driver.py` was borrowed and modified from another open
+source project [`PyRK`](https://github.com/pyrk/pyrk).
