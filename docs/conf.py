@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'PyGenesys'
-copyright = '2021, Samuel Dotson'
+copyright = '2022, Samuel Dotson'
 author = 'Samuel Dotson'
 
 
@@ -28,7 +28,8 @@ author = 'Samuel Dotson'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc',
-              'sphinxcontrib.napoleon', 'm2r2']
+              'sphinx.ext.napoleon',
+              'm2r2']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

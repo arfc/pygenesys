@@ -69,7 +69,5 @@ REQUIRES = ['numpy',
             'matplotlib',
             'pytest',
             'openpyxl',
-            'sphinx',
-            'sphinxcontrib-napoleon',
-            'm2r2']
+            ]
 PYTHON_REQUIRES = ">= 3.6"

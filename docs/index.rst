@@ -9,14 +9,13 @@
 Contents
 --------
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    db_creator
    driver
    model_info
    technology
    pygenesys.tests
-   setup
 
 
 Indices and Tables

@@ -323,7 +323,18 @@ $ cd docs
 $ make html
 ```
 
+## Contributing to the Docs
+
+First, consult the CONTRIBUTING document (*in progress*). We recommend being
+passingly familiar with 
+[reStructuredText](https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html)
+, though it is not a pre-requiste. Then you should be equipped to address issues from 
+the [GitHub repo](https://github.com/arfc/pygenesys/issues), or add additional 
+documentation to help users and developers alike! Most of the documenation is 
+auto-generated from python docstrings in the 
+[numpy style](https://numpydoc.readthedocs.io/en/latest/format.html).
+
 ### Credits and Acknowledgments
 
-Some of the code in ``driver.py`` was borrowed and modified from another open
-source project [``PyRK``](https://github.com/pyrk/pyrk).
+Some of the code in `driver.py` was borrowed and modified from another open
+source project [`PyRK`](https://github.com/pyrk/pyrk).
