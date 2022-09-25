@@ -1,0 +1,57 @@
+# Preamble
+name: Test Pygenesys
+
+on:
+  push:
+    paths:
+      - 'pygenesys/**'
+      - 'pygenesys/tests/**'
+  pull_request:
+  # enable worflow to be run manually
+  workflow_dispatch:
+
+env:
+  CACHE_NUMBER: 0 #change to manually reset cache
+
+jobs:
+  test-pygenesys:
+    runs-on: ${{ matrix.os }}
+    strategy:
+       matrix: 
+         os: [ubuntu-latest, windows-latest, macOS-latest]
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v3
+
+     # Setup conda 
+      - name: Set up conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniforge-variant: Mambaforge # mamba is faster than base conda
+          miniforge-version: latest
+          activate-environment: pygenesys-env
+          use-mamba: true
+          use-only-tar-bz2: true
+      - run: |
+          conda config --env --set pip_interop_enabled True
+
+      # check for existing cache
+      - name: Set cache date
+        run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        id: dependencies-cache
+        with:
+          path: |
+            /usr/share/miniconda3/envs/pygenesys-env
+            ~/.cache/pip
+          key: depcache-${{ hashFiles('requirements.txt') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+
+      - name: Install Pygenesys
+        run:  pip install .
+
+      - name: Test Pygenesys
+        run: pytest pygenesys/tests/
