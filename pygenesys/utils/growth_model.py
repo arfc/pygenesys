@@ -10,13 +10,12 @@ def choose_growth_method(method_name='linear'):
     ----------
     method_name : string
         The name of the growth method. Accepts: linear
-        TODO: add logistic.
     """
 
     method = {
         'linear': linear_growth,
-        'exponential': exponential_growth
-    }
+        'exponential': exponential_growth,
+        'logistic': logistic_growth}
 
     return method[method_name]
 
@@ -88,8 +87,6 @@ def exponential_growth(init_value, start_year, end_year, N_years, growth_rate):
 
     return growth_data
 
-# TODO finish implementing logistic growth
-
 
 def logistic_growth(
         init_value,
@@ -101,7 +98,7 @@ def logistic_growth(
     """
     This function returns a numpy array representing the growth
     of a quantity in each given year. Use this function if the growth
-    is expected to be linear.
+    is expected to be logistic.
 
     Parameters
     ----------
@@ -116,7 +113,6 @@ def logistic_growth(
         ``end_year``.
     growth_rate : float
         The rate of growth for the given quantity.
-
     cap : float
         The "carrying capacity" for a given quantity. I.e. the maximum
         sustainable value.
@@ -127,8 +123,10 @@ def logistic_growth(
         An array of the value for each year in a simulation.
     """
 
-    # model = lambda x, init_val, start, rate: init_val*np.exp(rate*(x-start))
+    def model(x, rate, cap, sigmoid): return cap * \
+        1/(1 + np.exp(-rate * (x - sigmoid)))
+    sigmoid = 1/growth_rate * np.log(cap/init_value - 1)
     years = np.linspace(start_year, end_year, N_years).astype('int')
-    growth_data = model(years, init_value, start_year, growth_rate)
+    growth_data = model(years, growth_rate, cap, sigmoid)
 
     return growth_data
