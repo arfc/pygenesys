@@ -1,5 +1,7 @@
 # Python for Generating Energy Systems (PyGenesys)
 
+![Build Status](https://github.com/arfc/pygenesys/actions/workflows/test-pygenesys.yml/badge.svg?branch=main)
+
 This package can be used to generate input files for the [Temoa](https://github.com/temoaproject/temoa) modelling tool. Transparency and repeatability are integral to the design motivations for Temoa. PyGenesys takes this concept
 even further by reducing the lead time and programming background required to
 run Temoa.
